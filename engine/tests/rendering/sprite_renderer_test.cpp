@@ -34,7 +34,7 @@ protected:
     std::unique_ptr<SpriteRenderer> sprite_renderer;
 };
 
-// RED PHASE: This test MUST fail - testing single sprite rendering
+// GREEN PHASE: This test now passes - testing single sprite rendering
 TEST_F(SpriteRendererTest, RenderSingleSprite) {
     EXPECT_TRUE(sprite_renderer->initialize(*renderer, *texture_manager));
     
@@ -49,6 +49,28 @@ TEST_F(SpriteRendererTest, RenderSingleSprite) {
     
     EXPECT_EQ(sprite_renderer->getDrawCallCount(), 1u);
     EXPECT_EQ(sprite_renderer->getSpriteCount(), 1u);
+}
+
+// RED PHASE: This test MUST fail - testing sprite batching with different textures
+TEST_F(SpriteRendererTest, BatchMultipleSprites) {
+    EXPECT_TRUE(sprite_renderer->initialize(*renderer, *texture_manager));
+    
+    sprite_renderer->beginFrame();
+    
+    // Draw 5 sprites with texture 1
+    for (int i = 0; i < 5; i++) {
+        sprite_renderer->drawSprite(1, glm::vec2(i * 64.0f, 0.0f), glm::vec2(64.0f, 64.0f));
+    }
+    
+    // Draw 5 sprites with texture 2 (different texture = new batch)
+    for (int i = 0; i < 5; i++) {
+        sprite_renderer->drawSprite(2, glm::vec2(i * 64.0f, 64.0f), glm::vec2(64.0f, 64.0f));
+    }
+    
+    sprite_renderer->endFrame();
+    
+    EXPECT_EQ(sprite_renderer->getSpriteCount(), 10u);
+    EXPECT_EQ(sprite_renderer->getDrawCallCount(), 2u); // Two textures = exactly 2 batches
 }
 
 } // namespace d2::rendering
