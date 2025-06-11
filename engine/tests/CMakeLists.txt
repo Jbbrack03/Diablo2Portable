@@ -17,6 +17,7 @@ FetchContent_MakeAvailable(googletest)
 set(TEST_SOURCES
     main.cpp
     mpq/mpq_loader_test.cpp
+    sprites/dc6_parser_test.cpp
     # Tests will be added as we implement features following TDD
     # core/game_state_test.cpp
     # rendering/renderer_test.cpp
