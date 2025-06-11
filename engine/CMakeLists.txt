@@ -29,6 +29,7 @@ add_library(d2engine STATIC
     src/rendering/sprite_renderer.cpp
     src/input/gamepad_manager.cpp
     src/input/input_manager.cpp
+    src/input/control_mapper.cpp
 )
 
 # Include directories
