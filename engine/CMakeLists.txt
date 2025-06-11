@@ -23,6 +23,7 @@ add_library(d2engine STATIC
     src/sprites/dc6_parser.cpp
     src/core/asset_manager.cpp
     src/rendering/egl_context.cpp
+    src/rendering/renderer.cpp
 )
 
 # Include directories

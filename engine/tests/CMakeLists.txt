@@ -20,9 +20,9 @@ set(TEST_SOURCES
     sprites/dc6_parser_test.cpp
     core/asset_manager_test.cpp
     rendering/egl_context_test.cpp
+    rendering/renderer_test.cpp
     # Tests will be added as we implement features following TDD
     # core/game_state_test.cpp
-    # rendering/renderer_test.cpp
     # input/controller_test.cpp
     # audio/sound_system_test.cpp
     # networking/network_manager_test.cpp
