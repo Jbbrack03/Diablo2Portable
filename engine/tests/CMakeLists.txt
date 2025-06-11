@@ -24,9 +24,9 @@ set(TEST_SOURCES
     rendering/shader_manager_test.cpp
     rendering/texture_manager_test.cpp
     rendering/sprite_renderer_test.cpp
+    input/gamepad_manager_test.cpp
     # Tests will be added as we implement features following TDD
     # core/game_state_test.cpp
-    # input/controller_test.cpp
     # audio/sound_system_test.cpp
     # networking/network_manager_test.cpp
 )
