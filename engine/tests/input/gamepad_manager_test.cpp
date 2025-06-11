@@ -33,3 +33,13 @@ TEST_F(GamepadManagerTest, DetectController) {
     
     EXPECT_TRUE(gamepad.hasController());
 }
+
+TEST_F(GamepadManagerTest, NoControllerConnected) {
+    GamepadManager gamepad(mockInput.get());
+    
+    // Set up expectation: no devices connected
+    EXPECT_CALL(*mockInput, getConnectedDevices())
+        .WillOnce(Return(std::vector<int>{}));
+    
+    EXPECT_FALSE(gamepad.hasController());
+}
