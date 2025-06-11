@@ -83,6 +83,14 @@ public:
      * @return Error message string
      */
     std::string getLastError() const;
+    
+    /**
+     * Compute StormHash for a string (exposed for testing)
+     * @param str String to hash
+     * @param hash_type Hash type (0x000, 0x100, 0x200, 0x300)
+     * @return Hash value
+     */
+    uint32_t hashString(const std::string& str, uint32_t hash_type) const;
 
 private:
     class Impl;

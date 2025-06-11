@@ -4,6 +4,7 @@
 #include <filesystem>
 #include <unordered_map>
 #include <cctype>
+#include <cstdio>
 
 namespace d2portable {
 namespace utils {
@@ -42,10 +43,16 @@ struct MPQBlockEntry {
 const uint32_t MPQ_FILE_EXISTS = 0x80000000;
 const uint32_t MPQ_FILE_COMPRESS = 0x00000200;
 
+// MPQ hash types
+const uint32_t MPQ_HASH_TABLE_OFFSET = 0;
+const uint32_t MPQ_HASH_NAME_A = 1;
+const uint32_t MPQ_HASH_NAME_B = 2;
+const uint32_t MPQ_HASH_FILE_KEY = 3;
+
 // Private implementation class
 class MPQLoader::Impl {
 public:
-    Impl() : is_open(false) {}
+    Impl() : is_open(false), crypt_table_initialized(false) {}
     
     bool is_open;
     std::string filepath;
@@ -56,6 +63,11 @@ public:
     std::vector<MPQBlockEntry> block_table;
     std::unordered_map<std::string, MPQFileInfo> file_map;
     
+    // StormHash cryptographic table
+    static constexpr size_t CRYPT_TABLE_SIZE = 0x500;
+    uint32_t crypt_table[CRYPT_TABLE_SIZE];
+    bool crypt_table_initialized;
+    
     bool validateHeader() {
         return header.signature[0] == 'M' && 
                header.signature[1] == 'P' && 
@@ -63,14 +75,39 @@ public:
                header.signature[3] == 0x1A;
     }
     
-    // Simple hash function for testing - not the real MPQ hash
+    void prepareCryptTable() {
+        if (crypt_table_initialized) return;
+        
+        uint32_t seed = 0x00100001;
+        
+        for (uint32_t index1 = 0; index1 < 0x100; index1++) {
+            for (uint32_t index2 = index1, i = 0; i < 5; i++, index2 += 0x100) {
+                uint32_t temp1, temp2;
+                
+                seed = (seed * 125 + 3) % 0x2AAAAB;
+                temp1 = (seed & 0xFFFF) << 0x10;
+                
+                seed = (seed * 125 + 3) % 0x2AAAAB;
+                temp2 = (seed & 0xFFFF);
+                
+                crypt_table[index2] = (temp1 | temp2);
+            }
+        }
+        
+        crypt_table_initialized = true;
+    }
+    
+    // Proper StormHash implementation
     uint32_t hashString(const std::string& str, uint32_t hash_type) {
+        prepareCryptTable();
+        
         uint32_t seed1 = 0x7FED7FED;
         uint32_t seed2 = 0xEEEEEEEE;
         
         for (char ch : str) {
             ch = std::toupper(ch);
-            seed1 = ((seed1 + seed2) ^ ch) + hash_type;
+            uint32_t table_index = (hash_type << 8) + static_cast<uint8_t>(ch);
+            seed1 = crypt_table[table_index] ^ (seed1 + seed2);
             seed2 = ch + seed1 + seed2 + (seed2 << 5) + 3;
         }
         
@@ -202,8 +239,8 @@ bool MPQLoader::hasFile(const std::string& filename) const {
     if (!pImpl->is_open) return false;
     
     // Calculate hash values for the filename
-    uint32_t name1 = pImpl->hashString(filename, 0x100);
-    uint32_t name2 = pImpl->hashString(filename, 0x200);
+    uint32_t name1 = pImpl->hashString(filename, MPQ_HASH_NAME_A);
+    uint32_t name2 = pImpl->hashString(filename, MPQ_HASH_NAME_B);
     
     // Search hash table
     for (const auto& entry : pImpl->hash_table) {
@@ -225,8 +262,8 @@ bool MPQLoader::extractFile(const std::string& filename, std::vector<uint8_t>& o
     }
     
     // Calculate hash values for the filename
-    uint32_t name1 = pImpl->hashString(filename, 0x100);
-    uint32_t name2 = pImpl->hashString(filename, 0x200);
+    uint32_t name1 = pImpl->hashString(filename, MPQ_HASH_NAME_A);
+    uint32_t name2 = pImpl->hashString(filename, MPQ_HASH_NAME_B);
     
     // Find the file in hash table
     const MPQHashEntry* hash_entry = nullptr;
@@ -279,6 +316,10 @@ std::optional<MPQFileInfo> MPQLoader::getFileInfo(const std::string& filename) c
 
 std::string MPQLoader::getLastError() const {
     return pImpl->last_error;
+}
+
+uint32_t MPQLoader::hashString(const std::string& str, uint32_t hash_type) const {
+    return pImpl->hashString(str, hash_type);
 }
 
 } // namespace utils
