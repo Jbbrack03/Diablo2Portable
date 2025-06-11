@@ -1,0 +1,56 @@
+# Build directories
+build/
+cmake-build-*/
+out/
+Debug/
+Release/
+_deps/
+
+# Android build files
+android/.gradle/
+android/app/build/
+android/local.properties
+*.apk
+*.aab
+*.ap_
+*.dex
+
+# IDE files
+.idea/
+*.iml
+.vscode/
+.vs/
+*.swp
+*.swo
+*~
+
+# Operating System files
+.DS_Store
+Thumbs.db
+
+# Generated files
+*.o
+*.so
+*.a
+*.dylib
+*.dll
+*.exe
+
+# Test output
+test-results/
+coverage/
+*.gcda
+*.gcno
+
+# Game assets (users must provide their own)
+assets/
+extracted_assets/
+
+# Temporary files
+*.tmp
+*.temp
+*.log
+
+# Personal signing keys
+*.keystore
+*.jks
