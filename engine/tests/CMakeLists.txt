@@ -28,6 +28,7 @@ set(TEST_SOURCES
     input/input_manager_test.cpp
     input/control_mapper_test.cpp
     game/character_test.cpp
+    game/combat_test.cpp
     # Tests will be added as we implement features following TDD
     # core/game_state_test.cpp
     # audio/sound_system_test.cpp
