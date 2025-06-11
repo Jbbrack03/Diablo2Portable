@@ -22,6 +22,7 @@ set(TEST_SOURCES
     rendering/egl_context_test.cpp
     rendering/renderer_test.cpp
     rendering/shader_manager_test.cpp
+    rendering/texture_manager_test.cpp
     # Tests will be added as we implement features following TDD
     # core/game_state_test.cpp
     # input/controller_test.cpp
