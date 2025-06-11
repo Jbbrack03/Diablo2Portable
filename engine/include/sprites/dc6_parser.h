@@ -52,6 +52,16 @@ public:
      * @return RGBA pixel data (4 bytes per pixel)
      */
     virtual std::vector<uint8_t> getFrameImage(uint32_t direction, uint32_t frame) const = 0;
+    
+    /**
+     * Get frame as RGBA image data using a custom palette
+     * @param direction Direction index
+     * @param frame Frame index
+     * @param palette 256-color palette (RGBA format, 32-bit per color)
+     * @return RGBA pixel data (4 bytes per pixel)
+     */
+    virtual std::vector<uint8_t> getFrameImageWithPalette(uint32_t direction, uint32_t frame, 
+                                                          const std::vector<uint32_t>& palette) const = 0;
 };
 
 /**
@@ -72,6 +82,12 @@ public:
      * @return Parsed sprite object, or nullptr on failure
      */
     std::unique_ptr<DC6Sprite> parseData(const std::vector<uint8_t>& data);
+    
+    /**
+     * Get the default Diablo II palette
+     * @return 256-color palette (RGBA format, 32-bit per color)
+     */
+    std::vector<uint32_t> getDefaultPalette() const;
 };
 
 } // namespace sprites

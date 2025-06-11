@@ -5,6 +5,47 @@
 namespace d2portable {
 namespace sprites {
 
+// DC6 RLE decompression
+std::vector<uint8_t> decompressRLE(const std::vector<uint8_t>& compressed_data, uint32_t expected_size) {
+    std::vector<uint8_t> decompressed;
+    decompressed.reserve(expected_size);
+    
+    size_t pos = 0;
+    while (pos < compressed_data.size() && decompressed.size() < expected_size) {
+        uint8_t command = compressed_data[pos++];
+        
+        if (pos >= compressed_data.size()) break;
+        
+        if (command & 0x80) {
+            // RLE run: high bit set means repeat next byte
+            uint8_t count = command & 0x7F; // Remove high bit to get count
+            uint8_t pixel_value = compressed_data[pos++];
+            
+            // End marker check
+            if (count == 0) {
+                break;
+            }
+            
+            // Add repeated pixels
+            for (uint8_t i = 0; i < count && decompressed.size() < expected_size; i++) {
+                decompressed.push_back(pixel_value);
+            }
+        } else {
+            // Raw data: copy next 'command' bytes directly
+            for (uint8_t i = 0; i < command && pos < compressed_data.size() && decompressed.size() < expected_size; i++) {
+                decompressed.push_back(compressed_data[pos++]);
+            }
+        }
+    }
+    
+    // Pad with transparent pixels if needed
+    while (decompressed.size() < expected_size) {
+        decompressed.push_back(0);
+    }
+    
+    return decompressed;
+}
+
 // DC6 file header structure
 struct DC6Header {
     uint32_t version;
@@ -75,6 +116,43 @@ public:
         return rgba_data;
     }
     
+    std::vector<uint8_t> getFrameImageWithPalette(uint32_t direction, uint32_t frame, 
+                                                  const std::vector<uint32_t>& palette) const override {
+        auto dc6_frame = getFrame(direction, frame);
+        std::vector<uint8_t> rgba_data;
+        
+        if (dc6_frame.pixel_data.empty()) {
+            return rgba_data;
+        }
+        
+        // Check if palette is valid (must have 256 colors)
+        if (palette.size() != 256) {
+            // Fall back to grayscale conversion
+            return getFrameImage(direction, frame);
+        }
+        
+        // Convert palette indexed data to RGBA using the provided palette
+        rgba_data.reserve(dc6_frame.width * dc6_frame.height * 4);
+        
+        for (uint8_t pixel_index : dc6_frame.pixel_data) {
+            // Get color from palette
+            uint32_t color = palette[pixel_index];
+            
+            // Extract RGBA components
+            uint8_t r = color & 0xFF;
+            uint8_t g = (color >> 8) & 0xFF;
+            uint8_t b = (color >> 16) & 0xFF;
+            uint8_t a = (color >> 24) & 0xFF;
+            
+            rgba_data.push_back(r);
+            rgba_data.push_back(g);
+            rgba_data.push_back(b);
+            rgba_data.push_back(a);
+        }
+        
+        return rgba_data;
+    }
+    
     void setFrame(uint32_t direction, uint32_t frame, const DC6Frame& frame_data) {
         if (direction < directions && frame < frames_per_dir) {
             frames_data[direction][frame] = frame_data;
@@ -130,10 +208,21 @@ std::unique_ptr<DC6Sprite> DC6Parser::parseFile(const std::string& filepath) {
             dc6_frame.height = frame_header.height;
             dc6_frame.offset_x = frame_header.offset_x;
             dc6_frame.offset_y = frame_header.offset_y;
-            dc6_frame.pixel_data.resize(frame_header.length);
             
-            file.read(reinterpret_cast<char*>(dc6_frame.pixel_data.data()), 
+            // Read pixel data
+            std::vector<uint8_t> raw_data(frame_header.length);
+            file.read(reinterpret_cast<char*>(raw_data.data()), 
                       frame_header.length);
+            
+            // Check if data needs RLE decompression
+            uint32_t expected_size = frame_header.width * frame_header.height;
+            if (frame_header.length == expected_size) {
+                // Data is already uncompressed
+                dc6_frame.pixel_data = raw_data;
+            } else {
+                // Data is RLE compressed
+                dc6_frame.pixel_data = decompressRLE(raw_data, expected_size);
+            }
             
             sprite->setFrame(dir, frame, dc6_frame);
         }
@@ -145,6 +234,53 @@ std::unique_ptr<DC6Sprite> DC6Parser::parseFile(const std::string& filepath) {
 std::unique_ptr<DC6Sprite> DC6Parser::parseData(const std::vector<uint8_t>& data) {
     // TODO: Implement parsing from memory buffer
     return nullptr;
+}
+
+std::vector<uint32_t> DC6Parser::getDefaultPalette() const {
+    std::vector<uint32_t> palette(256);
+    
+    // Create a basic Diablo II-style palette
+    // Index 0 is always transparent
+    palette[0] = 0x00000000; // Transparent (ARGB: alpha=0)
+    
+    // Create a grayscale palette with some color variation for testing
+    for (size_t i = 1; i < 256; i++) {
+        uint8_t intensity = static_cast<uint8_t>(i);
+        
+        // Add some color variation to make it more interesting
+        uint8_t r, g, b;
+        if (i < 64) {
+            // Dark colors with slight red tint
+            r = intensity + 20;
+            g = intensity;
+            b = intensity;
+        } else if (i < 128) {
+            // Mid-range with slight green tint
+            r = intensity;
+            g = intensity + 20;
+            b = intensity;
+        } else if (i < 192) {
+            // Brighter with slight blue tint
+            r = intensity;
+            g = intensity;
+            b = intensity + 20;
+        } else {
+            // Brightest colors - pure intensity
+            r = intensity;
+            g = intensity;
+            b = intensity;
+        }
+        
+        // Ensure we don't overflow
+        r = r > 255 ? 255 : r;
+        g = g > 255 ? 255 : g;
+        b = b > 255 ? 255 : b;
+        
+        // Store as ARGB (alpha=255 for opaque)
+        palette[i] = (255 << 24) | (b << 16) | (g << 8) | r;
+    }
+    
+    return palette;
 }
 
 } // namespace sprites
