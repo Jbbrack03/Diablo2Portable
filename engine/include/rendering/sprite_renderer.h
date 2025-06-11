@@ -1,0 +1,30 @@
+#pragma once
+
+#include <cstdint>
+#include <glm/vec2.hpp>
+
+namespace d2::rendering {
+
+class Renderer;
+class TextureManager;
+
+class SpriteRenderer {
+public:
+    SpriteRenderer() = default;
+    ~SpriteRenderer() = default;
+
+    bool initialize(const Renderer& renderer, const TextureManager& texture_manager);
+    void beginFrame();
+    void drawSprite(uint32_t texture_id, const glm::vec2& position, const glm::vec2& size);
+    void endFrame();
+    
+    uint32_t getDrawCallCount() const;
+    uint32_t getSpriteCount() const;
+
+private:
+    bool initialized_ = false;
+    uint32_t draw_call_count_ = 0;
+    uint32_t sprite_count_ = 0;
+};
+
+} // namespace d2::rendering

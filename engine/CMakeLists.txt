@@ -26,6 +26,7 @@ add_library(d2engine STATIC
     src/rendering/renderer.cpp
     src/rendering/shader_manager.cpp
     src/rendering/texture_manager.cpp
+    src/rendering/sprite_renderer.cpp
 )
 
 # Include directories
