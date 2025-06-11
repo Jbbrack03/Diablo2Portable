@@ -43,3 +43,19 @@ TEST_F(GamepadManagerTest, NoControllerConnected) {
     
     EXPECT_FALSE(gamepad.hasController());
 }
+
+TEST_F(GamepadManagerTest, IgnoreNonGamepadDevices) {
+    GamepadManager gamepad(mockInput.get());
+    
+    // Set up expectation: keyboard and mouse connected, but no gamepad
+    EXPECT_CALL(*mockInput, getConnectedDevices())
+        .WillOnce(Return(std::vector<int>{2001, 2002}));
+    
+    EXPECT_CALL(*mockInput, isGamepad(2001))
+        .WillOnce(Return(false));  // Keyboard
+    
+    EXPECT_CALL(*mockInput, isGamepad(2002))
+        .WillOnce(Return(false));  // Mouse
+    
+    EXPECT_FALSE(gamepad.hasController());
+}
