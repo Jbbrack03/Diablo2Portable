@@ -177,6 +177,11 @@ std::vector<MPQFileInfo> MPQLoader::listFiles() const {
         if (hash_entry.block_index < pImpl->block_table.size()) {
             const auto& block = pImpl->block_table[hash_entry.block_index];
             
+            // Skip empty blocks
+            if (block.unpacked_size == 0 || !(block.flags & MPQ_FILE_EXISTS)) {
+                continue;
+            }
+            
             MPQFileInfo info;
             // For testing, we'll hardcode the filename since we don't have a file list table
             info.filename = "test.txt";  // In real implementation, this would come from file list

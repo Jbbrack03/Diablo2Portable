@@ -51,6 +51,33 @@ protected:
         file.write(reinterpret_cast<const char*>(&block_table_offset), 4);
         file.write(reinterpret_cast<const char*>(&hash_table_entries), 4);
         file.write(reinterpret_cast<const char*>(&block_table_entries), 4);
+        
+        // Write empty hash table
+        file.seekp(hash_table_offset);
+        struct HashEntry {
+            uint32_t name1;
+            uint32_t name2;
+            uint16_t locale;
+            uint16_t platform;
+            uint32_t block_index;
+        };
+        HashEntry empty_entry = {0xFFFFFFFF, 0xFFFFFFFF, 0xFFFF, 0, 0xFFFFFFFF};
+        for (uint32_t i = 0; i < hash_table_entries; i++) {
+            file.write(reinterpret_cast<const char*>(&empty_entry), sizeof(HashEntry));
+        }
+        
+        // Write empty block table
+        file.seekp(block_table_offset);
+        struct BlockEntry {
+            uint32_t file_pos;
+            uint32_t packed_size;
+            uint32_t unpacked_size;
+            uint32_t flags;
+        };
+        BlockEntry empty_block = {0, 0, 0, 0};
+        for (uint32_t i = 0; i < block_table_entries; i++) {
+            file.write(reinterpret_cast<const char*>(&empty_block), sizeof(BlockEntry));
+        }
     }
 
     void createTestMPQWithFile() {
