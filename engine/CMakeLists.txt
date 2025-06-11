@@ -21,6 +21,8 @@ add_library(d2engine STATIC
     src/dummy.cpp
     src/utils/mpq_loader.cpp
     src/sprites/dc6_parser.cpp
+    src/core/asset_manager.cpp
+    src/rendering/egl_context.cpp
 )
 
 # Include directories
@@ -37,10 +39,23 @@ target_compile_options(d2engine PRIVATE
     $<$<CXX_COMPILER_ID:MSVC>:/W4>
 )
 
+# Find required packages
+find_package(Threads REQUIRED)
+
+# Fetch GLM for mathematics
+include(FetchContent)
+FetchContent_Declare(
+    glm
+    GIT_REPOSITORY https://github.com/g-truc/glm.git
+    GIT_TAG        1.0.1
+)
+FetchContent_MakeAvailable(glm)
+
 # Link libraries
 target_link_libraries(d2engine
     PUBLIC
         Threads::Threads
+        glm::glm
 )
 
 # Platform-specific settings
