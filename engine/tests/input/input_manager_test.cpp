@@ -52,3 +52,23 @@ TEST_F(InputManagerTest, ReadButtonStates) {
     EXPECT_TRUE(input.isButtonPressed(GameButton::ACTION));
     EXPECT_FALSE(input.isButtonPressed(GameButton::CANCEL));
 }
+
+TEST_F(InputManagerTest, ReadAxisValues) {
+    InputManager input(mockGamepad.get());
+    
+    // Set up expectations
+    EXPECT_CALL(*mockGamepad, isConnected())
+        .WillRepeatedly(Return(true));
+        
+    EXPECT_CALL(*mockGamepad, getAxis(AXIS_LEFT_X))
+        .WillOnce(Return(0.5f));
+        
+    EXPECT_CALL(*mockGamepad, getAxis(AXIS_LEFT_Y))
+        .WillOnce(Return(0.7f));
+    
+    input.update();
+    
+    auto movement = input.getMovement();
+    EXPECT_NEAR(movement.x, 0.5f, 0.01f);
+    EXPECT_NEAR(movement.y, 0.7f, 0.01f);
+}

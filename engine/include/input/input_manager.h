@@ -1,5 +1,6 @@
 #pragma once
 #include <unordered_map>
+#include <glm/glm.hpp>
 
 namespace d2::input {
 
@@ -19,10 +20,13 @@ public:
     void update();
     
     bool isButtonPressed(GameButton button) const;
+    
+    glm::vec2 getMovement() const;
 
 private:
     Gamepad* gamepad_;
     std::unordered_map<GameButton, bool> buttonStates_;
+    glm::vec2 leftStick_;
 };
 
 } // namespace d2::input
