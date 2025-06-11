@@ -27,13 +27,20 @@ public:
     
     void setLevel(int level);
     void addStatPoint(StatType stat, int points);
+    void addExperience(int experience);
     
     int getBaseDamage() const;
     int getLife() const;
+    int getLevel() const { return m_level; }
+    int getStatPoints() const { return m_statPoints; }
+    int getSkillPoints() const { return m_skillPoints; }
     
 private:
     CharacterClass m_class;
     int m_level = 1;
+    int m_experience = 0;
+    int m_statPoints = 0;
+    int m_skillPoints = 0;
     
     // Base stats
     int m_strength = 0;
@@ -43,6 +50,7 @@ private:
     
     // Base stats by class
     void initializeBaseStats();
+    void checkLevelUp();
 };
 
 } // namespace d2::game

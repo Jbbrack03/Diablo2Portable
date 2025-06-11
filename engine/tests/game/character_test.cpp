@@ -23,3 +23,21 @@ TEST_F(CharacterTest, StatCalculation) {
     // Test life calculation (Base + VIT + level)
     EXPECT_EQ(barbarian.getLife(), 420); // Base + VIT + level
 }
+
+// Test for Phase 4, Task 4.1: Character System - Level up
+TEST_F(CharacterTest, LevelUp) {
+    // Create a Sorceress character
+    Character sorc(CharacterClass::SORCERESS);
+    
+    // Add enough experience to level up
+    sorc.addExperience(1000);
+    
+    // Check level increased
+    EXPECT_EQ(sorc.getLevel(), 2);
+    
+    // Check stat points awarded (5 per level in D2)
+    EXPECT_EQ(sorc.getStatPoints(), 5);
+    
+    // Check skill points awarded (1 per level in D2)
+    EXPECT_EQ(sorc.getSkillPoints(), 1);
+}
