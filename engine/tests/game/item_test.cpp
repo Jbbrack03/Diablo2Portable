@@ -97,3 +97,23 @@ TEST_F(ItemTest, ItemPrefixGeneration) {
     // The full item name should include the prefix
     EXPECT_EQ(magicSword.getFullName(), "Sharp Long Sword");
 }
+
+// Test for Phase 4, Task 4.3: Item System - Suffix generation for magic items
+TEST_F(ItemTest, ItemSuffixGeneration) {
+    // Create a magic armor with a suffix
+    Item magicArmor("Ring Mail", ItemType::ARMOR);
+    magicArmor.setRarity(ItemRarity::MAGIC);
+    
+    // Generate a suffix - "of the Fox" adds dexterity
+    magicArmor.generateSuffix(1);  // Seed for deterministic testing
+    
+    // Verify the suffix was applied
+    EXPECT_TRUE(magicArmor.hasSuffix());
+    EXPECT_EQ(magicArmor.getSuffixName(), "of the Fox");
+    
+    // "of the Fox" suffix should add +5 dexterity
+    EXPECT_EQ(magicArmor.getStatBonus(StatType::DEXTERITY), 5);
+    
+    // The full item name should include the suffix
+    EXPECT_EQ(magicArmor.getFullName(), "Ring Mail of the Fox");
+}

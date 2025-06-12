@@ -53,6 +53,11 @@ public:
     void generatePrefix(int seed);
     bool hasPrefix() const { return !m_prefixName.empty(); }
     const std::string& getPrefixName() const { return m_prefixName; }
+    
+    void generateSuffix(int seed);
+    bool hasSuffix() const { return !m_suffixName.empty(); }
+    const std::string& getSuffixName() const { return m_suffixName; }
+    
     std::string getFullName() const;
     
 private:
@@ -73,6 +78,7 @@ private:
     
     // Affix data
     std::string m_prefixName;
+    std::string m_suffixName;
 };
 
 } // namespace d2::game

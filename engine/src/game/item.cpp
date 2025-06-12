@@ -73,11 +73,27 @@ void Item::generatePrefix(int seed) {
     }
 }
 
-std::string Item::getFullName() const {
-    if (hasPrefix()) {
-        return m_prefixName + " " + m_name;
+void Item::generateSuffix(int seed) {
+    // For now, always generate "of the Fox" suffix for armor with seed 1
+    if (m_type == ItemType::ARMOR && seed == 1) {
+        m_suffixName = "of the Fox";
+        // Add the dexterity bonus
+        addStatBonus(StatType::DEXTERITY, 5);
     }
-    return m_name;
+}
+
+std::string Item::getFullName() const {
+    std::string fullName = m_name;
+    
+    if (hasPrefix()) {
+        fullName = m_prefixName + " " + fullName;
+    }
+    
+    if (hasSuffix()) {
+        fullName = fullName + " " + m_suffixName;
+    }
+    
+    return fullName;
 }
 
 } // namespace d2::game
