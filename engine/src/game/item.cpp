@@ -177,4 +177,9 @@ int Item::getTotalAffixCount() const {
     return count;
 }
 
+void Item::setSize(int width, int height) {
+    m_width = width;
+    m_height = height;
+}
+
 } // namespace d2::game

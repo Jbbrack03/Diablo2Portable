@@ -68,6 +68,11 @@ public:
     
     std::string getFullName() const;
     
+    // Item size in inventory grid
+    void setSize(int width, int height);
+    int getWidth() const { return m_width; }
+    int getHeight() const { return m_height; }
+    
 private:
     std::string m_name;
     ItemType m_type;
@@ -89,6 +94,10 @@ private:
     std::string m_prefixName;
     std::string m_suffixName;
     std::vector<std::string> m_additionalAffixes;  // For rare items with multiple affixes
+    
+    // Size in inventory grid
+    int m_width = 1;
+    int m_height = 1;
 };
 
 } // namespace d2::game
