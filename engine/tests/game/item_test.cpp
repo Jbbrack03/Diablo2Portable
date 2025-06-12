@@ -151,3 +151,36 @@ TEST_F(ItemTest, ItemLevelBasedAffixPool) {
     EXPECT_EQ(highLevelSword.getMinDamage(), 150);  // 50 * 3
     EXPECT_EQ(highLevelSword.getMaxDamage(), 180);  // 60 * 3
 }
+
+// Test for Phase 4, Task 4.3: Item System - Affix value ranges (random rolls)
+TEST_F(ItemTest, ItemAffixValueRanges) {
+    // Create an armor with a suffix that has variable values
+    Item magicGloves("Leather Gloves", ItemType::ARMOR);
+    magicGloves.setRarity(ItemRarity::MAGIC);
+    
+    // Generate "of Strength" suffix with different roll seeds
+    // Seed includes both affix selection and value roll
+    magicGloves.generateSuffix(10);  // Seed 10 = "of Strength" with min roll
+    
+    EXPECT_EQ(magicGloves.getSuffixName(), "of Strength");
+    // "of Strength" can roll 3-7 strength, seed 10 gives minimum
+    EXPECT_EQ(magicGloves.getStatBonus(StatType::STRENGTH), 3);
+    
+    // Create another item with max roll
+    Item magicGloves2("Leather Gloves", ItemType::ARMOR);
+    magicGloves2.setRarity(ItemRarity::MAGIC);
+    magicGloves2.generateSuffix(11);  // Seed 11 = "of Strength" with max roll
+    
+    EXPECT_EQ(magicGloves2.getSuffixName(), "of Strength");
+    // Same suffix but max roll
+    EXPECT_EQ(magicGloves2.getStatBonus(StatType::STRENGTH), 7);
+    
+    // Test mid-range roll
+    Item magicGloves3("Leather Gloves", ItemType::ARMOR);
+    magicGloves3.setRarity(ItemRarity::MAGIC);
+    magicGloves3.generateSuffix(12);  // Seed 12 = "of Strength" with mid roll
+    
+    EXPECT_EQ(magicGloves3.getSuffixName(), "of Strength");
+    // Mid-range value
+    EXPECT_EQ(magicGloves3.getStatBonus(StatType::STRENGTH), 5);
+}

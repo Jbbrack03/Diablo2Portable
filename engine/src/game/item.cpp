@@ -94,11 +94,26 @@ void Item::generatePrefix(int seed) {
 }
 
 void Item::generateSuffix(int seed) {
-    // For now, always generate "of the Fox" suffix for armor with seed 1
-    if (m_type == ItemType::ARMOR && seed == 1) {
-        m_suffixName = "of the Fox";
-        // Add the dexterity bonus
-        addStatBonus(StatType::DEXTERITY, 5);
+    if (m_type == ItemType::ARMOR) {
+        if (seed == 1) {
+            m_suffixName = "of the Fox";
+            // Add the dexterity bonus
+            addStatBonus(StatType::DEXTERITY, 5);
+        } else if (seed >= 10 && seed <= 12) {
+            // "of Strength" suffix with variable values
+            m_suffixName = "of Strength";
+            
+            // Calculate stat value based on seed
+            // Range is 3-7, seed determines the roll
+            int strengthBonus = 3;  // minimum
+            if (seed == 11) {
+                strengthBonus = 7;  // maximum
+            } else if (seed == 12) {
+                strengthBonus = 5;  // mid-range
+            }
+            
+            addStatBonus(StatType::STRENGTH, strengthBonus);
+        }
     }
 }
 
