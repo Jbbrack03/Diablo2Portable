@@ -28,3 +28,19 @@ TEST_F(CombatTest, HitChanceCalculation) {
     // = 1.333 * 0.5 = 0.6667
     EXPECT_NEAR(hitChance, 0.6667f, 0.001f); // 2/3 chance
 }
+
+// Test for Phase 4, Task 4.2: Combat System - Basic damage calculation
+TEST_F(CombatTest, BasicDamageCalculation) {
+    CombatEngine combat;
+    
+    // Test basic physical damage calculation without any modifiers
+    int damage = combat.calculateDamage(
+        50,    // Base minimum damage
+        100,   // Base maximum damage
+        0      // Physical damage (no elemental)
+    );
+    
+    // Damage should be between min and max
+    EXPECT_GE(damage, 50);
+    EXPECT_LE(damage, 100);
+}

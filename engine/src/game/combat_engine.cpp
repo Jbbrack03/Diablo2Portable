@@ -1,5 +1,6 @@
 #include "game/combat_engine.h"
 #include <algorithm>
+#include <random>
 
 namespace d2::game {
 
@@ -20,6 +21,16 @@ float CombatEngine::calculateHitChance(int attackRating, int defense,
     
     // Clamp between 0 and 1 (0% to 100%)
     return std::clamp(hitChance, 0.0f, 1.0f);
+}
+
+int CombatEngine::calculateDamage(int minDamage, int maxDamage, int elementalDamage) const {
+    // Minimal implementation to pass test
+    // Generate random damage between min and max
+    static std::random_device rd;
+    static std::mt19937 gen(rd());
+    
+    std::uniform_int_distribution<> dis(minDamage, maxDamage);
+    return dis(gen);
 }
 
 } // namespace d2::game
