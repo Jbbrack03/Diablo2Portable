@@ -180,3 +180,73 @@ TEST_F(InventoryTest, EquipmentSlots) {
     EXPECT_EQ(charInv.getEquippedItem(EquipmentSlot::MAIN_HAND), nullptr);
     EXPECT_TRUE(charInv.getBackpack().contains(sword));
 }
+
+// Test for Phase 4 Enhancement: Equipment slot validation
+TEST_F(InventoryTest, EquipmentSlotValidation) {
+    CharacterInventory charInventory;
+    
+    // Create items with specific slot requirements
+    auto helmet = std::make_shared<Item>("Steel Helm", ItemType::ARMOR);
+    helmet->setEquipmentSlot(EquipmentSlot::HEAD);
+    helmet->setSize(2, 2);
+    
+    auto sword = std::make_shared<Item>("Long Sword", ItemType::WEAPON);
+    sword->setEquipmentSlot(EquipmentSlot::MAIN_HAND);
+    sword->setSize(1, 3);
+    
+    auto boots = std::make_shared<Item>("Leather Boots", ItemType::ARMOR);
+    boots->setEquipmentSlot(EquipmentSlot::FEET);
+    boots->setSize(2, 2);
+    
+    // Test that slot validation is enforced
+    EXPECT_TRUE(charInventory.equipItemWithValidation(helmet));
+    EXPECT_EQ(charInventory.getEquippedItem(EquipmentSlot::HEAD), helmet);
+    
+    // Test equipping another item to same slot replaces it
+    auto betterHelmet = std::make_shared<Item>("Golden Helm", ItemType::ARMOR);
+    betterHelmet->setEquipmentSlot(EquipmentSlot::HEAD);
+    betterHelmet->setSize(2, 2);
+    
+    EXPECT_TRUE(charInventory.equipItemWithValidation(betterHelmet));
+    EXPECT_EQ(charInventory.getEquippedItem(EquipmentSlot::HEAD), betterHelmet);
+    
+    // Test that wrong slot items are rejected
+    auto wrongSlotItem = std::make_shared<Item>("Wrong Item", ItemType::ARMOR);
+    wrongSlotItem->setEquipmentSlot(EquipmentSlot::HEAD);
+    // Try to force it into wrong slot
+    EXPECT_FALSE(charInventory.forceEquipToSlot(wrongSlotItem, EquipmentSlot::FEET));
+    
+    // Test two-handed weapons
+    auto twoHandedSword = std::make_shared<Item>("Claymore", ItemType::WEAPON);
+    twoHandedSword->setEquipmentSlot(EquipmentSlot::MAIN_HAND);
+    twoHandedSword->setSize(2, 4);
+    twoHandedSword->setTwoHanded(true);
+    
+    EXPECT_TRUE(charInventory.equipItemWithValidation(twoHandedSword));
+    EXPECT_TRUE(charInventory.isTwoHandedEquipped());
+    
+    // Test that off-hand is blocked when two-handed weapon is equipped
+    auto shield = std::make_shared<Item>("Shield", ItemType::ARMOR);
+    shield->setEquipmentSlot(EquipmentSlot::OFF_HAND);
+    shield->setSize(2, 3);
+    
+    EXPECT_FALSE(charInventory.equipItemWithValidation(shield));
+    
+    // Test character level requirements
+    charInventory.setCharacterLevel(10);
+    
+    auto highLevelHelm = std::make_shared<Item>("Crown of Ages", ItemType::ARMOR);
+    highLevelHelm->setEquipmentSlot(EquipmentSlot::HEAD);
+    highLevelHelm->setRequiredLevel(80);
+    
+    EXPECT_FALSE(charInventory.equipItemWithValidation(highLevelHelm));
+    
+    // Test character stat requirements
+    charInventory.setCharacterStrength(20);
+    
+    auto strengthBoots = std::make_shared<Item>("Heavy Boots", ItemType::ARMOR);
+    strengthBoots->setEquipmentSlot(EquipmentSlot::FEET);
+    strengthBoots->setRequiredStrength(60);
+    
+    EXPECT_FALSE(charInventory.equipItemWithValidation(strengthBoots));
+}

@@ -89,6 +89,21 @@ public:
     void setQuestId(const std::string& questId) { m_questId = questId; }
     const std::string& getQuestId() const { return m_questId; }
     
+    // Two-handed weapon property
+    void setTwoHanded(bool twoHanded) { m_isTwoHanded = twoHanded; }
+    bool isTwoHanded() const { return m_isTwoHanded; }
+    
+    // Stat requirements
+    void setRequiredStrength(int strength) { m_requiredStrength = strength; }
+    int getRequiredStrength() const { return m_requiredStrength; }
+    
+    void setRequiredDexterity(int dexterity) { m_requiredDexterity = dexterity; }
+    int getRequiredDexterity() const { return m_requiredDexterity; }
+    
+    // Can be equipped in off-hand
+    void setCanBeOffHand(bool canBeOffHand) { m_canBeOffHand = canBeOffHand; }
+    bool canBeOffHand() const { return m_canBeOffHand; }
+    
 private:
     std::string m_name;
     ItemType m_type;
@@ -124,6 +139,14 @@ private:
     
     // Quest item data
     std::string m_questId;
+    
+    // Weapon properties
+    bool m_isTwoHanded = false;
+    bool m_canBeOffHand = false;
+    
+    // Stat requirements
+    int m_requiredStrength = 0;
+    int m_requiredDexterity = 0;
 };
 
 } // namespace d2::game

@@ -67,4 +67,58 @@ std::shared_ptr<Item> CharacterInventory::getEquippedItem(EquipmentSlot slot) co
     return it != m_equipped.end() ? it->second : nullptr;
 }
 
+bool CharacterInventory::equipItemWithValidation(std::shared_ptr<Item> item) {
+    if (!item || !item->hasEquipmentSlot()) {
+        return false;
+    }
+    
+    // Check level requirement
+    if (item->getRequiredLevel() > m_characterLevel) {
+        return false;
+    }
+    
+    // Check stat requirements
+    if (item->getRequiredStrength() > m_characterStrength) {
+        return false;
+    }
+    
+    if (item->getRequiredDexterity() > m_characterDexterity) {
+        return false;
+    }
+    
+    EquipmentSlot slot = item->getEquipmentSlot();
+    
+    // Check if trying to equip in off-hand while two-handed weapon is equipped
+    if (slot == EquipmentSlot::OFF_HAND && isTwoHandedEquipped()) {
+        return false;
+    }
+    
+    // Check if trying to equip two-handed weapon while off-hand is occupied
+    if (item->isTwoHanded() && getEquippedItem(EquipmentSlot::OFF_HAND) != nullptr) {
+        return false;
+    }
+    
+    // Use regular equip method if all validations pass
+    return equipItem(item);
+}
+
+bool CharacterInventory::forceEquipToSlot(std::shared_ptr<Item> item, EquipmentSlot slot) {
+    if (!item || !item->hasEquipmentSlot()) {
+        return false;
+    }
+    
+    // Check if item's equipment slot matches the requested slot
+    if (item->getEquipmentSlot() != slot) {
+        return false;  // Can't equip item to wrong slot
+    }
+    
+    // Use regular equip method
+    return equipItem(item);
+}
+
+bool CharacterInventory::isTwoHandedEquipped() const {
+    auto mainHand = getEquippedItem(EquipmentSlot::MAIN_HAND);
+    return mainHand && mainHand->isTwoHanded();
+}
+
 } // namespace d2::game
