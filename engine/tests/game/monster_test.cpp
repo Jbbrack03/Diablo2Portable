@@ -94,3 +94,24 @@ TEST_F(MonsterTest, MonsterSpawning) {
     EXPECT_EQ(monster->getPositionX(), 100);
     EXPECT_EQ(monster->getPositionY(), 200);
 }
+
+// Test for Phase 5, Task 5.2: Monster System - Advanced AI behaviors
+TEST_F(MonsterTest, AdvancedAIBehaviors) {
+    Monster skeleton(MonsterType::SKELETON, 10);
+    skeleton.setPosition(0, 0);
+    
+    // Test PATROLLING state - monster moves in area without target
+    skeleton.startPatrolling(50, 50);  // Patrol around position (50,50)
+    skeleton.updateAI();
+    EXPECT_EQ(skeleton.getAIState(), AIState::PATROLLING);
+    
+    // Test ATTACKING state - when close to target
+    skeleton.setTarget(5, 5);  // Close target
+    skeleton.updateAI();
+    EXPECT_EQ(skeleton.getAIState(), AIState::ATTACKING);
+    
+    // Test FLEEING state - when low health
+    skeleton.takeDamage(80);  // Reduce health significantly
+    skeleton.updateAI();
+    EXPECT_EQ(skeleton.getAIState(), AIState::FLEEING);
+}

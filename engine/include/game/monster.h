@@ -15,7 +15,10 @@ enum class MonsterType {
 
 enum class AIState {
     IDLE,
-    SEEKING
+    SEEKING,
+    PATROLLING,
+    ATTACKING,
+    FLEEING
 };
 
 class Monster {
@@ -34,16 +37,22 @@ public:
     int getPositionY() const { return m_positionY; }
     void setPosition(int x, int y);
     
+    // Combat methods
+    void takeDamage(int damage);
+    int getCurrentLife() const { return m_currentLife; }
+    
     // AI methods
     AIState getAIState() const { return m_aiState; }
     void setTarget(int x, int y);
     void clearTarget();
+    void startPatrolling(int centerX, int centerY);
     void updateAI();
     
 private:
     MonsterType m_type;
     int m_level;
     int m_life;
+    int m_currentLife;
     int m_damage;
     int m_defense;
     int m_attackRating;
@@ -57,6 +66,11 @@ private:
     bool m_hasTarget;
     int m_targetX;
     int m_targetY;
+    
+    // Patrol state
+    bool m_isPatrolling;
+    int m_patrolCenterX;
+    int m_patrolCenterY;
     
     void initializeStats();
 };

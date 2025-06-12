@@ -12,6 +12,9 @@ Monster::Monster(MonsterType type, int level)
     , m_hasTarget(false)
     , m_targetX(0)
     , m_targetY(0)
+    , m_isPatrolling(false)
+    , m_patrolCenterX(0)
+    , m_patrolCenterY(0)
 {
     // Initialize stats based on monster type and level
     initializeStats();
@@ -38,6 +41,9 @@ void Monster::initializeStats() {
             // Combat stats - need > 0 for combat integration test
             m_defense = 20 + m_level * 5;        // Level 10: 20 + 50 = 70 defense
             m_attackRating = 50 + m_level * 10;  // Level 10: 50 + 100 = 150 attack rating
+            
+            // Set current life to max life
+            m_currentLife = m_life;
             break;
     }
 }
@@ -59,13 +65,51 @@ void Monster::setPosition(int x, int y) {
     m_positionY = y;
 }
 
-void Monster::updateAI() {
-    // Minimal implementation to pass AI behavior test
-    if (m_hasTarget) {
-        m_aiState = AIState::SEEKING;
-    } else {
-        m_aiState = AIState::IDLE;
+void Monster::takeDamage(int damage) {
+    m_currentLife -= damage;
+    if (m_currentLife < 0) {
+        m_currentLife = 0;
     }
+}
+
+void Monster::startPatrolling(int centerX, int centerY) {
+    m_isPatrolling = true;
+    m_patrolCenterX = centerX;
+    m_patrolCenterY = centerY;
+}
+
+void Monster::updateAI() {
+    // Advanced AI logic
+    
+    // Priority 1: Fleeing when low health (less than 25% of max life)
+    if (m_currentLife < m_life * 0.25) {
+        m_aiState = AIState::FLEEING;
+        return;
+    }
+    
+    // Priority 2: Attacking when close to target (distance <= 10)
+    if (m_hasTarget) {
+        int dx = m_targetX - m_positionX;
+        int dy = m_targetY - m_positionY;
+        int distanceSquared = dx * dx + dy * dy;
+        
+        if (distanceSquared <= 100) {  // Distance <= 10 (10^2 = 100)
+            m_aiState = AIState::ATTACKING;
+            return;
+        } else {
+            m_aiState = AIState::SEEKING;
+            return;
+        }
+    }
+    
+    // Priority 3: Patrolling when enabled
+    if (m_isPatrolling) {
+        m_aiState = AIState::PATROLLING;
+        return;
+    }
+    
+    // Default: Idle
+    m_aiState = AIState::IDLE;
 }
 
 std::unique_ptr<Monster> MonsterSpawner::spawnMonster(MonsterType type, int level, int x, int y) {
