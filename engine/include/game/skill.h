@@ -23,12 +23,17 @@ public:
     int getMaxLevel() const { return m_maxLevel; }
     
     bool addSkillPoint();
+    bool canAddSkillPoint() const;
+    void setPrerequisite(Skill* prerequisiteSkill, int requiredLevel);
     
 private:
     SkillType m_type;
     std::string m_name;
     int m_level = 0;
     int m_maxLevel = 20;
+    
+    Skill* m_prerequisiteSkill = nullptr;
+    int m_prerequisiteLevel = 0;
 };
 
 } // namespace d2::game
