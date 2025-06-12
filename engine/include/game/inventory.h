@@ -21,6 +21,7 @@ public:
     // Item management
     bool addItem(std::shared_ptr<Item> item, int x, int y);
     std::shared_ptr<Item> getItemAt(int x, int y) const;
+    bool removeItem(int x, int y);
     
 private:
     int m_width;

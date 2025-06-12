@@ -53,4 +53,43 @@ std::shared_ptr<Item> Inventory::getItemAt(int x, int y) const {
     return m_grid[y][x];
 }
 
+bool Inventory::removeItem(int x, int y) {
+    if (x < 0 || y < 0 || x >= m_width || y >= m_height) {
+        return false;
+    }
+    
+    auto item = m_grid[y][x];
+    if (!item) {
+        return false;  // No item at this position
+    }
+    
+    // Find the top-left corner of the item
+    // Items store the same pointer in all occupied slots
+    int itemStartX = x;
+    int itemStartY = y;
+    
+    // Search backwards to find the top-left corner
+    for (int searchY = y; searchY >= 0 && m_grid[searchY][x] == item; searchY--) {
+        itemStartY = searchY;
+    }
+    for (int searchX = x; searchX >= 0 && m_grid[y][searchX] == item; searchX--) {
+        itemStartX = searchX;
+    }
+    
+    // Remove the item from all its slots
+    int itemWidth = item->getWidth();
+    int itemHeight = item->getHeight();
+    
+    for (int dy = 0; dy < itemHeight; dy++) {
+        for (int dx = 0; dx < itemWidth; dx++) {
+            if (itemStartY + dy < m_height && itemStartX + dx < m_width) {
+                m_grid[itemStartY + dy][itemStartX + dx] = nullptr;
+            }
+        }
+    }
+    
+    m_usedSlots -= itemWidth * itemHeight;
+    return true;
+}
+
 } // namespace d2::game

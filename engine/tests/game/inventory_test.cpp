@@ -55,3 +55,38 @@ TEST_F(InventoryTest, AddItemsToInventory) {
         }
     }
 }
+
+// Test for Phase 4, Task 4.5: Inventory System - Remove items
+TEST_F(InventoryTest, RemoveItemsFromInventory) {
+    Inventory inventory(10, 4);
+    
+    // Add some items first
+    auto potion = std::make_shared<Item>("Health Potion", ItemType::CONSUMABLE);
+    potion->setSize(1, 1);
+    inventory.addItem(potion, 0, 0);
+    
+    auto sword = std::make_shared<Item>("Long Sword", ItemType::WEAPON);
+    sword->setSize(2, 3);
+    inventory.addItem(sword, 2, 0);
+    
+    EXPECT_EQ(inventory.getUsedSlots(), 7);
+    
+    // Remove the potion
+    EXPECT_TRUE(inventory.removeItem(0, 0));
+    EXPECT_EQ(inventory.getUsedSlots(), 6);  // Only sword remains
+    EXPECT_EQ(inventory.getItemAt(0, 0), nullptr);
+    
+    // Remove the sword (can remove from any of its occupied positions)
+    EXPECT_TRUE(inventory.removeItem(3, 1));  // Remove from middle of sword
+    EXPECT_EQ(inventory.getUsedSlots(), 0);
+    
+    // Verify all sword slots are now empty
+    for (int x = 2; x < 4; x++) {
+        for (int y = 0; y < 3; y++) {
+            EXPECT_EQ(inventory.getItemAt(x, y), nullptr);
+        }
+    }
+    
+    // Try to remove from empty slot
+    EXPECT_FALSE(inventory.removeItem(0, 0));
+}
