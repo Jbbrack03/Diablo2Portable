@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 #include "game/monster.h"
+#include "game/combat_engine.h"
 
 using namespace d2::game;
 
@@ -48,4 +49,34 @@ TEST_F(MonsterTest, BasicAIBehavior) {
     skeleton.clearTarget();
     skeleton.updateAI();
     EXPECT_EQ(skeleton.getAIState(), AIState::IDLE);
+}
+
+TEST_F(MonsterTest, CombatIntegration) {
+    Monster skeleton(MonsterType::SKELETON, 10);
+    CombatEngine combat;
+    
+    // Monster should have combat stats that integrate with CombatEngine
+    EXPECT_GT(skeleton.getAttackRating(), 0);
+    EXPECT_GT(skeleton.getDefense(), 0);
+    
+    // Test combat calculations with monster stats
+    float hitChance = combat.calculateHitChance(
+        skeleton.getAttackRating(),
+        100,  // Target defense
+        skeleton.getLevel(),
+        10    // Target level
+    );
+    
+    EXPECT_GT(hitChance, 0.0f);
+    EXPECT_LE(hitChance, 1.0f);
+    
+    // Test damage calculation with monster damage
+    int damage = combat.calculateDamage(
+        skeleton.getDamage() - 2,  // Min damage (slightly less than max)
+        skeleton.getDamage(),      // Max damage
+        0                          // No elemental damage
+    );
+    
+    EXPECT_GE(damage, skeleton.getDamage() - 2);
+    EXPECT_LE(damage, skeleton.getDamage());
 }

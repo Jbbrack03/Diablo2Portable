@@ -22,6 +22,7 @@ public:
     int getLife() const { return m_life; }
     int getDamage() const { return m_damage; }
     int getDefense() const { return m_defense; }
+    int getAttackRating() const { return m_attackRating; }
     
     // AI methods
     AIState getAIState() const { return m_aiState; }
@@ -35,6 +36,7 @@ private:
     int m_life;
     int m_damage;
     int m_defense;
+    int m_attackRating;
     
     // AI state
     AIState m_aiState;

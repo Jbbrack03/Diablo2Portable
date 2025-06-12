@@ -5,6 +5,7 @@ namespace d2::game {
 Monster::Monster(MonsterType type, int level)
     : m_type(type)
     , m_level(level)
+    , m_attackRating(0)
     , m_aiState(AIState::IDLE)
     , m_hasTarget(false)
     , m_targetX(0)
@@ -31,7 +32,10 @@ void Monster::initializeStats() {
                 m_life = 85;   // Exact value for level 10
                 m_damage = 15; // Exact value for level 10
             }
-            m_defense = 0; // Keep simple for now
+            
+            // Combat stats - need > 0 for combat integration test
+            m_defense = 20 + m_level * 5;        // Level 10: 20 + 50 = 70 defense
+            m_attackRating = 50 + m_level * 10;  // Level 10: 50 + 100 = 150 attack rating
             break;
     }
 }
