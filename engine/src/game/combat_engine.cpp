@@ -42,4 +42,30 @@ int CombatEngine::calculateDamageWithResistance(int baseDamage, int physicalResi
     return static_cast<int>(baseDamage * resistMultiplier);
 }
 
+int CombatEngine::calculateFullDamage(int physicalDamage, int fireDamage, int coldDamage,
+                                    int lightningDamage, int poisonDamage,
+                                    int physicalResist, int fireResist, int coldResist,
+                                    int lightningResist, int poisonResist) const {
+    // Minimal implementation to pass test
+    // Calculate damage for each type after applying resistances
+    int totalDamage = 0;
+    
+    // Physical damage
+    totalDamage += static_cast<int>(physicalDamage * (1.0f - physicalResist / 100.0f));
+    
+    // Fire damage
+    totalDamage += static_cast<int>(fireDamage * (1.0f - fireResist / 100.0f));
+    
+    // Cold damage
+    totalDamage += static_cast<int>(coldDamage * (1.0f - coldResist / 100.0f));
+    
+    // Lightning damage
+    totalDamage += static_cast<int>(lightningDamage * (1.0f - lightningResist / 100.0f));
+    
+    // Poison damage
+    totalDamage += static_cast<int>(poisonDamage * (1.0f - poisonResist / 100.0f));
+    
+    return totalDamage;
+}
+
 } // namespace d2::game

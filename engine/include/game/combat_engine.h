@@ -15,6 +15,12 @@ public:
     int calculateDamageWithResistance(int baseDamage, int physicalResist,
                                     int fireResist, int coldResist,
                                     int lightningResist, int poisonResist) const;
+    
+    // Calculate full damage with all damage types and resistances
+    int calculateFullDamage(int physicalDamage, int fireDamage, int coldDamage,
+                          int lightningDamage, int poisonDamage,
+                          int physicalResist, int fireResist, int coldResist,
+                          int lightningResist, int poisonResist) const;
 };
 
 } // namespace d2::game
