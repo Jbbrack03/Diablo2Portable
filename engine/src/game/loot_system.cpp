@@ -1,7 +1,6 @@
 #include "game/loot_system.h"
-#include "game/item.h"
-#include "game/monster.h"
 #include <random>
+#include <algorithm>
 
 namespace d2::game {
 
@@ -25,6 +24,33 @@ std::vector<std::shared_ptr<Item>> LootSystem::generateLoot(std::shared_ptr<Mons
     for (int i = 0; i < numItems; i++) {
         auto item = generateRandomItem(monsterLevel);
         if (item) {
+            // Update item type based on monster loot table if available
+            auto tableIt = m_monsterLootTables.find(monster->getType());
+            if (tableIt != m_monsterLootTables.end()) {
+                ItemType selectedType = selectItemType(monster->getType());
+                
+                // Recreate item with selected type
+                switch (selectedType) {
+                    case ItemType::WEAPON:
+                        item = std::make_shared<Item>("Sword", ItemType::WEAPON);
+                        item->setDamage(monsterLevel, monsterLevel * 2);
+                        break;
+                    case ItemType::ARMOR:
+                        item = std::make_shared<Item>("Armor", ItemType::ARMOR);
+                        item->setDefense(monsterLevel * 3);
+                        break;
+                    case ItemType::CONSUMABLE:
+                        item = std::make_shared<Item>("Potion", ItemType::CONSUMABLE);
+                        break;
+                    default:
+                        break;
+                }
+                
+                // Re-set item properties
+                item->setItemLevel(std::max(1, monsterLevel - 5 + (rand() % 10)));
+                item->setRequiredLevel(std::max(1, monsterLevel - 2));
+            }
+            
             loot.push_back(item);
         }
     }
@@ -65,6 +91,39 @@ std::shared_ptr<Item> LootSystem::generateRandomItem(int monsterLevel) {
     }
     
     return item;
+}
+
+void LootSystem::setMonsterLootTable(MonsterType type, const std::vector<LootTableEntry>& table) {
+    m_monsterLootTables[type] = table;
+}
+
+ItemType LootSystem::selectItemType(MonsterType monsterType) {
+    auto tableIt = m_monsterLootTables.find(monsterType);
+    if (tableIt == m_monsterLootTables.end()) {
+        // Default random selection
+        static std::random_device rd;
+        static std::mt19937 gen(rd());
+        std::uniform_int_distribution<> dist(0, 2);
+        return static_cast<ItemType>(dist(gen));
+    }
+    
+    // Use weighted random selection based on loot table
+    static std::random_device rd;
+    static std::mt19937 gen(rd());
+    std::uniform_real_distribution<> dist(0.0, 1.0);
+    
+    float roll = dist(gen);
+    float cumulative = 0.0f;
+    
+    for (const auto& entry : tableIt->second) {
+        cumulative += entry.chance;
+        if (roll <= cumulative) {
+            return entry.type;
+        }
+    }
+    
+    // Fallback to first entry if probabilities don't sum to 1.0
+    return tableIt->second.front().type;
 }
 
 } // namespace d2::game
