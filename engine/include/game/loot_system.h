@@ -19,6 +19,19 @@ struct LootTableEntry {
     float chance;
 };
 
+// Rarity chance entry
+struct RarityChance {
+    ItemRarity rarity;
+    float chance;
+};
+
+// Level range for rarity chances
+struct RarityLevel {
+    int minLevel;
+    int maxLevel;
+    std::vector<RarityChance> chances;
+};
+
 class LootSystem {
 public:
     LootSystem();
@@ -29,13 +42,20 @@ public:
     // Configure loot tables
     void setMonsterLootTable(MonsterType type, const std::vector<LootTableEntry>& table);
     
+    // Configure rarity chances
+    void setRarityChances(int minLevel, int maxLevel, const std::vector<RarityChance>& chances);
+    
 private:
     // Helper methods
     std::shared_ptr<Item> generateRandomItem(int monsterLevel);
     ItemType selectItemType(MonsterType monsterType);
+    ItemRarity selectRarity(int monsterLevel);
     
     // Monster-specific loot tables
     std::unordered_map<MonsterType, std::vector<LootTableEntry>> m_monsterLootTables;
+    
+    // Rarity chances by level range
+    std::vector<RarityLevel> m_rarityLevels;
 };
 
 } // namespace d2::game

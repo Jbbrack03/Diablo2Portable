@@ -109,3 +109,74 @@ TEST_F(LootSystemTest, MonsterSpecificLootTables) {
     float consumableRatio = static_cast<float>(consumableCount) / totalDrops;
     EXPECT_GT(consumableRatio, 0.5f);
 }
+
+// Test for Phase 4, Task 4.6: Loot System - Rarity chances
+TEST_F(LootSystemTest, LootRarityChances) {
+    LootSystem lootSystem;
+    
+    // Configure rarity chances based on monster level
+    // Low level monsters - mostly normal items
+    std::vector<RarityChance> lowLevelChances = {
+        {ItemRarity::NORMAL, 0.7f},   // 70% normal
+        {ItemRarity::MAGIC, 0.25f},   // 25% magic
+        {ItemRarity::RARE, 0.05f},    // 5% rare
+        {ItemRarity::UNIQUE, 0.0f},   // 0% unique
+        {ItemRarity::SET, 0.0f}       // 0% set
+    };
+    lootSystem.setRarityChances(1, 10, lowLevelChances);
+    
+    // High level monsters - better rarity chances
+    std::vector<RarityChance> highLevelChances = {
+        {ItemRarity::NORMAL, 0.3f},   // 30% normal
+        {ItemRarity::MAGIC, 0.4f},    // 40% magic
+        {ItemRarity::RARE, 0.2f},     // 20% rare
+        {ItemRarity::UNIQUE, 0.07f},  // 7% unique
+        {ItemRarity::SET, 0.03f}      // 3% set
+    };
+    lootSystem.setRarityChances(40, 100, highLevelChances);
+    
+    // Test low level monster drops
+    std::map<ItemRarity, int> lowLevelRarities;
+    int totalLowLevel = 0;
+    
+    for (int i = 0; i < 200; i++) {
+        auto zombie = std::make_shared<Monster>(MonsterType::ZOMBIE, 5);
+        auto loot = lootSystem.generateLoot(zombie);
+        
+        for (const auto& item : loot) {
+            lowLevelRarities[item->getRarity()]++;
+            totalLowLevel++;
+        }
+    }
+    
+    // Check that most are normal items
+    float normalRatio = static_cast<float>(lowLevelRarities[ItemRarity::NORMAL]) / totalLowLevel;
+    EXPECT_GT(normalRatio, 0.6f);  // At least 60% normal
+    
+    // Should have very few or no unique/set items
+    EXPECT_EQ(lowLevelRarities[ItemRarity::UNIQUE], 0);
+    EXPECT_EQ(lowLevelRarities[ItemRarity::SET], 0);
+    
+    // Test high level monster drops
+    std::map<ItemRarity, int> highLevelRarities;
+    int totalHighLevel = 0;
+    
+    for (int i = 0; i < 200; i++) {
+        auto demon = std::make_shared<Monster>(MonsterType::DEMON, 50);
+        auto loot = lootSystem.generateLoot(demon);
+        
+        for (const auto& item : loot) {
+            highLevelRarities[item->getRarity()]++;
+            totalHighLevel++;
+        }
+    }
+    
+    // Should have more magic and rare items
+    float magicRareRatio = static_cast<float>(highLevelRarities[ItemRarity::MAGIC] + 
+                                               highLevelRarities[ItemRarity::RARE]) / totalHighLevel;
+    EXPECT_GT(magicRareRatio, 0.5f);  // At least 50% magic or rare
+    
+    // Should have some unique/set items
+    int uniqueSetCount = highLevelRarities[ItemRarity::UNIQUE] + highLevelRarities[ItemRarity::SET];
+    EXPECT_GT(uniqueSetCount, 0);  // At least one unique or set item
+}
