@@ -3,8 +3,14 @@
 namespace d2::map {
 
 bool Map::isWalkable(int x, int y) const {
-    // Default implementation - will be expanded
-    return false;
+    // Check bounds
+    if (x < 0 || y < 0 || x >= m_width || y >= m_height) {
+        return false;
+    }
+    
+    // For now, all tiles within bounds are walkable
+    // This will be expanded to check actual tile data
+    return true;
 }
 
 std::unique_ptr<Map> MapLoader::loadMap(const std::string& filename) {
