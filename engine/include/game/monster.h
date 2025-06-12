@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <memory>
 
 namespace d2::game {
 
@@ -28,6 +29,11 @@ public:
     int getDefense() const { return m_defense; }
     int getAttackRating() const { return m_attackRating; }
     
+    // Position methods
+    int getPositionX() const { return m_positionX; }
+    int getPositionY() const { return m_positionY; }
+    void setPosition(int x, int y);
+    
     // AI methods
     AIState getAIState() const { return m_aiState; }
     void setTarget(int x, int y);
@@ -42,6 +48,10 @@ private:
     int m_defense;
     int m_attackRating;
     
+    // Position
+    int m_positionX;
+    int m_positionY;
+    
     // AI state
     AIState m_aiState;
     bool m_hasTarget;
@@ -49,6 +59,11 @@ private:
     int m_targetY;
     
     void initializeStats();
+};
+
+class MonsterSpawner {
+public:
+    std::unique_ptr<Monster> spawnMonster(MonsterType type, int level, int x, int y);
 };
 
 } // namespace d2::game

@@ -80,3 +80,17 @@ TEST_F(MonsterTest, CombatIntegration) {
     EXPECT_GE(damage, skeleton.getDamage() - 2);
     EXPECT_LE(damage, skeleton.getDamage());
 }
+
+// Test for Phase 5, Task 5.2: Monster System - Monster spawning functionality
+TEST_F(MonsterTest, MonsterSpawning) {
+    MonsterSpawner spawner;
+    
+    // Test spawning a monster at a specific location
+    auto monster = spawner.spawnMonster(MonsterType::SKELETON, 5, 100, 200);
+    
+    EXPECT_NE(monster, nullptr);
+    EXPECT_EQ(monster->getType(), MonsterType::SKELETON);
+    EXPECT_EQ(monster->getLevel(), 5);
+    EXPECT_EQ(monster->getPositionX(), 100);
+    EXPECT_EQ(monster->getPositionY(), 200);
+}

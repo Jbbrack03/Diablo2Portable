@@ -6,6 +6,8 @@ Monster::Monster(MonsterType type, int level)
     : m_type(type)
     , m_level(level)
     , m_attackRating(0)
+    , m_positionX(0)
+    , m_positionY(0)
     , m_aiState(AIState::IDLE)
     , m_hasTarget(false)
     , m_targetX(0)
@@ -52,6 +54,11 @@ void Monster::clearTarget() {
     m_targetY = 0;
 }
 
+void Monster::setPosition(int x, int y) {
+    m_positionX = x;
+    m_positionY = y;
+}
+
 void Monster::updateAI() {
     // Minimal implementation to pass AI behavior test
     if (m_hasTarget) {
@@ -59,6 +66,13 @@ void Monster::updateAI() {
     } else {
         m_aiState = AIState::IDLE;
     }
+}
+
+std::unique_ptr<Monster> MonsterSpawner::spawnMonster(MonsterType type, int level, int x, int y) {
+    // Create monster and set its position
+    auto monster = std::make_unique<Monster>(type, level);
+    monster->setPosition(x, y);
+    return monster;
 }
 
 } // namespace d2::game
