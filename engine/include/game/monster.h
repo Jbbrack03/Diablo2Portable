@@ -24,6 +24,8 @@ private:
     int m_life;
     int m_damage;
     int m_defense;
+    
+    void initializeStats();
 };
 
 } // namespace d2::game

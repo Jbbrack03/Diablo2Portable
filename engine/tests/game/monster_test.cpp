@@ -18,3 +18,17 @@ TEST_F(MonsterTest, CreateBasicMonster) {
     EXPECT_GT(skeleton.getDamage(), 0);
     EXPECT_GE(skeleton.getDefense(), 0);
 }
+
+TEST_F(MonsterTest, MonsterLevelScaling) {
+    Monster level1Skeleton(MonsterType::SKELETON, 1);
+    Monster level10Skeleton(MonsterType::SKELETON, 10);
+    
+    // Higher level monsters should have more life and damage
+    EXPECT_GT(level10Skeleton.getLife(), level1Skeleton.getLife());
+    EXPECT_GT(level10Skeleton.getDamage(), level1Skeleton.getDamage());
+    EXPECT_GE(level10Skeleton.getDefense(), level1Skeleton.getDefense());
+    
+    // Specific scaling expectations for level 10 skeleton
+    EXPECT_EQ(level10Skeleton.getLife(), 85);    // Base + level scaling
+    EXPECT_EQ(level10Skeleton.getDamage(), 15);  // Base + level scaling
+}
