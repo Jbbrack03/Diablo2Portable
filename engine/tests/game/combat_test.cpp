@@ -44,3 +44,21 @@ TEST_F(CombatTest, BasicDamageCalculation) {
     EXPECT_GE(damage, 50);
     EXPECT_LE(damage, 100);
 }
+
+// Test for Phase 4, Task 4.2: Combat System - Physical resistance calculation
+TEST_F(CombatTest, PhysicalResistanceCalculation) {
+    CombatEngine combat;
+    
+    // Test damage reduction from physical resistance
+    int damage = combat.calculateDamageWithResistance(
+        100,   // Base damage
+        50,    // Physical resistance (50%)
+        0,     // Fire resistance (unused)
+        0,     // Cold resistance (unused)
+        0,     // Lightning resistance (unused)
+        0      // Poison resistance (unused)
+    );
+    
+    // With 50% physical resistance, 100 damage becomes 50
+    EXPECT_EQ(damage, 50);
+}

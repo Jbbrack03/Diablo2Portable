@@ -10,6 +10,11 @@ public:
     
     // Calculate damage based on min/max range
     int calculateDamage(int minDamage, int maxDamage, int elementalDamage) const;
+    
+    // Calculate damage with resistance reduction
+    int calculateDamageWithResistance(int baseDamage, int physicalResist,
+                                    int fireResist, int coldResist,
+                                    int lightningResist, int poisonResist) const;
 };
 
 } // namespace d2::game
