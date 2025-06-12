@@ -35,4 +35,23 @@ void Skill::setPrerequisite(Skill* prerequisiteSkill, int requiredLevel) {
     m_prerequisiteLevel = requiredLevel;
 }
 
+bool Skill::addSynergy(Skill* synergySkill, float bonusPerLevel) {
+    if (m_synergies.size() >= MAX_SYNERGIES) {
+        return false;
+    }
+    
+    m_synergies.push_back({synergySkill, bonusPerLevel});
+    return true;
+}
+
+float Skill::getSynergyBonus() const {
+    float totalBonus = 0.0f;
+    
+    for (const auto& [skill, bonusPerLevel] : m_synergies) {
+        totalBonus += skill->getLevel() * bonusPerLevel;
+    }
+    
+    return totalBonus;
+}
+
 } // namespace d2::game

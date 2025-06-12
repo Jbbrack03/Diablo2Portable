@@ -1,6 +1,8 @@
 #pragma once
 
 #include <string>
+#include <vector>
+#include <utility>
 
 namespace d2::game {
 
@@ -26,6 +28,9 @@ public:
     bool canAddSkillPoint() const;
     void setPrerequisite(Skill* prerequisiteSkill, int requiredLevel);
     
+    bool addSynergy(Skill* synergySkill, float bonusPerLevel);
+    float getSynergyBonus() const;
+    
 private:
     SkillType m_type;
     std::string m_name;
@@ -34,6 +39,9 @@ private:
     
     Skill* m_prerequisiteSkill = nullptr;
     int m_prerequisiteLevel = 0;
+    
+    static constexpr int MAX_SYNERGIES = 3;
+    std::vector<std::pair<Skill*, float>> m_synergies;
 };
 
 } // namespace d2::game
