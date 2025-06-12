@@ -48,3 +48,29 @@ TEST_F(ItemTest, ItemStatModifiers) {
     armor.setDefense(45);
     EXPECT_EQ(armor.getDefense(), 45);
 }
+
+// Test for Phase 4, Task 4.3: Item System - Rarity system
+TEST_F(ItemTest, ItemRaritySystem) {
+    // Test normal quality item (gray)
+    Item normalSword("Short Sword", ItemType::WEAPON);
+    EXPECT_EQ(normalSword.getRarity(), ItemRarity::NORMAL);
+    EXPECT_EQ(normalSword.getMaxAffixes(), 0);  // Normal items have no affixes
+    
+    // Test magic quality item (blue)
+    Item magicSword("Long Sword", ItemType::WEAPON);
+    magicSword.setRarity(ItemRarity::MAGIC);
+    EXPECT_EQ(magicSword.getRarity(), ItemRarity::MAGIC);
+    EXPECT_EQ(magicSword.getMaxAffixes(), 2);  // Magic items can have 1-2 affixes
+    
+    // Test rare quality item (yellow)
+    Item rareHelm("War Helm", ItemType::ARMOR);
+    rareHelm.setRarity(ItemRarity::RARE);
+    EXPECT_EQ(rareHelm.getRarity(), ItemRarity::RARE);
+    EXPECT_EQ(rareHelm.getMaxAffixes(), 6);  // Rare items can have 3-6 affixes
+    
+    // Test unique quality item (gold)
+    Item uniqueRing("Stone of Jordan", ItemType::ACCESSORY);
+    uniqueRing.setRarity(ItemRarity::UNIQUE);
+    EXPECT_EQ(uniqueRing.getRarity(), ItemRarity::UNIQUE);
+    EXPECT_TRUE(uniqueRing.hasFixedStats());  // Unique items have predetermined stats
+}

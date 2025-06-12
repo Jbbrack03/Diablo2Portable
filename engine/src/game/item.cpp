@@ -24,4 +24,28 @@ int Item::getStatBonus(StatType stat) const {
     return it != m_statBonuses.end() ? it->second : 0;
 }
 
+void Item::setRarity(ItemRarity rarity) {
+    m_rarity = rarity;
+}
+
+int Item::getMaxAffixes() const {
+    switch (m_rarity) {
+        case ItemRarity::NORMAL:
+            return 0;
+        case ItemRarity::MAGIC:
+            return 2;  // 1-2 affixes
+        case ItemRarity::RARE:
+            return 6;  // 3-6 affixes
+        case ItemRarity::UNIQUE:
+        case ItemRarity::SET:
+            return 0;  // Fixed stats, not random affixes
+        default:
+            return 0;
+    }
+}
+
+bool Item::hasFixedStats() const {
+    return m_rarity == ItemRarity::UNIQUE || m_rarity == ItemRarity::SET;
+}
+
 } // namespace d2::game

@@ -14,6 +14,14 @@ enum class ItemType {
     QUEST
 };
 
+enum class ItemRarity {
+    NORMAL,    // Gray - no magical properties
+    MAGIC,     // Blue - 1-2 magical properties
+    RARE,      // Yellow - 3-6 magical properties
+    UNIQUE,    // Gold - fixed unique properties
+    SET        // Green - part of a set
+};
+
 class Item {
 public:
     Item(const std::string& name, ItemType type);
@@ -35,6 +43,12 @@ public:
     void addStatBonus(StatType stat, int bonus);
     int getStatBonus(StatType stat) const;
     
+    // Rarity system
+    void setRarity(ItemRarity rarity);
+    ItemRarity getRarity() const { return m_rarity; }
+    int getMaxAffixes() const;
+    bool hasFixedStats() const;
+    
 private:
     std::string m_name;
     ItemType m_type;
@@ -47,6 +61,9 @@ private:
     
     // Stat bonuses
     std::unordered_map<StatType, int> m_statBonuses;
+    
+    // Rarity
+    ItemRarity m_rarity = ItemRarity::NORMAL;
 };
 
 } // namespace d2::game
