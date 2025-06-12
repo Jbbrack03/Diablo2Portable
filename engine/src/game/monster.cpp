@@ -119,4 +119,40 @@ std::unique_ptr<Monster> MonsterSpawner::spawnMonster(MonsterType type, int leve
     return monster;
 }
 
+int MonsterGroup::addMonster(std::unique_ptr<Monster> monster) {
+    int id = m_nextMonsterId++;
+    m_monsters[id] = std::move(monster);
+    return id;
+}
+
+Monster* MonsterGroup::getMonster(int monsterId) {
+    auto it = m_monsters.find(monsterId);
+    if (it != m_monsters.end()) {
+        return it->second.get();
+    }
+    return nullptr;
+}
+
+void MonsterGroup::setGroupTarget(int monsterId, int targetX, int targetY) {
+    // Set target for the specified monster and propagate to nearby monsters
+    auto* monster = getMonster(monsterId);
+    if (monster) {
+        monster->setTarget(targetX, targetY);
+        
+        // Propagate target to all other monsters in the group (group behavior)
+        for (auto& [id, otherMonster] : m_monsters) {
+            if (id != monsterId) {
+                otherMonster->setTarget(targetX, targetY);
+            }
+        }
+    }
+}
+
+void MonsterGroup::updateGroupAI() {
+    // Update AI for all monsters in the group
+    for (auto& [id, monster] : m_monsters) {
+        monster->updateAI();
+    }
+}
+
 } // namespace d2::game

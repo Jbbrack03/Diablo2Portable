@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <memory>
+#include <unordered_map>
 
 namespace d2::game {
 
@@ -78,6 +79,18 @@ private:
 class MonsterSpawner {
 public:
     std::unique_ptr<Monster> spawnMonster(MonsterType type, int level, int x, int y);
+};
+
+class MonsterGroup {
+public:
+    int addMonster(std::unique_ptr<Monster> monster);
+    Monster* getMonster(int monsterId);
+    void setGroupTarget(int monsterId, int targetX, int targetY);
+    void updateGroupAI();
+
+private:
+    std::unordered_map<int, std::unique_ptr<Monster>> m_monsters;
+    int m_nextMonsterId = 1;
 };
 
 } // namespace d2::game

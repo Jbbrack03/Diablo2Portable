@@ -115,3 +115,29 @@ TEST_F(MonsterTest, AdvancedAIBehaviors) {
     skeleton.updateAI();
     EXPECT_EQ(skeleton.getAIState(), AIState::FLEEING);
 }
+
+// Test for Phase 5, Task 5.2: Monster System - Group behavior system
+TEST_F(MonsterTest, GroupBehaviors) {
+    MonsterGroup group;
+    
+    // Add monsters to the group
+    auto skeleton1 = std::make_unique<Monster>(MonsterType::SKELETON, 5);
+    auto skeleton2 = std::make_unique<Monster>(MonsterType::SKELETON, 5);
+    
+    skeleton1->setPosition(100, 100);
+    skeleton2->setPosition(105, 105);
+    
+    int monster1Id = group.addMonster(std::move(skeleton1));
+    int monster2Id = group.addMonster(std::move(skeleton2));
+    
+    // Test group targeting - when one monster spots a target, others should join
+    group.setGroupTarget(monster1Id, 200, 200);
+    group.updateGroupAI();
+    
+    // Both monsters should now be seeking the same target
+    auto* monster1 = group.getMonster(monster1Id);
+    auto* monster2 = group.getMonster(monster2Id);
+    
+    EXPECT_EQ(monster1->getAIState(), AIState::SEEKING);
+    EXPECT_EQ(monster2->getAIState(), AIState::SEEKING);
+}
