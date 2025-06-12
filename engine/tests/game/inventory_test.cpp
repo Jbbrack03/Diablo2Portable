@@ -90,3 +90,47 @@ TEST_F(InventoryTest, RemoveItemsFromInventory) {
     // Try to remove from empty slot
     EXPECT_FALSE(inventory.removeItem(0, 0));
 }
+
+// Test for Phase 4, Task 4.5: Inventory System - Capacity limits
+TEST_F(InventoryTest, InventoryCapacityLimits) {
+    Inventory inventory(4, 2);  // Small 4x2 inventory
+    
+    // Create a 2x2 item
+    auto shield = std::make_shared<Item>("Small Shield", ItemType::ARMOR);
+    shield->setSize(2, 2);
+    
+    // Add first shield
+    EXPECT_TRUE(inventory.addItem(shield, 0, 0));
+    EXPECT_EQ(inventory.getUsedSlots(), 4);
+    
+    // Try to add overlapping item
+    auto helmet = std::make_shared<Item>("Helmet", ItemType::ARMOR);
+    helmet->setSize(2, 2);
+    EXPECT_FALSE(inventory.addItem(helmet, 1, 0));  // Overlaps with shield
+    
+    // Add second shield in remaining space
+    auto shield2 = std::make_shared<Item>("Large Shield", ItemType::ARMOR);
+    shield2->setSize(2, 2);
+    EXPECT_TRUE(inventory.addItem(shield2, 2, 0));
+    EXPECT_EQ(inventory.getUsedSlots(), 8);
+    
+    // Inventory is now full
+    EXPECT_TRUE(inventory.isFull());
+    
+    // Try to add item when full
+    auto potion = std::make_shared<Item>("Health Potion", ItemType::CONSUMABLE);
+    potion->setSize(1, 1);
+    EXPECT_FALSE(inventory.addItem(potion, 0, 0));
+    
+    // Try to add item that goes out of bounds
+    auto sword = std::make_shared<Item>("Long Sword", ItemType::WEAPON);
+    sword->setSize(2, 3);
+    EXPECT_FALSE(inventory.addItem(sword, 0, 0));  // Too tall for 2-height inventory
+    
+    // Find space for specific sized item
+    inventory.removeItem(0, 0);  // Remove first shield
+    EXPECT_FALSE(inventory.isFull());
+    
+    EXPECT_TRUE(inventory.hasSpaceFor(2, 2));  // Can fit 2x2 item
+    EXPECT_FALSE(inventory.hasSpaceFor(3, 2)); // Cannot fit 3x2 item
+}

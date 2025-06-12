@@ -92,4 +92,28 @@ bool Inventory::removeItem(int x, int y) {
     return true;
 }
 
+bool Inventory::hasSpaceFor(int itemWidth, int itemHeight) const {
+    // Try to find any position where the item fits
+    for (int y = 0; y <= m_height - itemHeight; y++) {
+        for (int x = 0; x <= m_width - itemWidth; x++) {
+            bool canFit = true;
+            
+            // Check if all required slots are empty
+            for (int dy = 0; dy < itemHeight && canFit; dy++) {
+                for (int dx = 0; dx < itemWidth && canFit; dx++) {
+                    if (m_grid[y + dy][x + dx]) {
+                        canFit = false;
+                    }
+                }
+            }
+            
+            if (canFit) {
+                return true;
+            }
+        }
+    }
+    
+    return false;
+}
+
 } // namespace d2::game
