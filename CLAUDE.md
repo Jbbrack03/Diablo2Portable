@@ -252,10 +252,10 @@ TEST_F(MPQLoaderTest, ExtractZlibCompressedFile) {
   
 - **Phase 4**: Game Logic Core - **IN PROGRESS**
   - Character System ✅ (base stats, leveling)
-  - Combat Engine ✅ (hit chance calculation)
-  - Damage Calculation (pending)
+  - Combat Engine ✅ (hit chance, damage calculation, resistances)
   - Item System (pending)
   - Skill System (pending)
+  - Monster System (pending)
   
 See `Docs/TDD_IMPLEMENTATION_PLAN.md` for detailed phase breakdown.
 
@@ -421,14 +421,14 @@ The gamepad input system is now **production-ready** with **49 total tests** acr
 
 ### 🚧 **PHASE 4 GAME LOGIC CORE - IN PROGRESS**
 
-Phase 4 implementation is underway with **52 total tests** across all phases, maintaining **100% success rate**.
+Phase 4 implementation is underway with **55 total tests** across all phases, maintaining **100% success rate**.
 
 #### **Test Results:**
-- **Total Tests**: 52 (49 from Phases 1-3 + 3 from Phase 4)
-- **Passing**: 52 tests (100% success rate)
+- **Total Tests**: 55 (49 from Phases 1-3 + 6 from Phase 4)
+- **Passing**: 55 tests (100% success rate)
 - **Coverage**: 90%+ maintained across all systems
 
-#### **Phase 4 Systems Implemented So Far** (3/? tests ✅)
+#### **Phase 4 Systems Implemented So Far** (6/? tests ✅)
 
 **1. Character System** (2/2 tests ✅)
 - ✅ Base stats calculation with class-specific values
@@ -436,10 +436,14 @@ Phase 4 implementation is underway with **52 total tests** across all phases, ma
 - ✅ Stat point allocation (STR/DEX/VIT/ENE)
 - ✅ Skill point rewards on level up
 
-**2. Combat Engine** (1/1 test ✅)
+**2. Combat Engine** (4/4 tests ✅)
 - ✅ Hit chance calculation using D2 formula
 - ✅ Attack Rating vs Defense mechanics
 - ✅ Level-based modifiers
+- ✅ Basic damage calculation with min/max ranges
+- ✅ Physical resistance damage reduction
+- ✅ Elemental damage types (Fire, Cold, Lightning, Poison)
+- ✅ Full resistance calculations for all damage types
 
 #### **TDD Discipline Verification:**
 - ✅ **Perfect compliance maintained** - All tests written before implementation
@@ -449,7 +453,6 @@ Phase 4 implementation is underway with **52 total tests** across all phases, ma
 - ✅ **Implementation adjusted to tests** - Never the reverse
 
 #### **Next Steps:**
-- 🔲 Damage calculation with resistances
 - 🔲 Item generation with affixes
 - 🔲 Skill tree prerequisites and synergies
 - 🔲 Monster stats and AI behaviors
