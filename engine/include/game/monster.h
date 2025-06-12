@@ -5,7 +5,11 @@
 namespace d2::game {
 
 enum class MonsterType {
-    SKELETON
+    SKELETON,
+    ZOMBIE,
+    DEMON,
+    FALLEN,
+    GOLEM
 };
 
 enum class AIState {

@@ -31,6 +31,7 @@ public:
     const std::string& getName() const { return m_name; }
     ItemType getType() const { return m_type; }
     int getRequiredLevel() const { return m_requiredLevel; }
+    void setRequiredLevel(int level) { m_requiredLevel = level; }
     
     void setItemLevel(int level) { m_itemLevel = level; }
     int getItemLevel() const { return m_itemLevel; }
