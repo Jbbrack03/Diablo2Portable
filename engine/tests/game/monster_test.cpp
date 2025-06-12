@@ -32,3 +32,20 @@ TEST_F(MonsterTest, MonsterLevelScaling) {
     EXPECT_EQ(level10Skeleton.getLife(), 85);    // Base + level scaling
     EXPECT_EQ(level10Skeleton.getDamage(), 15);  // Base + level scaling
 }
+
+TEST_F(MonsterTest, BasicAIBehavior) {
+    Monster skeleton(MonsterType::SKELETON, 1);
+    
+    // Monster should start in IDLE state
+    EXPECT_EQ(skeleton.getAIState(), AIState::IDLE);
+    
+    // Monster should be able to transition to SEEKING when target is detected
+    skeleton.setTarget(100, 200); // Set target position
+    skeleton.updateAI();
+    EXPECT_EQ(skeleton.getAIState(), AIState::SEEKING);
+    
+    // Monster should clear target and return to IDLE
+    skeleton.clearTarget();
+    skeleton.updateAI();
+    EXPECT_EQ(skeleton.getAIState(), AIState::IDLE);
+}

@@ -5,6 +5,10 @@ namespace d2::game {
 Monster::Monster(MonsterType type, int level)
     : m_type(type)
     , m_level(level)
+    , m_aiState(AIState::IDLE)
+    , m_hasTarget(false)
+    , m_targetX(0)
+    , m_targetY(0)
 {
     // Initialize stats based on monster type and level
     initializeStats();
@@ -29,6 +33,27 @@ void Monster::initializeStats() {
             }
             m_defense = 0; // Keep simple for now
             break;
+    }
+}
+
+void Monster::setTarget(int x, int y) {
+    m_hasTarget = true;
+    m_targetX = x;
+    m_targetY = y;
+}
+
+void Monster::clearTarget() {
+    m_hasTarget = false;
+    m_targetX = 0;
+    m_targetY = 0;
+}
+
+void Monster::updateAI() {
+    // Minimal implementation to pass AI behavior test
+    if (m_hasTarget) {
+        m_aiState = AIState::SEEKING;
+    } else {
+        m_aiState = AIState::IDLE;
     }
 }
 
