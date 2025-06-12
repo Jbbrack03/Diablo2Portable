@@ -104,6 +104,18 @@ public:
     void setCanBeOffHand(bool canBeOffHand) { m_canBeOffHand = canBeOffHand; }
     bool canBeOffHand() const { return m_canBeOffHand; }
     
+    // Stackable properties
+    void setStackable(bool stackable) { m_isStackable = stackable; }
+    bool isStackable() const { return m_isStackable; }
+    
+    void setMaxStackSize(int maxSize) { m_maxStackSize = maxSize; }
+    int getMaxStackSize() const { return m_maxStackSize; }
+    
+    void setQuantity(int quantity) { m_quantity = quantity; }
+    int getQuantity() const { return m_quantity; }
+    
+    bool canStackWith(const Item& other) const;
+    
 private:
     std::string m_name;
     ItemType m_type;
@@ -147,6 +159,11 @@ private:
     // Stat requirements
     int m_requiredStrength = 0;
     int m_requiredDexterity = 0;
+    
+    // Stacking properties
+    bool m_isStackable = false;
+    int m_maxStackSize = 1;
+    int m_quantity = 1;
 };
 
 } // namespace d2::game

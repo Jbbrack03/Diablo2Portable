@@ -1,4 +1,6 @@
 #include "game/item.h"
+#include <algorithm>
+#include <random>
 
 namespace d2::game {
 
@@ -12,33 +14,11 @@ void Item::setDamage(int minDamage, int maxDamage) {
 }
 
 int Item::getMinDamage() const {
-    int damage = m_minDamage;
-    
-    // Apply prefix bonuses
-    if (m_prefixName == "Sharp") {
-        damage = damage * 120 / 100;  // +20% enhanced damage
-    } else if (m_prefixName == "Heavy") {
-        damage = damage + 5;  // +5 flat damage
-    } else if (m_prefixName == "Cruel") {
-        damage = damage * 3;  // +200% enhanced damage (3x)
-    }
-    
-    return damage;
+    return m_minDamage + getStatBonus(StatType::DAMAGE);
 }
 
 int Item::getMaxDamage() const {
-    int damage = m_maxDamage;
-    
-    // Apply prefix bonuses
-    if (m_prefixName == "Sharp") {
-        damage = damage * 120 / 100;  // +20% enhanced damage
-    } else if (m_prefixName == "Heavy") {
-        damage = damage + 10;  // +10 flat damage
-    } else if (m_prefixName == "Cruel") {
-        damage = damage * 3;  // +200% enhanced damage (3x)
-    }
-    
-    return damage;
+    return m_maxDamage + getStatBonus(StatType::DAMAGE);
 }
 
 void Item::setDefense(int defense) {
@@ -60,18 +40,13 @@ void Item::setRarity(ItemRarity rarity) {
 
 int Item::getMaxAffixes() const {
     switch (m_rarity) {
-        case ItemRarity::NORMAL:
-            return 0;
-        case ItemRarity::MAGIC:
-            return 2;  // 1-2 affixes
-        case ItemRarity::RARE:
-            return 6;  // 3-6 affixes
-        case ItemRarity::UNIQUE:
-        case ItemRarity::SET:
-            return 0;  // Fixed stats, not random affixes
-        default:
-            return 0;
+        case ItemRarity::NORMAL: return 0;
+        case ItemRarity::MAGIC: return 2;  // 1 prefix + 1 suffix
+        case ItemRarity::RARE: return 6;   // up to 3 prefix + 3 suffix
+        case ItemRarity::UNIQUE: return 0; // fixed stats
+        case ItemRarity::SET: return 0;    // fixed stats
     }
+    return 0;
 }
 
 bool Item::hasFixedStats() const {
@@ -79,102 +54,135 @@ bool Item::hasFixedStats() const {
 }
 
 void Item::generatePrefix(int seed) {
-    if (m_type == ItemType::WEAPON) {
-        if (seed == 1) {
+    if (m_rarity == ItemRarity::NORMAL || hasFixedStats()) return;
+    
+    static std::mt19937 gen(seed);
+    std::uniform_int_distribution<> prefixDist(0, 2);
+    
+    int prefixType = prefixDist(gen);
+    switch (prefixType) {
+        case 0:  // Damage prefix
             m_prefixName = "Sharp";
-        } else if (seed == 2) {
-            // Level-based affix selection
-            if (m_itemLevel >= 35) {
-                m_prefixName = "Cruel";  // High level prefix
-            } else {
-                m_prefixName = "Heavy";  // Low level prefix
-            }
-        }
+            m_minDamage = m_minDamage * 1.2;
+            m_maxDamage = m_maxDamage * 1.2;
+            break;
+        case 1:  // Defense prefix
+            m_prefixName = "Sturdy";
+            m_defense = m_defense * 1.3;
+            break;
+        case 2:  // Enhanced damage
+            m_prefixName = "Cruel";
+            m_minDamage = m_minDamage * 1.5;
+            m_maxDamage = m_maxDamage * 1.5;
+            break;
     }
 }
 
 void Item::generateSuffix(int seed) {
-    if (m_type == ItemType::ARMOR) {
-        if (seed == 1) {
+    if (m_rarity == ItemRarity::NORMAL || hasFixedStats()) return;
+    
+    static std::mt19937 gen(seed);
+    std::uniform_int_distribution<> suffixDist(0, 3);
+    std::uniform_int_distribution<> valueDist(1, 10);
+    
+    int suffixType = suffixDist(gen);
+    switch (suffixType) {
+        case 0:  // Strength suffix
+            m_suffixName = "of the Bear";
+            addStatBonus(StatType::STRENGTH, valueDist(gen));
+            break;
+        case 1:  // Dexterity suffix
             m_suffixName = "of the Fox";
-            // Add the dexterity bonus
-            addStatBonus(StatType::DEXTERITY, 5);
-        } else if (seed >= 10 && seed <= 12) {
-            // "of Strength" suffix with variable values
-            m_suffixName = "of Strength";
-            
-            // Calculate stat value based on seed
-            // Range is 3-7, seed determines the roll
-            int strengthBonus = 3;  // minimum
-            if (seed == 11) {
-                strengthBonus = 7;  // maximum
-            } else if (seed == 12) {
-                strengthBonus = 5;  // mid-range
-            }
-            
-            addStatBonus(StatType::STRENGTH, strengthBonus);
-        }
+            addStatBonus(StatType::DEXTERITY, valueDist(gen));
+            break;
+        case 2:  // Vitality suffix
+            m_suffixName = "of the Wolf";
+            addStatBonus(StatType::VITALITY, valueDist(gen));
+            break;
+        case 3:  // Energy suffix
+            m_suffixName = "of the Eagle";
+            addStatBonus(StatType::ENERGY, valueDist(gen));
+            break;
     }
-}
-
-std::string Item::getFullName() const {
-    std::string fullName = m_name;
-    
-    if (hasPrefix()) {
-        fullName = m_prefixName + " " + fullName;
-    }
-    
-    if (hasSuffix()) {
-        fullName = fullName + " " + m_suffixName;
-    }
-    
-    return fullName;
 }
 
 void Item::generateAffixes(int seed) {
-    // For rare items, generate multiple affixes
-    if (m_rarity == ItemRarity::RARE) {
-        // Generate primary prefix and suffix
-        if (m_type == ItemType::WEAPON) {
-            generatePrefix(1);  // Sharp prefix
+    if (m_rarity == ItemRarity::NORMAL || hasFixedStats()) return;
+    
+    static std::mt19937 gen(seed);
+    
+    if (m_rarity == ItemRarity::MAGIC) {
+        // Generate one prefix and/or one suffix
+        std::uniform_int_distribution<> affixDist(0, 2);
+        int affixChoice = affixDist(gen);
+        
+        if (affixChoice == 0 || affixChoice == 2) {
+            generatePrefix(seed);
+        }
+        if (affixChoice == 1 || affixChoice == 2) {
+            generateSuffix(seed + 1);
+        }
+    } else if (m_rarity == ItemRarity::RARE) {
+        // Generate 3-6 affixes
+        std::uniform_int_distribution<> numAffixDist(3, 6);
+        int numAffixes = numAffixDist(gen);
+        
+        // Always generate at least one prefix and one suffix
+        generatePrefix(seed);
+        generateSuffix(seed + 1);
+        
+        // Add additional affixes
+        for (int i = 2; i < numAffixes; i++) {
+            std::string affixName = "Enhanced Property " + std::to_string(i - 1);
+            m_additionalAffixes.push_back(affixName);
             
-            // Add "of Might" suffix for weapons
-            m_suffixName = "of Might";
-            addStatBonus(StatType::STRENGTH, 8);
-            
-            // Add additional affixes for rare items
-            m_additionalAffixes.push_back("+10 to Attack Rating");
-            m_additionalAffixes.push_back("+15% Enhanced Durability");
-            m_additionalAffixes.push_back("+2 to Light Radius");
+            // Add random stat bonus
+            std::uniform_int_distribution<> statDist(0, 3);
+            std::uniform_int_distribution<> valueDist(5, 15);
+            StatType stat = static_cast<StatType>(statDist(gen));
+            addStatBonus(stat, valueDist(gen));
         }
     }
 }
 
 std::vector<std::string> Item::getAffixes() const {
-    std::vector<std::string> allAffixes;
+    std::vector<std::string> affixes;
     
-    if (hasPrefix()) {
-        allAffixes.push_back(m_prefixName);
+    if (!m_prefixName.empty()) {
+        affixes.push_back(m_prefixName);
     }
     
-    if (hasSuffix()) {
-        allAffixes.push_back(m_suffixName);
+    if (!m_suffixName.empty()) {
+        affixes.push_back(m_suffixName);
     }
     
-    // Add all additional affixes
-    allAffixes.insert(allAffixes.end(), m_additionalAffixes.begin(), m_additionalAffixes.end());
+    affixes.insert(affixes.end(), m_additionalAffixes.begin(), m_additionalAffixes.end());
     
-    return allAffixes;
+    return affixes;
 }
 
 int Item::getTotalAffixCount() const {
     int count = 0;
-    
-    if (hasPrefix()) count++;
-    if (hasSuffix()) count++;
-    count += static_cast<int>(m_additionalAffixes.size());
-    
+    if (!m_prefixName.empty()) count++;
+    if (!m_suffixName.empty()) count++;
+    count += m_additionalAffixes.size();
     return count;
+}
+
+std::string Item::getFullName() const {
+    std::string fullName;
+    
+    if (!m_prefixName.empty()) {
+        fullName += m_prefixName + " ";
+    }
+    
+    fullName += m_name;
+    
+    if (!m_suffixName.empty()) {
+        fullName += " " + m_suffixName;
+    }
+    
+    return fullName;
 }
 
 void Item::setSize(int width, int height) {
@@ -185,6 +193,25 @@ void Item::setSize(int width, int height) {
 void Item::setEquipmentSlot(EquipmentSlot slot) {
     m_equipmentSlot = slot;
     m_hasEquipmentSlot = true;
+}
+
+bool Item::canStackWith(const Item& other) const {
+    // Can't stack if either item is not stackable
+    if (!m_isStackable || !other.isStackable()) {
+        return false;
+    }
+    
+    // Must be same item type and name
+    if (m_type != other.getType() || m_name != other.getName()) {
+        return false;
+    }
+    
+    // Can't stack items with different properties
+    if (m_rarity != ItemRarity::NORMAL || other.getRarity() != ItemRarity::NORMAL) {
+        return false;  // Only stack normal items
+    }
+    
+    return true;
 }
 
 } // namespace d2::game

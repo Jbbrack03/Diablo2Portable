@@ -250,3 +250,73 @@ TEST_F(InventoryTest, EquipmentSlotValidation) {
     
     EXPECT_FALSE(charInventory.equipItemWithValidation(strengthBoots));
 }
+
+// Test for Phase 4 Enhancement: Item stacking
+TEST_F(InventoryTest, ItemStacking) {
+    Inventory inventory(10, 4);
+    
+    // Create stackable items (potions, arrows, etc.)
+    auto potion1 = std::make_shared<Item>("Health Potion", ItemType::CONSUMABLE);
+    potion1->setSize(1, 1);
+    potion1->setStackable(true);
+    potion1->setMaxStackSize(20);
+    potion1->setQuantity(5);
+    
+    auto potion2 = std::make_shared<Item>("Health Potion", ItemType::CONSUMABLE);
+    potion2->setSize(1, 1);
+    potion2->setStackable(true);
+    potion2->setMaxStackSize(20);
+    potion2->setQuantity(10);
+    
+    // Test adding stackable item
+    EXPECT_TRUE(inventory.addItem(potion1, 0, 0));
+    EXPECT_EQ(inventory.getItemAt(0, 0)->getQuantity(), 5);
+    
+    // Test stacking items of same type
+    EXPECT_TRUE(inventory.addStackableItem(potion2));
+    auto stackedItem = inventory.getItemAt(0, 0);
+    EXPECT_EQ(stackedItem->getQuantity(), 15);  // 5 + 10
+    EXPECT_EQ(inventory.getUsedSlots(), 1);     // Still only 1 slot used
+    
+    // Test stack overflow
+    auto potion3 = std::make_shared<Item>("Health Potion", ItemType::CONSUMABLE);
+    potion3->setSize(1, 1);
+    potion3->setStackable(true);
+    potion3->setMaxStackSize(20);
+    potion3->setQuantity(10);  // Would make 25 total, exceeding max of 20
+    
+    EXPECT_TRUE(inventory.addStackableItem(potion3));
+    EXPECT_EQ(inventory.getItemAt(0, 0)->getQuantity(), 20);  // Maxed at 20
+    EXPECT_EQ(inventory.getItemAt(1, 0)->getQuantity(), 5);   // Overflow in new stack
+    EXPECT_EQ(inventory.getUsedSlots(), 2);
+    
+    // Test non-stackable items don't stack
+    auto uniquePotion = std::make_shared<Item>("Unique Potion", ItemType::CONSUMABLE);
+    uniquePotion->setSize(1, 1);
+    uniquePotion->setStackable(false);
+    
+    EXPECT_TRUE(inventory.addItem(uniquePotion, 2, 0));
+    EXPECT_EQ(inventory.getUsedSlots(), 3);
+    
+    // Test different item types don't stack
+    auto manaPotion = std::make_shared<Item>("Mana Potion", ItemType::CONSUMABLE);
+    manaPotion->setSize(1, 1);
+    manaPotion->setStackable(true);
+    manaPotion->setMaxStackSize(20);
+    manaPotion->setQuantity(5);
+    
+    EXPECT_TRUE(inventory.addStackableItem(manaPotion));
+    EXPECT_EQ(inventory.getUsedSlots(), 4);  // New stack for different potion
+    
+    // Test splitting stacks
+    auto splitStack = inventory.splitStack(0, 0, 8);  // Split 8 from the 20
+    EXPECT_NE(splitStack, nullptr);
+    EXPECT_EQ(splitStack->getQuantity(), 8);
+    EXPECT_EQ(inventory.getItemAt(0, 0)->getQuantity(), 12);  // 20 - 8
+    
+    // Test merging stacks
+    EXPECT_TRUE(inventory.addItem(splitStack, 0, 1));
+    EXPECT_TRUE(inventory.mergeStacks(0, 1, 0, 0));  // Merge back
+    EXPECT_EQ(inventory.getItemAt(0, 0)->getQuantity(), 20);  // Back to max
+    EXPECT_EQ(inventory.getItemAt(0, 1), nullptr);  // Source slot now empty
+}

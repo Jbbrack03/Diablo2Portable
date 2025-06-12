@@ -30,6 +30,11 @@ public:
     // Item searching
     bool contains(std::shared_ptr<Item> item) const;
     
+    // Stacking operations
+    bool addStackableItem(std::shared_ptr<Item> item);
+    std::shared_ptr<Item> splitStack(int x, int y, int quantity);
+    bool mergeStacks(int sourceX, int sourceY, int targetX, int targetY);
+    
 private:
     int m_width;
     int m_height;

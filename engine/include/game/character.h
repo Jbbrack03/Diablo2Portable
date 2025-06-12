@@ -18,7 +18,8 @@ enum class StatType {
     STRENGTH,
     DEXTERITY,
     VITALITY,
-    ENERGY
+    ENERGY,
+    DAMAGE  // For item damage bonuses
 };
 
 class Character {
