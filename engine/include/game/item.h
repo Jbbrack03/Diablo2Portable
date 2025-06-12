@@ -30,6 +30,9 @@ public:
     ItemType getType() const { return m_type; }
     int getRequiredLevel() const { return m_requiredLevel; }
     
+    void setItemLevel(int level) { m_itemLevel = level; }
+    int getItemLevel() const { return m_itemLevel; }
+    
     // Weapon damage
     void setDamage(int minDamage, int maxDamage);
     int getMinDamage() const;
@@ -64,6 +67,7 @@ private:
     std::string m_name;
     ItemType m_type;
     int m_requiredLevel = 1;
+    int m_itemLevel = 1;  // Item level for affix generation
     
     // Combat stats
     int m_minDamage = 0;

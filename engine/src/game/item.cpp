@@ -13,19 +13,31 @@ void Item::setDamage(int minDamage, int maxDamage) {
 
 int Item::getMinDamage() const {
     int damage = m_minDamage;
-    // Sharp prefix adds 20% enhanced damage
+    
+    // Apply prefix bonuses
     if (m_prefixName == "Sharp") {
-        damage = damage * 120 / 100;  // +20%
+        damage = damage * 120 / 100;  // +20% enhanced damage
+    } else if (m_prefixName == "Heavy") {
+        damage = damage + 5;  // +5 flat damage
+    } else if (m_prefixName == "Cruel") {
+        damage = damage * 3;  // +200% enhanced damage (3x)
     }
+    
     return damage;
 }
 
 int Item::getMaxDamage() const {
     int damage = m_maxDamage;
-    // Sharp prefix adds 20% enhanced damage
+    
+    // Apply prefix bonuses
     if (m_prefixName == "Sharp") {
-        damage = damage * 120 / 100;  // +20%
+        damage = damage * 120 / 100;  // +20% enhanced damage
+    } else if (m_prefixName == "Heavy") {
+        damage = damage + 10;  // +10 flat damage
+    } else if (m_prefixName == "Cruel") {
+        damage = damage * 3;  // +200% enhanced damage (3x)
     }
+    
     return damage;
 }
 
@@ -67,9 +79,17 @@ bool Item::hasFixedStats() const {
 }
 
 void Item::generatePrefix(int seed) {
-    // For now, always generate "Sharp" prefix for weapons with seed 1
-    if (m_type == ItemType::WEAPON && seed == 1) {
-        m_prefixName = "Sharp";
+    if (m_type == ItemType::WEAPON) {
+        if (seed == 1) {
+            m_prefixName = "Sharp";
+        } else if (seed == 2) {
+            // Level-based affix selection
+            if (m_itemLevel >= 35) {
+                m_prefixName = "Cruel";  // High level prefix
+            } else {
+                m_prefixName = "Heavy";  // Low level prefix
+            }
+        }
     }
 }
 

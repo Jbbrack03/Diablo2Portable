@@ -117,3 +117,37 @@ TEST_F(ItemTest, ItemSuffixGeneration) {
     // The full item name should include the suffix
     EXPECT_EQ(magicArmor.getFullName(), "Ring Mail of the Fox");
 }
+
+// Test for Phase 4, Task 4.3: Item System - Affix pool based on item level
+TEST_F(ItemTest, ItemLevelBasedAffixPool) {
+    // Low level item can only get basic affixes
+    Item lowLevelSword("Short Sword", ItemType::WEAPON);
+    lowLevelSword.setRarity(ItemRarity::MAGIC);
+    lowLevelSword.setItemLevel(5);  // Low level item
+    
+    // Generate prefix with seed that would give "Cruel" on high level items
+    lowLevelSword.generatePrefix(2);  // Seed 2 for different selection
+    
+    // Low level items can't get "Cruel" prefix (requires level 35+)
+    // Should get "Heavy" instead (low level prefix)
+    EXPECT_EQ(lowLevelSword.getPrefixName(), "Heavy");
+    
+    // Heavy adds 5-10 damage
+    lowLevelSword.setDamage(10, 15);
+    EXPECT_EQ(lowLevelSword.getMinDamage(), 15);  // 10 + 5
+    EXPECT_EQ(lowLevelSword.getMaxDamage(), 25);  // 15 + 10
+    
+    // High level item can get better affixes
+    Item highLevelSword("Colossus Blade", ItemType::WEAPON);
+    highLevelSword.setRarity(ItemRarity::MAGIC);
+    highLevelSword.setItemLevel(50);  // High level item
+    
+    // Same seed now gives "Cruel" prefix on high level item
+    highLevelSword.generatePrefix(2);
+    EXPECT_EQ(highLevelSword.getPrefixName(), "Cruel");
+    
+    // Cruel adds 200% enhanced damage (much stronger)
+    highLevelSword.setDamage(50, 60);
+    EXPECT_EQ(highLevelSword.getMinDamage(), 150);  // 50 * 3
+    EXPECT_EQ(highLevelSword.getMaxDamage(), 180);  // 60 * 3
+}
