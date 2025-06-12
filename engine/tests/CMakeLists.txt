@@ -34,6 +34,7 @@ set(TEST_SOURCES
     game/monster_test.cpp
     game/inventory_test.cpp
     game/loot_system_test.cpp
+    map/map_loader_test.cpp
     # Tests will be added as we implement features following TDD
     # core/game_state_test.cpp
     # audio/sound_system_test.cpp
