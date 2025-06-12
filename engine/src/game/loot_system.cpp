@@ -28,6 +28,21 @@ std::vector<std::shared_ptr<Item>> LootSystem::generateLoot(std::shared_ptr<Mons
         }
     }
     
+    // Check for quest item drops
+    auto questIt = m_questDrops.find(monster->getType());
+    if (questIt != m_questDrops.end()) {
+        for (const auto& questInfo : questIt->second) {
+            std::uniform_real_distribution<> questChanceDist(0.0, 1.0);
+            if (questChanceDist(gen) <= questInfo.dropChance) {
+                auto questItem = std::make_shared<Item>(questInfo.name, ItemType::QUEST);
+                questItem->setQuestId(questInfo.questId);
+                questItem->setItemLevel(monsterLevel);
+                questItem->setRequiredLevel(1);  // Quest items have no level requirement
+                loot.push_back(questItem);
+            }
+        }
+    }
+    
     // Simple loot generation - number of items based on monster level
     int numItems = 1;
     if (monsterLevel >= 10) numItems = 2;
@@ -244,6 +259,10 @@ int LootSystem::selectGoldAmount(int monsterLevel) {
     static std::mt19937 gen(rd());
     std::uniform_int_distribution<> dist(1, monsterLevel * 10);
     return dist(gen);
+}
+
+void LootSystem::addQuestDrop(MonsterType monsterType, const QuestItemInfo& questItem) {
+    m_questDrops[monsterType].push_back(questItem);
 }
 
 } // namespace d2::game

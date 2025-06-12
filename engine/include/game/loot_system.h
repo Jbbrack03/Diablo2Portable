@@ -40,6 +40,13 @@ struct GoldRange {
     int maxGold;
 };
 
+// Quest item information
+struct QuestItemInfo {
+    std::string name;
+    std::string questId;
+    float dropChance;
+};
+
 class LootSystem {
 public:
     LootSystem();
@@ -56,6 +63,9 @@ public:
     // Configure gold drops
     void setGoldDropChance(float chance) { m_goldDropChance = chance; }
     void setGoldRange(int minLevel, int maxLevel, int minGold, int maxGold);
+    
+    // Configure quest drops
+    void addQuestDrop(MonsterType monsterType, const QuestItemInfo& questItem);
     
 private:
     // Helper methods
@@ -74,6 +84,9 @@ private:
     // Gold drop configuration
     float m_goldDropChance = 0.5f;  // Default 50% chance
     std::vector<GoldRange> m_goldRanges;
+    
+    // Quest drop configuration
+    std::unordered_map<MonsterType, std::vector<QuestItemInfo>> m_questDrops;
 };
 
 } // namespace d2::game

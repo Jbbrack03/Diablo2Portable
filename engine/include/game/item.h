@@ -85,6 +85,10 @@ public:
     void setGoldAmount(int amount) { m_goldAmount = amount; }
     int getGoldAmount() const { return m_goldAmount; }
     
+    // Quest item properties
+    void setQuestId(const std::string& questId) { m_questId = questId; }
+    const std::string& getQuestId() const { return m_questId; }
+    
 private:
     std::string m_name;
     ItemType m_type;
@@ -117,6 +121,9 @@ private:
     
     // Gold amount
     int m_goldAmount = 0;
+    
+    // Quest item data
+    std::string m_questId;
 };
 
 } // namespace d2::game

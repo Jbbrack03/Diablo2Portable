@@ -178,6 +178,74 @@ TEST_F(LootSystemTest, GoldDrops) {
     EXPECT_GT(highLevelAvgGold, avgGold * 10);  // Significantly more gold
 }
 
+// Test for Phase 4 Enhancement: Quest item drops
+TEST_F(LootSystemTest, QuestItemDrops) {
+    LootSystem lootSystem;
+    
+    // Create quest items that specific monsters can drop
+    QuestItemInfo horadricStaff;
+    horadricStaff.name = "Horadric Staff";
+    horadricStaff.dropChance = 1.0f;  // 100% drop rate for quest
+    horadricStaff.questId = "ACT2_HORADRIC_STAFF";
+    
+    QuestItemInfo khalimFlail;
+    khalimFlail.name = "Khalim's Flail";
+    khalimFlail.dropChance = 0.5f;  // 50% drop rate
+    khalimFlail.questId = "ACT3_KHALIM_QUEST";
+    
+    // Configure quest drops for specific monsters
+    lootSystem.addQuestDrop(MonsterType::SKELETON, horadricStaff);
+    lootSystem.addQuestDrop(MonsterType::DEMON, khalimFlail);
+    
+    // Test guaranteed quest drop
+    bool foundStaff = false;
+    for (int i = 0; i < 10; i++) {
+        auto skeleton = std::make_shared<Monster>(MonsterType::SKELETON, 20);
+        auto loot = lootSystem.generateLoot(skeleton);
+        
+        for (const auto& item : loot) {
+            if (item->getType() == ItemType::QUEST && 
+                item->getName() == "Horadric Staff") {
+                foundStaff = true;
+                EXPECT_EQ(item->getQuestId(), "ACT2_HORADRIC_STAFF");
+                break;
+            }
+        }
+        if (foundStaff) break;
+    }
+    EXPECT_TRUE(foundStaff);  // Should always find it with 100% drop rate
+    
+    // Test probabilistic quest drop
+    int flailCount = 0;
+    const int numTests = 100;
+    
+    for (int i = 0; i < numTests; i++) {
+        auto demon = std::make_shared<Monster>(MonsterType::DEMON, 30);
+        auto loot = lootSystem.generateLoot(demon);
+        
+        for (const auto& item : loot) {
+            if (item->getType() == ItemType::QUEST && 
+                item->getName() == "Khalim's Flail") {
+                flailCount++;
+                EXPECT_EQ(item->getQuestId(), "ACT3_KHALIM_QUEST");
+            }
+        }
+    }
+    
+    // With 50% drop rate, expect between 40-60 drops
+    EXPECT_GT(flailCount, 40);
+    EXPECT_LT(flailCount, 60);
+    
+    // Test that quest items can't be generated randomly
+    auto zombie = std::make_shared<Monster>(MonsterType::ZOMBIE, 25);
+    auto zombieLoot = lootSystem.generateLoot(zombie);
+    
+    for (const auto& item : zombieLoot) {
+        // Zombie shouldn't drop quest items since none configured
+        EXPECT_NE(item->getType(), ItemType::QUEST);
+    }
+}
+
 // Test for Phase 4, Task 4.6: Loot System - Rarity chances
 TEST_F(LootSystemTest, LootRarityChances) {
     LootSystem lootSystem;
