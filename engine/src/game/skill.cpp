@@ -1,5 +1,7 @@
 #include "game/skill.h"
 
+#include <algorithm>
+
 namespace d2::game {
 
 Skill::Skill(SkillType type, const std::string& name)
@@ -84,6 +86,25 @@ int Skill::getMaxDamage() const {
     float synergyMultiplier = 1.0f + getSynergyBonus();
     
     return static_cast<int>(baseDamage * synergyMultiplier);
+}
+
+void Skill::setBaseManaCost(float manaCost) {
+    m_baseManaCost = manaCost;
+}
+
+void Skill::setManaCostReduction(float reductionPerLevel) {
+    m_manaCostReduction = reductionPerLevel;
+}
+
+float Skill::getManaCost() const {
+    if (m_level == 0) {
+        return 0.0f;
+    }
+    
+    float cost = m_baseManaCost - (m_level - 1) * m_manaCostReduction;
+    
+    // Mana cost can't go below 0
+    return std::max(0.0f, cost);
 }
 
 } // namespace d2::game

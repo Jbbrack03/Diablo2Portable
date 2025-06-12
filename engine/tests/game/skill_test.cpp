@@ -160,3 +160,55 @@ TEST_F(SkillTest, SkillDamageCalculation) {
     EXPECT_EQ(fireBall.getMinDamage(), 100);
     EXPECT_EQ(fireBall.getMaxDamage(), 164);
 }
+
+TEST_F(SkillTest, SkillManaCostSystem) {
+    Skill fireBolt(SkillType::FIRE, "Fire Bolt");
+    Skill teleport(SkillType::MAGIC, "Teleport");
+    
+    // Set base mana costs
+    fireBolt.setBaseManaCost(2.5f);    // 2.5 mana base
+    teleport.setBaseManaCost(24.0f);   // 24 mana base (high cost skill)
+    
+    // Set mana cost reduction per level
+    fireBolt.setManaCostReduction(0.125f);  // -0.125 per level
+    teleport.setManaCostReduction(0.0f);    // No reduction (always 24)
+    
+    // At level 0, no mana cost
+    EXPECT_EQ(fireBolt.getManaCost(), 0);
+    EXPECT_EQ(teleport.getManaCost(), 0);
+    
+    // Level up Fire Bolt to 1
+    fireBolt.addSkillPoint();
+    EXPECT_FLOAT_EQ(fireBolt.getManaCost(), 2.5f);
+    
+    // Level up Fire Bolt to 10
+    for (int i = 1; i < 10; i++) {
+        fireBolt.addSkillPoint();
+    }
+    // 2.5 - (9 * 0.125) = 2.5 - 1.125 = 1.375
+    EXPECT_FLOAT_EQ(fireBolt.getManaCost(), 1.375f);
+    
+    // Level up Fire Bolt to 20 (max)
+    for (int i = 10; i < 20; i++) {
+        fireBolt.addSkillPoint();
+    }
+    // 2.5 - (19 * 0.125) = 2.5 - 2.375 = 0.125
+    EXPECT_FLOAT_EQ(fireBolt.getManaCost(), 0.125f);
+    
+    // Test minimum mana cost (can't go below 0)
+    Skill nova(SkillType::LIGHTNING, "Nova");
+    nova.setBaseManaCost(5.0f);
+    nova.setManaCostReduction(1.0f);  // High reduction
+    
+    for (int i = 0; i < 20; i++) {
+        nova.addSkillPoint();
+    }
+    // Should be 0, not negative
+    EXPECT_FLOAT_EQ(nova.getManaCost(), 0.0f);
+    
+    // Test Teleport (no reduction)
+    for (int i = 0; i < 20; i++) {
+        teleport.addSkillPoint();
+    }
+    EXPECT_FLOAT_EQ(teleport.getManaCost(), 24.0f);
+}

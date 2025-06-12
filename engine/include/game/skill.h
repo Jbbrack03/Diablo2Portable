@@ -36,6 +36,10 @@ public:
     int getMinDamage() const;
     int getMaxDamage() const;
     
+    void setBaseManaCost(float manaCost);
+    void setManaCostReduction(float reductionPerLevel);
+    float getManaCost() const;
+    
 private:
     SkillType m_type;
     std::string m_name;
@@ -52,6 +56,9 @@ private:
     int m_baseMaxDamage = 0;
     int m_minDamagePerLevel = 0;
     int m_maxDamagePerLevel = 0;
+    
+    float m_baseManaCost = 0.0f;
+    float m_manaCostReduction = 0.0f;
 };
 
 } // namespace d2::game
