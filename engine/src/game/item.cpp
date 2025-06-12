@@ -131,4 +131,50 @@ std::string Item::getFullName() const {
     return fullName;
 }
 
+void Item::generateAffixes(int seed) {
+    // For rare items, generate multiple affixes
+    if (m_rarity == ItemRarity::RARE) {
+        // Generate primary prefix and suffix
+        if (m_type == ItemType::WEAPON) {
+            generatePrefix(1);  // Sharp prefix
+            
+            // Add "of Might" suffix for weapons
+            m_suffixName = "of Might";
+            addStatBonus(StatType::STRENGTH, 8);
+            
+            // Add additional affixes for rare items
+            m_additionalAffixes.push_back("+10 to Attack Rating");
+            m_additionalAffixes.push_back("+15% Enhanced Durability");
+            m_additionalAffixes.push_back("+2 to Light Radius");
+        }
+    }
+}
+
+std::vector<std::string> Item::getAffixes() const {
+    std::vector<std::string> allAffixes;
+    
+    if (hasPrefix()) {
+        allAffixes.push_back(m_prefixName);
+    }
+    
+    if (hasSuffix()) {
+        allAffixes.push_back(m_suffixName);
+    }
+    
+    // Add all additional affixes
+    allAffixes.insert(allAffixes.end(), m_additionalAffixes.begin(), m_additionalAffixes.end());
+    
+    return allAffixes;
+}
+
+int Item::getTotalAffixCount() const {
+    int count = 0;
+    
+    if (hasPrefix()) count++;
+    if (hasSuffix()) count++;
+    count += static_cast<int>(m_additionalAffixes.size());
+    
+    return count;
+}
+
 } // namespace d2::game

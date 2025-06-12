@@ -2,6 +2,7 @@
 
 #include <string>
 #include <unordered_map>
+#include <vector>
 #include "game/character.h"  // For StatType enum
 
 namespace d2::game {
@@ -61,6 +62,10 @@ public:
     bool hasSuffix() const { return !m_suffixName.empty(); }
     const std::string& getSuffixName() const { return m_suffixName; }
     
+    void generateAffixes(int seed);  // Generate all affixes for rare items
+    std::vector<std::string> getAffixes() const;
+    int getTotalAffixCount() const;
+    
     std::string getFullName() const;
     
 private:
@@ -83,6 +88,7 @@ private:
     // Affix data
     std::string m_prefixName;
     std::string m_suffixName;
+    std::vector<std::string> m_additionalAffixes;  // For rare items with multiple affixes
 };
 
 } // namespace d2::game

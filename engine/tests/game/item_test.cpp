@@ -184,3 +184,36 @@ TEST_F(ItemTest, ItemAffixValueRanges) {
     // Mid-range value
     EXPECT_EQ(magicGloves3.getStatBonus(StatType::STRENGTH), 5);
 }
+
+// Test for Phase 4, Task 4.3: Item System - Multiple affixes on rare items
+TEST_F(ItemTest, RareItemMultipleAffixes) {
+    // Create a rare weapon that can have multiple affixes
+    Item rareAxe("Battle Axe", ItemType::WEAPON);
+    rareAxe.setRarity(ItemRarity::RARE);
+    rareAxe.setItemLevel(30);
+    
+    // Generate affixes - rare items can have multiple prefixes and suffixes
+    rareAxe.generateAffixes(100);  // Seed for deterministic generation
+    
+    // Verify we got multiple affixes
+    EXPECT_TRUE(rareAxe.hasPrefix());
+    EXPECT_TRUE(rareAxe.hasSuffix());
+    
+    // Check the generated affixes
+    auto affixes = rareAxe.getAffixes();
+    EXPECT_GE(affixes.size(), 3);  // Rare items have 3-6 affixes
+    EXPECT_LE(affixes.size(), 6);
+    
+    // Verify specific affixes were applied
+    // With seed 100, we expect: "Sharp" prefix, "of Might" suffix, and additional modifiers
+    EXPECT_EQ(rareAxe.getFullName(), "Sharp Battle Axe of Might");
+    
+    // Check damage boost from Sharp prefix
+    rareAxe.setDamage(20, 30);
+    EXPECT_EQ(rareAxe.getMinDamage(), 24);  // 20 * 1.2
+    EXPECT_EQ(rareAxe.getMaxDamage(), 36);  // 30 * 1.2
+    
+    // Check stat bonuses from multiple affixes
+    EXPECT_GT(rareAxe.getStatBonus(StatType::STRENGTH), 0);  // From "of Might"
+    EXPECT_GT(rareAxe.getTotalAffixCount(), 2);  // More than just prefix + suffix
+}
