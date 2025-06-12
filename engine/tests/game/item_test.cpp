@@ -74,3 +74,26 @@ TEST_F(ItemTest, ItemRaritySystem) {
     EXPECT_EQ(uniqueRing.getRarity(), ItemRarity::UNIQUE);
     EXPECT_TRUE(uniqueRing.hasFixedStats());  // Unique items have predetermined stats
 }
+
+// Test for Phase 4, Task 4.3: Item System - Prefix generation for magic items
+TEST_F(ItemTest, ItemPrefixGeneration) {
+    // Create a magic weapon with a prefix
+    Item magicSword("Long Sword", ItemType::WEAPON);
+    magicSword.setRarity(ItemRarity::MAGIC);
+    
+    // Generate a prefix - "Sharp" adds enhanced damage
+    magicSword.generatePrefix(1);  // Seed for deterministic testing
+    
+    // Verify the prefix was applied
+    EXPECT_TRUE(magicSword.hasPrefix());
+    EXPECT_EQ(magicSword.getPrefixName(), "Sharp");
+    
+    // Sharp prefix should add 20% enhanced damage
+    // Base damage 10-15 becomes 12-18
+    magicSword.setDamage(10, 15);
+    EXPECT_EQ(magicSword.getMinDamage(), 12);  // 10 + 20% = 12
+    EXPECT_EQ(magicSword.getMaxDamage(), 18);  // 15 + 20% = 18
+    
+    // The full item name should include the prefix
+    EXPECT_EQ(magicSword.getFullName(), "Sharp Long Sword");
+}

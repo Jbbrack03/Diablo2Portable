@@ -32,8 +32,8 @@ public:
     
     // Weapon damage
     void setDamage(int minDamage, int maxDamage);
-    int getMinDamage() const { return m_minDamage; }
-    int getMaxDamage() const { return m_maxDamage; }
+    int getMinDamage() const;
+    int getMaxDamage() const;
     
     // Armor defense
     void setDefense(int defense);
@@ -48,6 +48,12 @@ public:
     ItemRarity getRarity() const { return m_rarity; }
     int getMaxAffixes() const;
     bool hasFixedStats() const;
+    
+    // Affix system
+    void generatePrefix(int seed);
+    bool hasPrefix() const { return !m_prefixName.empty(); }
+    const std::string& getPrefixName() const { return m_prefixName; }
+    std::string getFullName() const;
     
 private:
     std::string m_name;
@@ -64,6 +70,9 @@ private:
     
     // Rarity
     ItemRarity m_rarity = ItemRarity::NORMAL;
+    
+    // Affix data
+    std::string m_prefixName;
 };
 
 } // namespace d2::game

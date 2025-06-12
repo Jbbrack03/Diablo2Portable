@@ -11,6 +11,24 @@ void Item::setDamage(int minDamage, int maxDamage) {
     m_maxDamage = maxDamage;
 }
 
+int Item::getMinDamage() const {
+    int damage = m_minDamage;
+    // Sharp prefix adds 20% enhanced damage
+    if (m_prefixName == "Sharp") {
+        damage = damage * 120 / 100;  // +20%
+    }
+    return damage;
+}
+
+int Item::getMaxDamage() const {
+    int damage = m_maxDamage;
+    // Sharp prefix adds 20% enhanced damage
+    if (m_prefixName == "Sharp") {
+        damage = damage * 120 / 100;  // +20%
+    }
+    return damage;
+}
+
 void Item::setDefense(int defense) {
     m_defense = defense;
 }
@@ -46,6 +64,20 @@ int Item::getMaxAffixes() const {
 
 bool Item::hasFixedStats() const {
     return m_rarity == ItemRarity::UNIQUE || m_rarity == ItemRarity::SET;
+}
+
+void Item::generatePrefix(int seed) {
+    // For now, always generate "Sharp" prefix for weapons with seed 1
+    if (m_type == ItemType::WEAPON && seed == 1) {
+        m_prefixName = "Sharp";
+    }
+}
+
+std::string Item::getFullName() const {
+    if (hasPrefix()) {
+        return m_prefixName + " " + m_name;
+    }
+    return m_name;
 }
 
 } // namespace d2::game
