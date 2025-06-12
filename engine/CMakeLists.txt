@@ -36,6 +36,7 @@ add_library(d2engine STATIC
     src/game/skill.cpp
     src/game/monster.cpp
     src/game/inventory.cpp
+    src/game/character_inventory.cpp
 )
 
 # Include directories

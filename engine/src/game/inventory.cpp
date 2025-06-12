@@ -116,4 +116,19 @@ bool Inventory::hasSpaceFor(int itemWidth, int itemHeight) const {
     return false;
 }
 
+bool Inventory::contains(std::shared_ptr<Item> item) const {
+    if (!item) return false;
+    
+    // Search through the grid for the item
+    for (int y = 0; y < m_height; y++) {
+        for (int x = 0; x < m_width; x++) {
+            if (m_grid[y][x] == item) {
+                return true;
+            }
+        }
+    }
+    
+    return false;
+}
+
 } // namespace d2::game

@@ -27,6 +27,9 @@ public:
     // Space checking
     bool hasSpaceFor(int itemWidth, int itemHeight) const;
     
+    // Item searching
+    bool contains(std::shared_ptr<Item> item) const;
+    
 private:
     int m_width;
     int m_height;

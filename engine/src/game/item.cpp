@@ -182,4 +182,9 @@ void Item::setSize(int width, int height) {
     m_height = height;
 }
 
+void Item::setEquipmentSlot(EquipmentSlot slot) {
+    m_equipmentSlot = slot;
+    m_hasEquipmentSlot = true;
+}
+
 } // namespace d2::game

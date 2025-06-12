@@ -2,6 +2,7 @@
 #include <memory>
 #include "game/inventory.h"
 #include "game/item.h"
+#include "game/character_inventory.h"
 
 using namespace d2::game;
 
@@ -133,4 +134,49 @@ TEST_F(InventoryTest, InventoryCapacityLimits) {
     
     EXPECT_TRUE(inventory.hasSpaceFor(2, 2));  // Can fit 2x2 item
     EXPECT_FALSE(inventory.hasSpaceFor(3, 2)); // Cannot fit 3x2 item
+}
+
+// Test for Phase 4, Task 4.5: Inventory System - Equipment slots
+TEST_F(InventoryTest, EquipmentSlots) {
+    // Create a character inventory with equipment slots
+    CharacterInventory charInv;
+    
+    // Create equipment items
+    auto helmet = std::make_shared<Item>("Iron Helmet", ItemType::ARMOR);
+    helmet->setSize(2, 2);
+    helmet->setEquipmentSlot(EquipmentSlot::HEAD);
+    
+    auto sword = std::make_shared<Item>("Broad Sword", ItemType::WEAPON);
+    sword->setSize(2, 3);
+    sword->setEquipmentSlot(EquipmentSlot::MAIN_HAND);
+    
+    auto boots = std::make_shared<Item>("Leather Boots", ItemType::ARMOR);
+    boots->setSize(2, 2);
+    boots->setEquipmentSlot(EquipmentSlot::FEET);
+    
+    // Equip items
+    EXPECT_TRUE(charInv.equipItem(helmet));
+    EXPECT_TRUE(charInv.equipItem(sword));
+    EXPECT_TRUE(charInv.equipItem(boots));
+    
+    // Check equipped items
+    EXPECT_EQ(charInv.getEquippedItem(EquipmentSlot::HEAD), helmet);
+    EXPECT_EQ(charInv.getEquippedItem(EquipmentSlot::MAIN_HAND), sword);
+    EXPECT_EQ(charInv.getEquippedItem(EquipmentSlot::FEET), boots);
+    
+    // Try to equip another helmet (should replace)
+    auto betterHelmet = std::make_shared<Item>("Golden Helmet", ItemType::ARMOR);
+    betterHelmet->setSize(2, 2);
+    betterHelmet->setEquipmentSlot(EquipmentSlot::HEAD);
+    
+    EXPECT_TRUE(charInv.equipItem(betterHelmet));
+    EXPECT_EQ(charInv.getEquippedItem(EquipmentSlot::HEAD), betterHelmet);
+    
+    // Previous helmet should be in backpack
+    EXPECT_TRUE(charInv.getBackpack().contains(helmet));
+    
+    // Unequip item
+    EXPECT_TRUE(charInv.unequipItem(EquipmentSlot::MAIN_HAND));
+    EXPECT_EQ(charInv.getEquippedItem(EquipmentSlot::MAIN_HAND), nullptr);
+    EXPECT_TRUE(charInv.getBackpack().contains(sword));
 }

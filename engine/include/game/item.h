@@ -4,6 +4,7 @@
 #include <unordered_map>
 #include <vector>
 #include "game/character.h"  // For StatType enum
+#include "game/equipment_slot.h"  // For EquipmentSlot enum
 
 namespace d2::game {
 
@@ -73,6 +74,11 @@ public:
     int getWidth() const { return m_width; }
     int getHeight() const { return m_height; }
     
+    // Equipment slot
+    void setEquipmentSlot(EquipmentSlot slot);
+    EquipmentSlot getEquipmentSlot() const { return m_equipmentSlot; }
+    bool hasEquipmentSlot() const { return m_hasEquipmentSlot; }
+    
 private:
     std::string m_name;
     ItemType m_type;
@@ -98,6 +104,10 @@ private:
     // Size in inventory grid
     int m_width = 1;
     int m_height = 1;
+    
+    // Equipment slot
+    EquipmentSlot m_equipmentSlot;
+    bool m_hasEquipmentSlot = false;
 };
 
 } // namespace d2::game
