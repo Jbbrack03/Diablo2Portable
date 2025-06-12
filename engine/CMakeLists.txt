@@ -33,6 +33,7 @@ add_library(d2engine STATIC
     src/game/character.cpp
     src/game/combat_engine.cpp
     src/game/item.cpp
+    src/game/skill.cpp
 )
 
 # Include directories

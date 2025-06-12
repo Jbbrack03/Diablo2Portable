@@ -30,6 +30,7 @@ set(TEST_SOURCES
     game/character_test.cpp
     game/combat_test.cpp
     game/item_test.cpp
+    game/skill_test.cpp
     # Tests will be added as we implement features following TDD
     # core/game_state_test.cpp
     # audio/sound_system_test.cpp
