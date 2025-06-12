@@ -2,6 +2,7 @@
 
 #include <string>
 #include <memory>
+#include <vector>
 
 namespace d2::map {
 
@@ -17,7 +18,7 @@ public:
 private:
     int m_width = 0;
     int m_height = 0;
-    // Additional map data will be added as needed
+    std::vector<std::vector<bool>> m_walkableGrid;  // 2D grid of walkability
 };
 
 class MapLoader {

@@ -44,4 +44,18 @@ TEST_F(MapLoaderTest, MapWalkability) {
     EXPECT_FALSE(map->isWalkable(5, 20));  // Beyond height (10)
 }
 
+// Test for Phase 5, Task 5.1: Map System - Tile-specific walkability
+TEST_F(MapLoaderTest, MapWithObstacles) {
+    MapLoader loader;
+    auto map = loader.loadMap("map_with_walls.ds1");
+    
+    // Test that we can create maps with specific walkable/non-walkable tiles
+    // For this test, we'll assume position (1,1) has a wall
+    EXPECT_FALSE(map->isWalkable(1, 1));  // Wall tile should not be walkable
+    
+    // But adjacent tiles should still be walkable
+    EXPECT_TRUE(map->isWalkable(0, 1));   // Adjacent tile
+    EXPECT_TRUE(map->isWalkable(2, 1));   // Adjacent tile
+}
+
 } // namespace d2::map
