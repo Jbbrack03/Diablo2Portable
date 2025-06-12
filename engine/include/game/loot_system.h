@@ -32,6 +32,14 @@ struct RarityLevel {
     std::vector<RarityChance> chances;
 };
 
+// Gold drop range
+struct GoldRange {
+    int minLevel;
+    int maxLevel;
+    int minGold;
+    int maxGold;
+};
+
 class LootSystem {
 public:
     LootSystem();
@@ -45,17 +53,27 @@ public:
     // Configure rarity chances
     void setRarityChances(int minLevel, int maxLevel, const std::vector<RarityChance>& chances);
     
+    // Configure gold drops
+    void setGoldDropChance(float chance) { m_goldDropChance = chance; }
+    void setGoldRange(int minLevel, int maxLevel, int minGold, int maxGold);
+    
 private:
     // Helper methods
     std::shared_ptr<Item> generateRandomItem(int monsterLevel);
     ItemType selectItemType(MonsterType monsterType);
     ItemRarity selectRarity(int monsterLevel);
+    std::shared_ptr<Item> generateGold(int monsterLevel);
+    int selectGoldAmount(int monsterLevel);
     
     // Monster-specific loot tables
     std::unordered_map<MonsterType, std::vector<LootTableEntry>> m_monsterLootTables;
     
     // Rarity chances by level range
     std::vector<RarityLevel> m_rarityLevels;
+    
+    // Gold drop configuration
+    float m_goldDropChance = 0.5f;  // Default 50% chance
+    std::vector<GoldRange> m_goldRanges;
 };
 
 } // namespace d2::game

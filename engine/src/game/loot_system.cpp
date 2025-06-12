@@ -16,6 +16,18 @@ std::vector<std::shared_ptr<Item>> LootSystem::generateLoot(std::shared_ptr<Mons
     
     int monsterLevel = monster->getLevel();
     
+    // Generate gold drop
+    static std::random_device rd;
+    static std::mt19937 gen(rd());
+    std::uniform_real_distribution<> goldChanceDist(0.0, 1.0);
+    
+    if (goldChanceDist(gen) <= m_goldDropChance) {
+        auto gold = generateGold(monsterLevel);
+        if (gold) {
+            loot.push_back(gold);
+        }
+    }
+    
     // Simple loot generation - number of items based on monster level
     int numItems = 1;
     if (monsterLevel >= 10) numItems = 2;
@@ -180,6 +192,58 @@ ItemRarity LootSystem::selectRarity(int monsterLevel) {
     
     // Default to normal if no range matches
     return ItemRarity::NORMAL;
+}
+
+void LootSystem::setGoldRange(int minLevel, int maxLevel, int minGold, int maxGold) {
+    GoldRange range;
+    range.minLevel = minLevel;
+    range.maxLevel = maxLevel;
+    range.minGold = minGold;
+    range.maxGold = maxGold;
+    
+    // Remove any existing overlapping ranges
+    m_goldRanges.erase(
+        std::remove_if(m_goldRanges.begin(), m_goldRanges.end(),
+            [minLevel, maxLevel](const GoldRange& gr) {
+                return (gr.minLevel <= maxLevel && gr.maxLevel >= minLevel);
+            }),
+        m_goldRanges.end()
+    );
+    
+    m_goldRanges.push_back(range);
+}
+
+std::shared_ptr<Item> LootSystem::generateGold(int monsterLevel) {
+    int goldAmount = selectGoldAmount(monsterLevel);
+    if (goldAmount <= 0) {
+        return nullptr;
+    }
+    
+    auto gold = std::make_shared<Item>("Gold", ItemType::GOLD);
+    gold->setGoldAmount(goldAmount);
+    gold->setItemLevel(monsterLevel);
+    gold->setRequiredLevel(1);  // Gold has no level requirement
+    
+    return gold;
+}
+
+int LootSystem::selectGoldAmount(int monsterLevel) {
+    // Find the appropriate gold range
+    for (const auto& goldRange : m_goldRanges) {
+        if (monsterLevel >= goldRange.minLevel && monsterLevel <= goldRange.maxLevel) {
+            // Generate random amount within range
+            static std::random_device rd;
+            static std::mt19937 gen(rd());
+            std::uniform_int_distribution<> dist(goldRange.minGold, goldRange.maxGold);
+            return dist(gen);
+        }
+    }
+    
+    // Default gold amount if no range matches
+    static std::random_device rd;
+    static std::mt19937 gen(rd());
+    std::uniform_int_distribution<> dist(1, monsterLevel * 10);
+    return dist(gen);
 }
 
 } // namespace d2::game

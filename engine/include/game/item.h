@@ -13,7 +13,8 @@ enum class ItemType {
     ARMOR,
     ACCESSORY,
     CONSUMABLE,
-    QUEST
+    QUEST,
+    GOLD
 };
 
 enum class ItemRarity {
@@ -80,6 +81,10 @@ public:
     EquipmentSlot getEquipmentSlot() const { return m_equipmentSlot; }
     bool hasEquipmentSlot() const { return m_hasEquipmentSlot; }
     
+    // Gold amount (for GOLD type items)
+    void setGoldAmount(int amount) { m_goldAmount = amount; }
+    int getGoldAmount() const { return m_goldAmount; }
+    
 private:
     std::string m_name;
     ItemType m_type;
@@ -109,6 +114,9 @@ private:
     // Equipment slot
     EquipmentSlot m_equipmentSlot;
     bool m_hasEquipmentSlot = false;
+    
+    // Gold amount
+    int m_goldAmount = 0;
 };
 
 } // namespace d2::game

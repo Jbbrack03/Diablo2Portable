@@ -110,6 +110,74 @@ TEST_F(LootSystemTest, MonsterSpecificLootTables) {
     EXPECT_GT(consumableRatio, 0.5f);
 }
 
+// Test for Phase 4 Enhancement: Gold drops
+TEST_F(LootSystemTest, GoldDrops) {
+    LootSystem lootSystem;
+    
+    // Configure gold drop chances
+    lootSystem.setGoldDropChance(0.8f);  // 80% chance to drop gold
+    
+    // Configure gold amount ranges based on monster level
+    lootSystem.setGoldRange(1, 10, 5, 50);      // Level 1-10: 5-50 gold
+    lootSystem.setGoldRange(11, 30, 50, 250);   // Level 11-30: 50-250 gold
+    lootSystem.setGoldRange(31, 50, 200, 1000); // Level 31-50: 200-1000 gold
+    
+    // Test low level monster gold drops
+    int goldDropCount = 0;
+    int totalGoldAmount = 0;
+    const int numTests = 100;
+    
+    for (int i = 0; i < numTests; i++) {
+        auto zombie = std::make_shared<Monster>(MonsterType::ZOMBIE, 5);
+        auto loot = lootSystem.generateLoot(zombie);
+        
+        // Check for gold in loot
+        for (const auto& item : loot) {
+            if (item->getType() == ItemType::GOLD) {
+                goldDropCount++;
+                totalGoldAmount += item->getGoldAmount();
+                
+                // Verify gold is in correct range for level 5 monster
+                EXPECT_GE(item->getGoldAmount(), 5);
+                EXPECT_LE(item->getGoldAmount(), 50);
+            }
+        }
+    }
+    
+    // With 80% drop chance, expect at least 70% drops
+    float dropRate = static_cast<float>(goldDropCount) / numTests;
+    EXPECT_GT(dropRate, 0.7f);
+    
+    // Average gold should be reasonable for level range
+    float avgGold = static_cast<float>(totalGoldAmount) / goldDropCount;
+    EXPECT_GT(avgGold, 10.0f);  // Should average more than minimum
+    EXPECT_LT(avgGold, 40.0f);  // Should average less than maximum
+    
+    // Test high level monster gold drops
+    goldDropCount = 0;
+    totalGoldAmount = 0;
+    
+    for (int i = 0; i < numTests; i++) {
+        auto demon = std::make_shared<Monster>(MonsterType::DEMON, 40);
+        auto loot = lootSystem.generateLoot(demon);
+        
+        for (const auto& item : loot) {
+            if (item->getType() == ItemType::GOLD) {
+                goldDropCount++;
+                totalGoldAmount += item->getGoldAmount();
+                
+                // Verify gold is in correct range for level 40 monster
+                EXPECT_GE(item->getGoldAmount(), 200);
+                EXPECT_LE(item->getGoldAmount(), 1000);
+            }
+        }
+    }
+    
+    // Higher level monsters should drop more gold on average
+    float highLevelAvgGold = static_cast<float>(totalGoldAmount) / goldDropCount;
+    EXPECT_GT(highLevelAvgGold, avgGold * 10);  // Significantly more gold
+}
+
 // Test for Phase 4, Task 4.6: Loot System - Rarity chances
 TEST_F(LootSystemTest, LootRarityChances) {
     LootSystem lootSystem;
