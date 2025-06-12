@@ -54,4 +54,36 @@ float Skill::getSynergyBonus() const {
     return totalBonus;
 }
 
+void Skill::setBaseDamage(int minDamage, int maxDamage) {
+    m_baseMinDamage = minDamage;
+    m_baseMaxDamage = maxDamage;
+}
+
+void Skill::setDamagePerLevel(int minPerLevel, int maxPerLevel) {
+    m_minDamagePerLevel = minPerLevel;
+    m_maxDamagePerLevel = maxPerLevel;
+}
+
+int Skill::getMinDamage() const {
+    if (m_level == 0) {
+        return 0;
+    }
+    
+    int baseDamage = m_baseMinDamage + (m_level - 1) * m_minDamagePerLevel;
+    float synergyMultiplier = 1.0f + getSynergyBonus();
+    
+    return static_cast<int>(baseDamage * synergyMultiplier);
+}
+
+int Skill::getMaxDamage() const {
+    if (m_level == 0) {
+        return 0;
+    }
+    
+    int baseDamage = m_baseMaxDamage + (m_level - 1) * m_maxDamagePerLevel;
+    float synergyMultiplier = 1.0f + getSynergyBonus();
+    
+    return static_cast<int>(baseDamage * synergyMultiplier);
+}
+
 } // namespace d2::game

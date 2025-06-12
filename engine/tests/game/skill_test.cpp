@@ -118,3 +118,45 @@ TEST_F(SkillTest, SkillSynergies) {
     EXPECT_TRUE(meteor.addSynergy(&warmth, 0.05f));
     EXPECT_FALSE(meteor.addSynergy(&enchant, 0.05f));  // Already has 3 synergies
 }
+
+TEST_F(SkillTest, SkillDamageCalculation) {
+    Skill fireBolt(SkillType::FIRE, "Fire Bolt");
+    Skill fireBall(SkillType::FIRE, "Fire Ball");
+    
+    // Set base damage for skills
+    fireBolt.setBaseDamage(10, 15);      // 10-15 base damage
+    fireBall.setBaseDamage(30, 50);      // 30-50 base damage
+    
+    // Set damage scaling per level
+    fireBolt.setDamagePerLevel(2, 3);    // +2-3 damage per level
+    fireBall.setDamagePerLevel(5, 8);    // +5-8 damage per level
+    
+    // At level 0, no damage
+    EXPECT_EQ(fireBolt.getMinDamage(), 0);
+    EXPECT_EQ(fireBolt.getMaxDamage(), 0);
+    
+    // Level up Fire Bolt to 1
+    fireBolt.addSkillPoint();
+    EXPECT_EQ(fireBolt.getMinDamage(), 10);  // Base damage
+    EXPECT_EQ(fireBolt.getMaxDamage(), 15);
+    
+    // Level up Fire Bolt to 10
+    for (int i = 1; i < 10; i++) {
+        fireBolt.addSkillPoint();
+    }
+    EXPECT_EQ(fireBolt.getMinDamage(), 28);  // 10 + 9*2
+    EXPECT_EQ(fireBolt.getMaxDamage(), 42);  // 15 + 9*3
+    
+    // Test with synergies
+    fireBall.addSynergy(&fireBolt, 0.10f);  // 10% bonus per Fire Bolt level
+    
+    // Level Fire Ball to 5
+    for (int i = 0; i < 5; i++) {
+        fireBall.addSkillPoint();
+    }
+    
+    // Base: 30-50, Level bonus: +20-32 (4 * 5-8), Synergy: 100% bonus (10 levels * 10%)
+    // Total: (30+20) * 2.0 = 100, (50+32) * 2.0 = 164
+    EXPECT_EQ(fireBall.getMinDamage(), 100);
+    EXPECT_EQ(fireBall.getMaxDamage(), 164);
+}

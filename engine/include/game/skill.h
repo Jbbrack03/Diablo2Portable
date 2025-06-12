@@ -31,6 +31,11 @@ public:
     bool addSynergy(Skill* synergySkill, float bonusPerLevel);
     float getSynergyBonus() const;
     
+    void setBaseDamage(int minDamage, int maxDamage);
+    void setDamagePerLevel(int minPerLevel, int maxPerLevel);
+    int getMinDamage() const;
+    int getMaxDamage() const;
+    
 private:
     SkillType m_type;
     std::string m_name;
@@ -42,6 +47,11 @@ private:
     
     static constexpr int MAX_SYNERGIES = 3;
     std::vector<std::pair<Skill*, float>> m_synergies;
+    
+    int m_baseMinDamage = 0;
+    int m_baseMaxDamage = 0;
+    int m_minDamagePerLevel = 0;
+    int m_maxDamagePerLevel = 0;
 };
 
 } // namespace d2::game
