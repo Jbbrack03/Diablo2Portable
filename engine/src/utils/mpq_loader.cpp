@@ -270,12 +270,62 @@ public:
             }
             
             case MPQ_COMPRESSION_MULTI: {
-                // Mock multi-compression decompression - remove the compression flag and copy data
-                if (compressed_data.size() < 2) {
+                // Multi-compression: data was compressed with multiple algorithms
+                if (compressed_data.size() < 3) {
                     last_error = "Invalid multi compressed data";
                     return false;
                 }
-                output.assign(compressed_data.begin() + 1, compressed_data.end());
+                
+                // The second byte indicates which compression methods were used
+                uint8_t compression_methods = compressed_data[1];
+                std::vector<uint8_t> current_data(compressed_data.begin() + 2, compressed_data.end());
+                std::vector<uint8_t> temp_output;
+                
+                // Apply decompression in reverse order (last compression first)
+                // For multi-compression, we don't know intermediate sizes, so we allocate generously
+                
+                // Check for zlib compression (most common second pass)
+                if (compression_methods & 0x02) {
+                    // Zlib decompression - estimate a reasonable intermediate size
+                    size_t intermediate_size = expected_size * 2; // PKWARE typically doesn't compress much
+                    temp_output.clear();
+                    temp_output.resize(intermediate_size);
+                    
+                    z_stream strm = {};
+                    strm.next_in = const_cast<uint8_t*>(current_data.data());
+                    strm.avail_in = current_data.size();
+                    strm.next_out = temp_output.data();
+                    strm.avail_out = intermediate_size;
+                    
+                    int ret = inflateInit(&strm);
+                    if (ret != Z_OK) {
+                        last_error = "Failed to init zlib for multi-compression";
+                        return false;
+                    }
+                    
+                    ret = inflate(&strm, Z_FINISH);
+                    inflateEnd(&strm);
+                    
+                    if (ret != Z_STREAM_END) {
+                        last_error = "Multi-compression zlib decompression failed";
+                        return false;
+                    }
+                    
+                    temp_output.resize(strm.total_out);
+                    current_data = temp_output;
+                }
+                
+                // Check for PKWARE compression (often first pass)
+                if (compression_methods & 0x01) {
+                    temp_output.clear();
+                    if (!decompressPKWARE(current_data, temp_output, expected_size)) {
+                        last_error = "Multi-compression PKWARE pass failed";
+                        return false;
+                    }
+                    current_data = temp_output;
+                }
+                
+                output = current_data;
                 return output.size() == expected_size;
             }
             

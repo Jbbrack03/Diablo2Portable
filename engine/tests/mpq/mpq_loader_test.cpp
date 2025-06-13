@@ -660,18 +660,48 @@ protected:
         };
         
         std::string original_content = "Content compressed with multiple algorithms for better ratio!";
-        std::string mock_compressed = "\x03" + original_content; // 0x03 = multi compression flag
+        
+        // First compress with PKWARE
+        std::vector<uint8_t> pkware_compressed;
+        size_t pos = 0;
+        while (pos < original_content.size()) {
+            uint8_t control = 0xFF; // All literals
+            pkware_compressed.push_back(control);
+            for (int i = 0; i < 8 && pos < original_content.size(); i++, pos++) {
+                pkware_compressed.push_back(original_content[pos]);
+            }
+        }
+        
+        // Then compress with zlib
+        z_stream strm = {};
+        std::vector<uint8_t> zlib_buffer(compressBound(pkware_compressed.size()));
+        
+        strm.next_in = pkware_compressed.data();
+        strm.avail_in = pkware_compressed.size();
+        strm.next_out = zlib_buffer.data();
+        strm.avail_out = zlib_buffer.size();
+        
+        deflateInit(&strm, Z_DEFAULT_COMPRESSION);
+        deflate(&strm, Z_FINISH);
+        deflateEnd(&strm);
+        
+        // Create multi-compressed data with header
+        std::vector<uint8_t> multi_compressed;
+        multi_compressed.push_back(0x03); // Multi compression flag
+        multi_compressed.push_back(0x03); // Both PKWARE (0x01) and zlib (0x02) used
+        multi_compressed.insert(multi_compressed.end(), zlib_buffer.begin(), 
+                               zlib_buffer.begin() + strm.total_out);
         
         BlockEntry block;
         block.file_pos = 512;
-        block.packed_size = mock_compressed.size();
+        block.packed_size = multi_compressed.size();
         block.unpacked_size = original_content.size();
         block.flags = 0x80000300; // FILE_EXISTS | COMPRESS + IMPLODE
         file.write(reinterpret_cast<const char*>(&block), sizeof(BlockEntry));
         
         // Write compressed file content
         file.seekp(block.file_pos);
-        file.write(mock_compressed.c_str(), mock_compressed.size());
+        file.write(reinterpret_cast<const char*>(multi_compressed.data()), multi_compressed.size());
         
         file.close();
     }
