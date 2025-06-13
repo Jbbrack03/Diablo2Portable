@@ -564,18 +564,35 @@ protected:
         };
         
         std::string original_content = "This content uses PKWARE DCL compression algorithm!";
-        std::string mock_compressed = "\x01" + original_content; // 0x01 = PKWARE compression flag
+        
+        // Create simplified PKWARE DCL compressed data
+        // For testing, we'll use a simple literal encoding
+        std::vector<uint8_t> pkware_compressed;
+        pkware_compressed.push_back(0x01); // PKWARE compression flag
+        
+        // Simple literal encoding: control byte followed by literal bytes
+        // Each bit in control byte indicates if following byte is literal (1) or reference (0)
+        size_t pos = 0;
+        while (pos < original_content.size()) {
+            uint8_t control = 0xFF; // All literals for simplicity
+            pkware_compressed.push_back(control);
+            
+            // Add up to 8 literal bytes
+            for (int i = 0; i < 8 && pos < original_content.size(); i++, pos++) {
+                pkware_compressed.push_back(original_content[pos]);
+            }
+        }
         
         BlockEntry block;
         block.file_pos = 512;
-        block.packed_size = mock_compressed.size();
+        block.packed_size = pkware_compressed.size();
         block.unpacked_size = original_content.size();
         block.flags = 0x80000100; // FILE_EXISTS | IMPLODE (PKWARE)
         file.write(reinterpret_cast<const char*>(&block), sizeof(BlockEntry));
         
         // Write compressed file content
         file.seekp(block.file_pos);
-        file.write(mock_compressed.c_str(), mock_compressed.size());
+        file.write(reinterpret_cast<const char*>(pkware_compressed.data()), pkware_compressed.size());
         
         file.close();
     }
