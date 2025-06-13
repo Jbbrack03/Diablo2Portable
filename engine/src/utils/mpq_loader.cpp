@@ -6,6 +6,7 @@
 #include <cctype>
 #include <cstdio>
 #include <sstream>
+#include <zlib.h>
 
 namespace d2portable {
 namespace utils {
@@ -131,6 +132,54 @@ public:
         }
     }
     
+    // Helper function for zlib decompression
+    bool decompressZlib(const std::vector<uint8_t>& compressed_data, 
+                       std::vector<uint8_t>& output, 
+                       size_t expected_size) {
+        if (compressed_data.empty()) {
+            last_error = "Empty compressed data";
+            return false;
+        }
+        
+        // Allocate output buffer
+        output.resize(expected_size);
+        
+        // Setup zlib decompression
+        z_stream strm = {};
+        strm.next_in = const_cast<uint8_t*>(compressed_data.data());
+        strm.avail_in = compressed_data.size();
+        strm.next_out = output.data();
+        strm.avail_out = expected_size;
+        
+        // Initialize inflate
+        int ret = inflateInit(&strm);
+        if (ret != Z_OK) {
+            last_error = "Failed to initialize zlib decompression";
+            return false;
+        }
+        
+        // Decompress
+        ret = inflate(&strm, Z_FINISH);
+        
+        // Clean up
+        inflateEnd(&strm);
+        
+        if (ret != Z_STREAM_END) {
+            last_error = "Zlib decompression failed: " + std::to_string(ret);
+            return false;
+        }
+        
+        // Verify output size
+        if (strm.total_out != expected_size) {
+            last_error = "Decompressed size mismatch: expected " + 
+                        std::to_string(expected_size) + ", got " + 
+                        std::to_string(strm.total_out);
+            return false;
+        }
+        
+        return true;
+    }
+    
     // Decompress MPQ file data
     bool decompressData(const std::vector<uint8_t>& compressed_data, 
                        std::vector<uint8_t>& output, uint32_t expected_size) {
@@ -155,13 +204,14 @@ public:
             }
             
             case MPQ_COMPRESSION_ZLIB: {
-                // Mock zlib decompression - remove the compression flag and copy data
+                // Real zlib decompression
                 if (compressed_data.size() < 2) {
                     last_error = "Invalid zlib compressed data";
                     return false;
                 }
-                output.assign(compressed_data.begin() + 1, compressed_data.end());
-                return output.size() == expected_size;
+                // Skip the compression type byte and decompress the rest
+                std::vector<uint8_t> zlib_data(compressed_data.begin() + 1, compressed_data.end());
+                return decompressZlib(zlib_data, output, expected_size);
             }
             
             case MPQ_COMPRESSION_MULTI: {

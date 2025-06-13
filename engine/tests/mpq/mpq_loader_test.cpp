@@ -6,6 +6,7 @@
 #include <cstring>
 #include <cctype>
 #include <set>
+#include <zlib.h>
 
 using namespace d2portable::utils;
 using namespace testing;
@@ -467,20 +468,35 @@ protected:
         // Create mock compressed data
         std::string original_content = "This is test content that will be compressed using zlib!";
         
-        // Mock compression: for testing, we'll store the content with a simple prefix
-        // indicating compression type. Real implementation would use actual zlib.
-        std::string mock_compressed = "\x02" + original_content; // 0x02 = zlib compression flag
+        // Create real zlib compressed data
+        z_stream strm = {};
+        std::vector<uint8_t> compressed_buffer(compressBound(original_content.size()));
+        
+        strm.next_in = (uint8_t*)original_content.data();
+        strm.avail_in = original_content.size();
+        strm.next_out = compressed_buffer.data();
+        strm.avail_out = compressed_buffer.size();
+        
+        deflateInit(&strm, Z_DEFAULT_COMPRESSION);
+        deflate(&strm, Z_FINISH);
+        deflateEnd(&strm);
+        
+        // Create MPQ compressed data with compression flag
+        std::vector<uint8_t> mpq_compressed;
+        mpq_compressed.push_back(0x02); // zlib compression flag
+        mpq_compressed.insert(mpq_compressed.end(), compressed_buffer.begin(), 
+                            compressed_buffer.begin() + strm.total_out);
         
         BlockEntry block;
         block.file_pos = 512; // Data starts at offset 512
-        block.packed_size = mock_compressed.size();
+        block.packed_size = mpq_compressed.size();
         block.unpacked_size = original_content.size();
         block.flags = 0x80000200; // FILE_EXISTS | COMPRESS
         file.write(reinterpret_cast<const char*>(&block), sizeof(BlockEntry));
         
         // Write compressed file content
         file.seekp(block.file_pos);
-        file.write(mock_compressed.c_str(), mock_compressed.size());
+        file.write(reinterpret_cast<const char*>(mpq_compressed.data()), mpq_compressed.size());
         
         file.close();
     }

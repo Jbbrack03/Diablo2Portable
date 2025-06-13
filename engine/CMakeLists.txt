@@ -57,6 +57,7 @@ target_compile_options(d2engine PRIVATE
 
 # Find required packages
 find_package(Threads REQUIRED)
+find_package(ZLIB REQUIRED)
 
 # Fetch GLM for mathematics
 include(FetchContent)
@@ -72,6 +73,7 @@ target_link_libraries(d2engine
     PUBLIC
         Threads::Threads
         glm::glm
+        ZLIB::ZLIB
 )
 
 # Platform-specific settings
