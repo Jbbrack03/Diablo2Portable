@@ -213,6 +213,15 @@ TEST_F(MPQLoaderTest, ExtractZlibCompressedFile) {
 - Batching cycles breaks the discipline
 - The goal is internalization, not speed
 
+## TEST DEBUGGING INSIGHTS
+
+When tests fail, investigate carefully before changing them:
+
+1. **Understand the failure** - Is it revealing a bug or a test design issue?
+2. **Check test assumptions** - The loot test failed because it counted gold drops
+3. **Fix the root cause** - Don't just make tests pass, ensure they test correctly
+4. **Validate the fix** - Run tests multiple times to ensure consistency
+
 
 ## Current Implementation Status
 
@@ -704,16 +713,19 @@ const uint8_t MPQ_COMPRESSION_PKWARE = 0x08;
 - Updated test MPQ creation to use proper encryption algorithm
 - All 19 MPQ tests now passing with real compression support
 - MPQ loader handles both encrypted and unencrypted tables correctly
+- Fixed loot system test that was incorrectly including gold drops in ratios
+- Achieved 100% test pass rate (91 tests) with proper TDD compliance
 
 ## Current Development Status (June 2025)
 
 ### 📊 **Overall Project Statistics:**
-- **Total Tests**: 91 (98.9% passing - 1 flaky loot test)
+- **Total Tests**: 91 (100% passing)
 - **Total Source Files**: 67 (added compression implementations)
 - **Lines of Code**: ~8,500 (increased with compression code)
 - **Phases Completed**: 4 of 8
 - **Current Phase**: 5 (Game World & AI) - In Progress
 - **MPQ Compression**: ✅ FULLY IMPLEMENTED (all 19 MPQ tests passing)
+- **Test Suite Health**: ✅ All tests passing with proper TDD compliance
 
 ### ✅ **Completed Features:**
 1. **MPQ Archive System** - Full support for game asset extraction

@@ -52,6 +52,9 @@ TEST_F(LootSystemTest, BasicLootGeneration) {
 TEST_F(LootSystemTest, MonsterSpecificLootTables) {
     LootSystem lootSystem;
     
+    // Disable gold drops for this test to isolate loot table behavior
+    lootSystem.setGoldDropChance(0.0f);
+    
     // Configure loot tables for specific monsters
     // Skeletons drop more weapons
     std::vector<LootTableEntry> skeletonTable = {
@@ -71,42 +74,62 @@ TEST_F(LootSystemTest, MonsterSpecificLootTables) {
     
     // Test skeleton drops - should favor weapons
     int weaponCount = 0;
-    int totalDrops = 0;
+    int armorCount = 0;
+    int consumableCount = 0;
+    int nonGoldItems = 0;
     
     for (int i = 0; i < 100; i++) {
         auto skeleton = std::make_shared<Monster>(MonsterType::SKELETON, 10);
         auto loot = lootSystem.generateLoot(skeleton);
         
         for (const auto& item : loot) {
-            totalDrops++;
+            // Only count non-gold items for loot table validation
             if (item->getType() == ItemType::WEAPON) {
                 weaponCount++;
+                nonGoldItems++;
+            } else if (item->getType() == ItemType::ARMOR) {
+                armorCount++;
+                nonGoldItems++;
+            } else if (item->getType() == ItemType::CONSUMABLE) {
+                consumableCount++;
+                nonGoldItems++;
             }
+            // Gold and other items are not counted
         }
     }
     
-    // With 70% weapon chance, expect at least 60% weapons in practice
-    float weaponRatio = static_cast<float>(weaponCount) / totalDrops;
+    // With 70% weapon chance, expect at least 60% weapons among non-gold items
+    float weaponRatio = static_cast<float>(weaponCount) / nonGoldItems;
     EXPECT_GT(weaponRatio, 0.6f);
     
     // Test zombie drops - should favor consumables
-    int consumableCount = 0;
-    totalDrops = 0;
+    weaponCount = 0;
+    armorCount = 0;
+    consumableCount = 0;
+    nonGoldItems = 0;
     
     for (int i = 0; i < 100; i++) {
         auto zombie = std::make_shared<Monster>(MonsterType::ZOMBIE, 10);
         auto loot = lootSystem.generateLoot(zombie);
         
         for (const auto& item : loot) {
-            totalDrops++;
-            if (item->getType() == ItemType::CONSUMABLE) {
+            // Only count non-gold items for loot table validation
+            if (item->getType() == ItemType::WEAPON) {
+                weaponCount++;
+                nonGoldItems++;
+            } else if (item->getType() == ItemType::ARMOR) {
+                armorCount++;
+                nonGoldItems++;
+            } else if (item->getType() == ItemType::CONSUMABLE) {
                 consumableCount++;
+                nonGoldItems++;
             }
+            // Gold and other items are not counted
         }
     }
     
-    // With 60% consumable chance, expect at least 50% consumables in practice
-    float consumableRatio = static_cast<float>(consumableCount) / totalDrops;
+    // With 60% consumable chance, expect at least 50% consumables among non-gold items
+    float consumableRatio = static_cast<float>(consumableCount) / nonGoldItems;
     EXPECT_GT(consumableRatio, 0.5f);
 }
 
