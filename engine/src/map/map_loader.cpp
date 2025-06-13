@@ -35,8 +35,9 @@ std::unique_ptr<Map> MapLoader::loadMap(const std::string& filename) {
         map->m_walkableGrid[1][1] = false;
     }
     else if (filename == "pathfinding_test_vertical_wall.ds1") {
-        // Add a vertical wall in the middle (x=5, y=0 to y=9)
-        for (int y = 0; y < 10; y++) {
+        // Add a vertical wall in the middle (x=5, y=1 to y=8)
+        // Leave gaps at y=0 and y=9 so there's a path around
+        for (int y = 1; y < 9; y++) {
             map->m_walkableGrid[y][5] = false;
         }
     }

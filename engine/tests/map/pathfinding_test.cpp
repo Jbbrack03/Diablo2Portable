@@ -47,6 +47,10 @@ TEST_F(PathfindingTest, FindSimplePath) {
     // Now test with a map that has a vertical wall
     auto map = loader.loadMap("pathfinding_test_vertical_wall.ds1");
     
+    // Test going across the wall at the top
+    auto acrossWallPath = pathfinder.findPath(4, 0, 6, 0, *map);
+    ASSERT_FALSE(acrossWallPath.empty()) << "Path from x=4 to x=6 at y=0 should work";
+    
     // Debug: check map size
     EXPECT_EQ(map->getWidth(), 10);
     EXPECT_EQ(map->getHeight(), 10);
@@ -55,25 +59,23 @@ TEST_F(PathfindingTest, FindSimplePath) {
     ASSERT_TRUE(map->isWalkable(0, 5)) << "Start position not walkable";
     ASSERT_TRUE(map->isWalkable(9, 5)) << "Goal position not walkable";
     ASSERT_FALSE(map->isWalkable(5, 5)) << "Wall position should not be walkable";  // The wall should be here
+    ASSERT_TRUE(map->isWalkable(5, 0)) << "Gap at top should be walkable";
+    ASSERT_TRUE(map->isWalkable(5, 9)) << "Gap at bottom should be walkable";
     
-    // TODO: Fix pathfinding around vertical wall
-    // The following test is disabled because the A* implementation
-    // has issues finding paths around certain obstacle configurations
+    // Now test the path that needs to go around the wall
+    auto path = pathfinder.findPath(0, 5, 9, 5, *map);  // Start at (0,5), goal at (9,5)
     
-    // // Now test the path that needs to go around the wall
-    // auto path = pathfinder.findPath(0, 5, 9, 5, *map);  // Start at (0,5), goal at (9,5)
-    // 
-    // // Path should exist and go around the wall
-    // EXPECT_FALSE(path.empty());
-    // EXPECT_GT(path.size(), 10);  // Must be longer than direct path due to wall
-    // 
-    // // Verify start and end points
-    // if (!path.empty()) {
-    //     EXPECT_EQ(path.front().x, 0);
-    //     EXPECT_EQ(path.front().y, 5);
-    //     EXPECT_EQ(path.back().x, 9);
-    //     EXPECT_EQ(path.back().y, 5);
-    // }
+    // Path should exist and go around the wall
+    EXPECT_FALSE(path.empty());
+    EXPECT_GT(path.size(), 10);  // Must be longer than direct path due to wall
+    
+    // Verify start and end points
+    if (!path.empty()) {
+        EXPECT_EQ(path.front().x, 0);
+        EXPECT_EQ(path.front().y, 5);
+        EXPECT_EQ(path.back().x, 9);
+        EXPECT_EQ(path.back().y, 5);
+    }
 }
 
 TEST_F(PathfindingTest, HandleNoPath) {

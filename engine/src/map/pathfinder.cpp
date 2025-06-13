@@ -5,6 +5,7 @@
 #include <unordered_map>
 #include <cmath>
 #include <algorithm>
+#include <iostream>
 
 namespace d2::map {
 
@@ -35,6 +36,13 @@ struct CoordHash {
 };
 
 std::vector<PathNode> Pathfinder::findPath(int startX, int startY, int goalX, int goalY, const Map& map) {
+    // Debug output
+    bool debug = false;
+    if (debug) {
+        std::cerr << "=== PATHFINDING DEBUG: (" << startX << "," << startY << ") to (" 
+                  << goalX << "," << goalY << ") ===" << std::endl;
+    }
+    
     // Check if start and goal are walkable
     if (!map.isWalkable(startX, startY) || !map.isWalkable(goalX, goalY)) {
         return {};
@@ -77,6 +85,7 @@ std::vector<PathNode> Pathfinder::findPath(int startX, int startY, int goalX, in
     const float costs[] = {1.414f, 1.0f, 1.414f, 1.0f, 1.0f, 1.414f, 1.0f, 1.414f}; // Diagonal = sqrt(2)
     
     int iterations = 0;
+    int nodesExplored = 0;
     const int maxIterations = 10000;  // Increase safety limit
     while (!openSet.empty() && iterations < maxIterations) {
         iterations++;
@@ -85,13 +94,16 @@ std::vector<PathNode> Pathfinder::findPath(int startX, int startY, int goalX, in
         AStarNode* current = openSet.top();
         openSet.pop();
         
-        
-        // Skip if already processed
+        // Get current position
         auto currentPos = std::make_pair(current->x, current->y);
-        auto it = closedSet.find(currentPos);
-        if (it != closedSet.end()) {
+        
+        // Skip if already in closed set
+        if (closedSet.find(currentPos) != closedSet.end()) {
             continue;
         }
+        
+        nodesExplored++;
+        
         
         // Check if we reached the goal
         if (current->x == goalX && current->y == goalY) {
