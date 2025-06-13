@@ -543,6 +543,28 @@ Phase 5 implementation is progressing with **91 total tests** across all phases,
 - **Passing**: 90 tests (98.9% success rate)
 - **Coverage**: 90%+ maintained across all systems
 
+## Project Repository
+
+### 🚀 **Project Successfully Published to GitHub**
+
+The Diablo II Android Port project is now publicly available on GitHub:
+
+**Repository URL**: https://github.com/Jbbrack03/Diablo2Portable.git
+
+#### **Repository Details:**
+- **Total Source Files**: 64 C++ files
+- **Lines of Code**: 7,213
+- **Test Suite**: 91 comprehensive tests
+- **Success Rate**: 98.9% (90/91 tests passing)
+- **Repository Size**: ~1.7MB (clean, no game assets)
+
+#### **Important Notes:**
+- ✅ Repository contains only source code and documentation
+- ✅ No copyrighted game files or assets included
+- ✅ Users must provide their own legally owned Diablo II files
+- ✅ Vendor directory excluded via .gitignore
+- ✅ Clean commit history maintained throughout development
+
 #### **Phase 5 Systems Implemented So Far** (6/? tests ✅)
 
 **1. Map Loading System** (3/3 tests ✅)
@@ -640,3 +662,38 @@ Successfully implemented complete loot drop system with 3 new tests:
 - Users must provide their own legally purchased game files
 - Project is for personal use only, not for distribution
 - Refer to comprehensive documentation in `Docs/` directory for detailed implementation guides
+
+## Current Development Status (June 2025)
+
+### 📊 **Overall Project Statistics:**
+- **Total Tests**: 91 (98.9% passing)
+- **Total Source Files**: 64
+- **Lines of Code**: 7,213
+- **Phases Completed**: 4 of 8
+- **Current Phase**: 5 (Game World & AI) - In Progress
+
+### ✅ **Completed Features:**
+1. **MPQ Archive System** - Full support for game asset extraction
+2. **Sprite Rendering** - DC6 format with palette support
+3. **Asset Management** - Efficient caching and loading
+4. **OpenGL ES Rendering** - Mobile-optimized graphics pipeline
+5. **Gamepad Input** - Full controller support with mapping
+6. **Character System** - Stats, leveling, and progression
+7. **Combat Engine** - Damage calculation and resistances
+8. **Item System** - Complete with affixes and rarity
+9. **Skill System** - Prerequisites and synergies
+10. **Monster System** - AI behaviors and group mechanics
+11. **Inventory System** - Grid-based with equipment slots
+12. **Loot System** - Monster-specific drop tables
+13. **Map Loading** - Basic tile-based maps with walkability
+
+### 🚧 **In Progress:**
+- A* Pathfinding for monster navigation
+- Advanced map features (DS1 file support)
+- Network multiplayer foundation
+
+### 📅 **Upcoming Features:**
+- Audio system with 3D positioning
+- UI framework with controller navigation
+- Save/load system (D2S format)
+- Performance optimization for mobile
