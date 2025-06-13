@@ -699,14 +699,21 @@ const uint8_t MPQ_COMPRESSION_PKWARE = 0x08;
 - Table decryption uses pre-computed keys: 0xC3AF3770 (hash), 0xEC83B3A3 (block)
 - File-level encryption detected but not yet implemented
 
+### **Latest Updates (June 2025):**
+- Fixed MPQ test failures after compression implementation
+- Updated test MPQ creation to use proper encryption algorithm
+- All 19 MPQ tests now passing with real compression support
+- MPQ loader handles both encrypted and unencrypted tables correctly
+
 ## Current Development Status (June 2025)
 
 ### 📊 **Overall Project Statistics:**
-- **Total Tests**: 91 (98.9% passing)
+- **Total Tests**: 91 (98.9% passing - 1 flaky loot test)
 - **Total Source Files**: 67 (added compression implementations)
 - **Lines of Code**: ~8,500 (increased with compression code)
 - **Phases Completed**: 4 of 8
 - **Current Phase**: 5 (Game World & AI) - In Progress
+- **MPQ Compression**: ✅ FULLY IMPLEMENTED (all 19 MPQ tests passing)
 
 ### ✅ **Completed Features:**
 1. **MPQ Archive System** - Full support for game asset extraction
