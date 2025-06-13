@@ -11,6 +11,15 @@
 using namespace d2portable::utils;
 using namespace testing;
 
+// MPQ compression constants for tests
+const uint8_t MPQ_COMPRESSION_HUFFMAN = 0x01;
+const uint8_t MPQ_COMPRESSION_ZLIB = 0x02;
+const uint8_t MPQ_COMPRESSION_PKWARE = 0x08;
+const uint8_t MPQ_COMPRESSION_BZIP2 = 0x10;
+const uint8_t MPQ_COMPRESSION_SPARSE = 0x20;
+const uint8_t MPQ_COMPRESSION_ADPCM_MONO = 0x40;
+const uint8_t MPQ_COMPRESSION_ADPCM_STEREO = 0x80;
+
 class MPQLoaderTest : public ::testing::Test {
 protected:
     void SetUp() override {
@@ -483,7 +492,7 @@ protected:
         
         // Create MPQ compressed data with compression flag
         std::vector<uint8_t> mpq_compressed;
-        mpq_compressed.push_back(0x02); // zlib compression flag
+        mpq_compressed.push_back(MPQ_COMPRESSION_ZLIB); // zlib compression flag (0x02)
         mpq_compressed.insert(mpq_compressed.end(), compressed_buffer.begin(), 
                             compressed_buffer.begin() + strm.total_out);
         
@@ -568,7 +577,7 @@ protected:
         // Create simplified PKWARE DCL compressed data
         // For testing, we'll use a simple literal encoding
         std::vector<uint8_t> pkware_compressed;
-        pkware_compressed.push_back(0x01); // PKWARE compression flag
+        pkware_compressed.push_back(MPQ_COMPRESSION_PKWARE); // PKWARE compression flag (0x08)
         
         // Simple literal encoding: control byte followed by literal bytes
         // Each bit in control byte indicates if following byte is literal (1) or reference (0)
@@ -687,8 +696,7 @@ protected:
         
         // Create multi-compressed data with header
         std::vector<uint8_t> multi_compressed;
-        multi_compressed.push_back(0x03); // Multi compression flag
-        multi_compressed.push_back(0x03); // Both PKWARE (0x01) and zlib (0x02) used
+        multi_compressed.push_back(MPQ_COMPRESSION_PKWARE | MPQ_COMPRESSION_ZLIB); // Both compression flags (0x08 | 0x02 = 0x0A)
         multi_compressed.insert(multi_compressed.end(), zlib_buffer.begin(), 
                                zlib_buffer.begin() + strm.total_out);
         

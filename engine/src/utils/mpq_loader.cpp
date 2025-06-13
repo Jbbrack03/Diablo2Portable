@@ -43,19 +43,31 @@ struct MPQBlockEntry {
 
 // MPQ file flags
 const uint32_t MPQ_FILE_EXISTS = 0x80000000;
+const uint32_t MPQ_FILE_HAS_METADATA = 0x04000000;
+const uint32_t MPQ_FILE_UNIT = 0x02000000;
+const uint32_t MPQ_FILE_ADJUSTED_KEY = 0x00020000;
+const uint32_t MPQ_FILE_ENCRYPTED = 0x00010000;
 const uint32_t MPQ_FILE_COMPRESS = 0x00000200;
 const uint32_t MPQ_FILE_IMPLODE = 0x00000100; // PKWARE compression
 
-// MPQ compression type flags (first byte of compressed data)
-const uint8_t MPQ_COMPRESSION_PKWARE = 0x01;
-const uint8_t MPQ_COMPRESSION_ZLIB = 0x02;
-const uint8_t MPQ_COMPRESSION_MULTI = 0x03;
+// MPQ compression type flags (bitmask in first byte of compressed data)
+const uint8_t MPQ_COMPRESSION_HUFFMAN = 0x01;    // Huffman encoding
+const uint8_t MPQ_COMPRESSION_ZLIB = 0x02;       // Deflate/zlib
+const uint8_t MPQ_COMPRESSION_PKWARE = 0x08;     // PKWARE implode
+const uint8_t MPQ_COMPRESSION_BZIP2 = 0x10;      // BZip2 (not in D2)
+const uint8_t MPQ_COMPRESSION_SPARSE = 0x20;     // Sparse (not in D2)
+const uint8_t MPQ_COMPRESSION_ADPCM_MONO = 0x40; // IMA ADPCM mono
+const uint8_t MPQ_COMPRESSION_ADPCM_STEREO = 0x80; // IMA ADPCM stereo
 
 // MPQ hash types
 const uint32_t MPQ_HASH_TABLE_OFFSET = 0;
 const uint32_t MPQ_HASH_NAME_A = 1;
 const uint32_t MPQ_HASH_NAME_B = 2;
 const uint32_t MPQ_HASH_FILE_KEY = 3;
+
+// Pre-computed decryption keys for tables
+const uint32_t MPQ_KEY_HASH_TABLE = 0xC3AF3770;  // HashString("(hash table)", MPQ_HASH_FILE_KEY)
+const uint32_t MPQ_KEY_BLOCK_TABLE = 0xEC83B3A3; // HashString("(block table)", MPQ_HASH_FILE_KEY)
 
 // Private implementation class
 class MPQLoader::Impl {
@@ -127,8 +139,15 @@ public:
     void decryptTable(uint32_t* data, size_t length, uint32_t key) {
         prepareCryptTable();
         
+        uint32_t seed = 0xEEEEEEEE;
+        
         for (size_t i = 0; i < length; i++) {
-            data[i] ^= (key + i);
+            seed += crypt_table[0x400 + (key & 0xFF)];
+            uint32_t ch = data[i] ^ (key + seed);
+            
+            key = ((~key << 0x15) + 0x11111111) | (key >> 0x0B);
+            seed = ch + seed + (seed << 5) + 3;
+            data[i] = ch;
         }
     }
     
@@ -242,98 +261,69 @@ public:
             return false;
         }
         
-        // Check compression type (first byte)
-        uint8_t compression_type = compressed_data[0];
+        // Check compression type (first byte is a bitmask)
+        uint8_t compression_mask = compressed_data[0];
         
-        // For this minimal implementation, we'll handle our test compression formats
-        switch (compression_type) {
-            case MPQ_COMPRESSION_PKWARE: {
-                // Real PKWARE decompression
-                if (compressed_data.size() < 2) {
-                    last_error = "Invalid PKWARE compressed data";
-                    return false;
-                }
-                // Skip the compression type byte and decompress the rest
-                std::vector<uint8_t> pkware_data(compressed_data.begin() + 1, compressed_data.end());
-                return decompressPKWARE(pkware_data, output, expected_size);
-            }
-            
-            case MPQ_COMPRESSION_ZLIB: {
-                // Real zlib decompression
-                if (compressed_data.size() < 2) {
-                    last_error = "Invalid zlib compressed data";
-                    return false;
-                }
-                // Skip the compression type byte and decompress the rest
-                std::vector<uint8_t> zlib_data(compressed_data.begin() + 1, compressed_data.end());
-                return decompressZlib(zlib_data, output, expected_size);
-            }
-            
-            case MPQ_COMPRESSION_MULTI: {
-                // Multi-compression: data was compressed with multiple algorithms
-                if (compressed_data.size() < 3) {
-                    last_error = "Invalid multi compressed data";
-                    return false;
-                }
-                
-                // The second byte indicates which compression methods were used
-                uint8_t compression_methods = compressed_data[1];
-                std::vector<uint8_t> current_data(compressed_data.begin() + 2, compressed_data.end());
-                std::vector<uint8_t> temp_output;
-                
-                // Apply decompression in reverse order (last compression first)
-                // For multi-compression, we don't know intermediate sizes, so we allocate generously
-                
-                // Check for zlib compression (most common second pass)
-                if (compression_methods & 0x02) {
-                    // Zlib decompression - estimate a reasonable intermediate size
-                    size_t intermediate_size = expected_size * 2; // PKWARE typically doesn't compress much
-                    temp_output.clear();
-                    temp_output.resize(intermediate_size);
-                    
-                    z_stream strm = {};
-                    strm.next_in = const_cast<uint8_t*>(current_data.data());
-                    strm.avail_in = current_data.size();
-                    strm.next_out = temp_output.data();
-                    strm.avail_out = intermediate_size;
-                    
-                    int ret = inflateInit(&strm);
-                    if (ret != Z_OK) {
-                        last_error = "Failed to init zlib for multi-compression";
-                        return false;
-                    }
-                    
-                    ret = inflate(&strm, Z_FINISH);
-                    inflateEnd(&strm);
-                    
-                    if (ret != Z_STREAM_END) {
-                        last_error = "Multi-compression zlib decompression failed";
-                        return false;
-                    }
-                    
-                    temp_output.resize(strm.total_out);
-                    current_data = temp_output;
-                }
-                
-                // Check for PKWARE compression (often first pass)
-                if (compression_methods & 0x01) {
-                    temp_output.clear();
-                    if (!decompressPKWARE(current_data, temp_output, expected_size)) {
-                        last_error = "Multi-compression PKWARE pass failed";
-                        return false;
-                    }
-                    current_data = temp_output;
-                }
-                
-                output = current_data;
-                return output.size() == expected_size;
-            }
-            
-            default: {
-                last_error = "Unsupported compression type: " + std::to_string(compression_type);
+        // Skip compression mask byte
+        std::vector<uint8_t> current_data(compressed_data.begin() + 1, compressed_data.end());
+        std::vector<uint8_t> temp_output;
+        
+        // Compression algorithms are applied in reverse order during decompression
+        // The order is: SPARSE, BZIP2, IMPLODE (PKWARE), ZLIB, HUFFMAN, ADPCM
+        
+        // Check for unsupported compression types
+        if (compression_mask & MPQ_COMPRESSION_BZIP2) {
+            last_error = "BZip2 compression not supported";
+            return false;
+        }
+        if (compression_mask & MPQ_COMPRESSION_SPARSE) {
+            last_error = "Sparse compression not supported";
+            return false;
+        }
+        
+        // ADPCM decompression (for audio files)
+        if (compression_mask & (MPQ_COMPRESSION_ADPCM_MONO | MPQ_COMPRESSION_ADPCM_STEREO)) {
+            // For now, we'll skip ADPCM decompression as it's complex and only for audio
+            last_error = "ADPCM audio compression not yet supported";
+            return false;
+        }
+        
+        // PKWARE implode decompression
+        if (compression_mask & MPQ_COMPRESSION_PKWARE) {
+            temp_output.clear();
+            if (!decompressPKWARE(current_data, temp_output, expected_size * 2)) {
+                last_error = "PKWARE decompression failed";
                 return false;
             }
+            current_data = temp_output;
         }
+        
+        // Zlib decompression
+        if (compression_mask & MPQ_COMPRESSION_ZLIB) {
+            temp_output.clear();
+            if (!decompressZlib(current_data, temp_output, expected_size)) {
+                last_error = "Zlib decompression failed";
+                return false;
+            }
+            current_data = temp_output;
+        }
+        
+        // Huffman decompression
+        if (compression_mask & MPQ_COMPRESSION_HUFFMAN) {
+            // For now, we'll implement a simple pass-through as Huffman is complex
+            // In real implementation, this would decompress Huffman-encoded data
+            last_error = "Huffman decompression not yet supported";
+            return false;
+        }
+        
+        // If no compression was applied, data is stored as-is
+        if (compression_mask == 0) {
+            output = current_data;
+            return output.size() == expected_size;
+        }
+        
+        output = current_data;
+        return output.size() == expected_size;
     }
     
     // Load and parse listfile for filename resolution
@@ -453,25 +443,29 @@ bool MPQLoader::open(const std::string& filepath) {
     pImpl->file.read(reinterpret_cast<char*>(pImpl->hash_table.data()), 
                      sizeof(MPQHashEntry) * pImpl->header.hash_table_entries);
     
-    // Check if original (unencrypted) hash table looks valid
-    bool original_hash_valid = false;
+    // Diablo II MPQs always have encrypted tables, so always try decryption
+    std::vector<MPQHashEntry> backup_hash_table = pImpl->hash_table;
+    
+    // Try decryption with the standard key
+    pImpl->decryptTable(reinterpret_cast<uint32_t*>(pImpl->hash_table.data()),
+                        (sizeof(MPQHashEntry) * pImpl->header.hash_table_entries) / sizeof(uint32_t),
+                        MPQ_KEY_HASH_TABLE);
+    
+    // Check if decryption produced valid-looking results
+    bool hash_decryption_valid = false;
+    int valid_entries = 0;
     for (const auto& entry : pImpl->hash_table) {
-        if (entry.block_index != 0xFFFFFFFF && entry.block_index < pImpl->header.block_table_entries) {
-            original_hash_valid = true;
-            break;
+        // Check for valid block indices (not empty/deleted)
+        if (entry.block_index < pImpl->header.block_table_entries) {
+            valid_entries++;
+            hash_decryption_valid = true;
         }
     }
     
-    // Only try decryption if original doesn't look valid
-    if (!original_hash_valid) {
-        std::vector<MPQHashEntry> backup_hash_table = pImpl->hash_table;
-        uint32_t hash_key = pImpl->hashString("(hash table)", MPQ_HASH_FILE_KEY);
-        pImpl->decryptTable(reinterpret_cast<uint32_t*>(pImpl->hash_table.data()),
-                            (sizeof(MPQHashEntry) * pImpl->header.hash_table_entries) / sizeof(uint32_t),
-                            hash_key);
-        
-        // Check if decryption produced valid-looking results
-        bool hash_decryption_valid = false;
+    // If decryption didn't produce any valid entries, try without decryption
+    if (!hash_decryption_valid || valid_entries == 0) {
+        // Check if original data looks valid
+        pImpl->hash_table = backup_hash_table;
         for (const auto& entry : pImpl->hash_table) {
             if (entry.block_index != 0xFFFFFFFF && entry.block_index < pImpl->header.block_table_entries) {
                 hash_decryption_valid = true;
@@ -479,9 +473,12 @@ bool MPQLoader::open(const std::string& filepath) {
             }
         }
         
-        // If decryption didn't help, restore original (unencrypted) data
+        // If original also doesn't look valid, keep the decrypted version
+        // as Diablo II MPQs are always encrypted
         if (!hash_decryption_valid) {
-            pImpl->hash_table = backup_hash_table;
+            pImpl->decryptTable(reinterpret_cast<uint32_t*>(pImpl->hash_table.data()),
+                                (sizeof(MPQHashEntry) * pImpl->header.hash_table_entries) / sizeof(uint32_t),
+                                MPQ_KEY_HASH_TABLE);
         }
     }
     
@@ -491,41 +488,46 @@ bool MPQLoader::open(const std::string& filepath) {
     pImpl->file.read(reinterpret_cast<char*>(pImpl->block_table.data()),
                      sizeof(MPQBlockEntry) * pImpl->header.block_table_entries);
     
-    // Check if original (unencrypted) block table looks valid
-    bool original_block_valid = false;
+    // Diablo II MPQs always have encrypted tables, so always try decryption
+    std::vector<MPQBlockEntry> backup_block_table = pImpl->block_table;
+    
+    // Try decryption with the standard key
+    pImpl->decryptTable(reinterpret_cast<uint32_t*>(pImpl->block_table.data()),
+                        (sizeof(MPQBlockEntry) * pImpl->header.block_table_entries) / sizeof(uint32_t),
+                        MPQ_KEY_BLOCK_TABLE);
+    
+    // Check if decryption produced valid-looking results
+    bool block_decryption_valid = false;
+    int valid_blocks = 0;
     for (const auto& entry : pImpl->block_table) {
         // Check for reasonable file position and size values
-        if (entry.unpacked_size > 0 && entry.file_pos > 0 && 
-            entry.file_pos < pImpl->header.archive_size &&
-            entry.unpacked_size < pImpl->header.archive_size) {
-            original_block_valid = true;
-            break;
+        if (entry.file_pos > 0 && entry.file_pos < pImpl->header.archive_size &&
+            entry.unpacked_size > 0 && entry.unpacked_size < 100*1024*1024) { // Max 100MB per file
+            valid_blocks++;
+            block_decryption_valid = true;
         }
     }
     
-    // Only try decryption if original doesn't look valid
-    if (!original_block_valid) {
-        std::vector<MPQBlockEntry> backup_block_table = pImpl->block_table;
-        uint32_t block_key = pImpl->hashString("(block table)", MPQ_HASH_FILE_KEY);
-        pImpl->decryptTable(reinterpret_cast<uint32_t*>(pImpl->block_table.data()),
-                            (sizeof(MPQBlockEntry) * pImpl->header.block_table_entries) / sizeof(uint32_t),
-                            block_key);
-        
-        // Check if decryption produced valid-looking results
-        bool block_decryption_valid = false;
+    // If decryption didn't produce enough valid blocks, try without decryption
+    if (!block_decryption_valid || valid_blocks < pImpl->header.block_table_entries / 4) {
+        // Check if original data looks valid
+        pImpl->block_table = backup_block_table;
+        valid_blocks = 0;
         for (const auto& entry : pImpl->block_table) {
-            // Check for reasonable file position and size values
             if (entry.unpacked_size > 0 && entry.file_pos > 0 && 
                 entry.file_pos < pImpl->header.archive_size &&
                 entry.unpacked_size < pImpl->header.archive_size) {
+                valid_blocks++;
                 block_decryption_valid = true;
-                break;
             }
         }
         
-        // If decryption didn't help, restore original (unencrypted) data
-        if (!block_decryption_valid) {
-            pImpl->block_table = backup_block_table;
+        // If original also doesn't look valid, keep the decrypted version
+        // as Diablo II MPQs are always encrypted
+        if (valid_blocks < pImpl->header.block_table_entries / 4) {
+            pImpl->decryptTable(reinterpret_cast<uint32_t*>(pImpl->block_table.data()),
+                                (sizeof(MPQBlockEntry) * pImpl->header.block_table_entries) / sizeof(uint32_t),
+                                MPQ_KEY_BLOCK_TABLE);
         }
     }
     
@@ -651,29 +653,55 @@ bool MPQLoader::extractFile(const std::string& filename, std::vector<uint8_t>& o
     // Read file data
     pImpl->file.seekg(block.file_pos);
     
-    // Check if file is compressed
-    if (block.flags & (MPQ_FILE_COMPRESS | MPQ_FILE_IMPLODE)) {
-        // Read compressed data
-        std::vector<uint8_t> compressed_data(block.packed_size);
-        pImpl->file.read(reinterpret_cast<char*>(compressed_data.data()), block.packed_size);
-        
-        if (!pImpl->file.good()) {
-            pImpl->last_error = "Failed to read compressed file data";
-            return false;
+    // Read the raw data first
+    std::vector<uint8_t> file_data(block.packed_size);
+    pImpl->file.read(reinterpret_cast<char*>(file_data.data()), block.packed_size);
+    
+    if (!pImpl->file.good()) {
+        pImpl->last_error = "Failed to read file data";
+        return false;
+    }
+    
+    // Handle encryption if present
+    if (block.flags & MPQ_FILE_ENCRYPTED) {
+        // Calculate encryption key based on filename
+        // Extract just the filename without path
+        std::string base_name = filename;
+        size_t slash_pos = filename.find_last_of("\\/");
+        if (slash_pos != std::string::npos) {
+            base_name = filename.substr(slash_pos + 1);
         }
         
+        // Convert to uppercase for key calculation
+        for (char& c : base_name) {
+            c = std::toupper(c);
+        }
+        
+        uint32_t file_key = pImpl->hashString(base_name, MPQ_HASH_FILE_KEY);
+        
+        // Adjust key if needed
+        if (block.flags & MPQ_FILE_ADJUSTED_KEY) {
+            file_key = (file_key + block.file_pos) ^ block.unpacked_size;
+        }
+        
+        // For now, skip decryption as it's complex and we don't have sector-based encryption
+        pImpl->last_error = "File encryption not yet supported";
+        return false;
+    }
+    
+    // Check if file is compressed
+    if (block.flags & (MPQ_FILE_COMPRESS | MPQ_FILE_IMPLODE)) {
         // Decompress data
-        if (!pImpl->decompressData(compressed_data, output, block.unpacked_size)) {
+        if (!pImpl->decompressData(file_data, output, block.unpacked_size)) {
             return false; // Error message already set in decompressData
         }
     } else {
         // Uncompressed file
-        output.resize(block.unpacked_size);
-        pImpl->file.read(reinterpret_cast<char*>(output.data()), block.unpacked_size);
+        output = std::move(file_data);
         
-        if (!pImpl->file.good()) {
-            pImpl->last_error = "Failed to read file data";
-            output.clear();
+        // Verify size
+        if (output.size() != block.unpacked_size) {
+            pImpl->last_error = "File size mismatch";
             return false;
         }
     }
