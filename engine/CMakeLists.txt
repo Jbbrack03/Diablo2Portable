@@ -41,6 +41,7 @@ add_library(d2engine STATIC
     src/game/character_inventory.cpp
     src/game/loot_system.cpp
     src/map/map_loader.cpp
+    src/map/pathfinder.cpp
 )
 
 # Include directories

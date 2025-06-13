@@ -12,8 +12,9 @@ public:
     int getHeight() const { return m_height; }
     bool isWalkable(int x, int y) const;
 
-    // Friend class for testing access
+    // Friend classes for testing access
     friend class MapLoader;
+    friend class TestMap;
 
 private:
     int m_width = 0;
