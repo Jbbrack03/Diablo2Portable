@@ -45,6 +45,7 @@ coverage/
 # Game assets (users must provide their own)
 assets/
 extracted_assets/
+vendor/
 
 # Temporary files
 *.tmp
