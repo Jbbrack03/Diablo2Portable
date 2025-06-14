@@ -38,7 +38,7 @@ set(TEST_SOURCES
     map/pathfinding_test.cpp
     world/test_collision_system.cpp
     world/test_entity_collision.cpp
-    #world/test_collision_response.cpp
+    world/test_collision_response.cpp
     # Tests will be added as we implement features following TDD
     # core/game_state_test.cpp
     # audio/sound_system_test.cpp

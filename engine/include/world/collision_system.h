@@ -63,6 +63,13 @@ public:
     // Layer collision settings
     void setLayerCollision(int layer1, int layer2, bool canCollide);
     
+    // Get entities for collision response
+    std::unordered_map<int, std::shared_ptr<CollisionEntity>>& getEntities() { return entities; }
+    std::shared_ptr<CollisionEntity> getEntity(int id) {
+        auto it = entities.find(id);
+        return (it != entities.end()) ? it->second : nullptr;
+    }
+    
 private:
     // World bounds
     glm::vec2 minBounds{0.0f, 0.0f};

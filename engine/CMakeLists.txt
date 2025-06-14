@@ -43,6 +43,7 @@ add_library(d2engine STATIC
     src/map/map_loader.cpp
     src/map/pathfinder.cpp
     src/world/collision_system.cpp
+    src/world/collision_response.cpp
 )
 
 # Include directories
