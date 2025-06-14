@@ -138,13 +138,13 @@ struct PKWAREWork {
 };
 
 // Binary compression type
-constexpr uint8_t CMP_BINARY = 0;
+const uint8_t CMP_BINARY = 0;
 
 // ASCII compression type  
-constexpr uint8_t CMP_ASCII = 1;
+const uint8_t CMP_ASCII = 1;
 
 // Maximum dictionary size bits
-constexpr uint8_t MAX_DICT_BITS = 6;
+const uint8_t MAX_DICT_BITS = 6;
 
 // Get bits from input stream
 static uint32_t GetBits(PKWAREWork* work, uint32_t bits_wanted) {
