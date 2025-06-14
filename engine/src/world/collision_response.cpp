@@ -155,6 +155,12 @@ void CollisionResponse::resolveAABBCollision(CollisionEntity* entity1, Collision
         glm::vec2 newPos = entity2->getPosition() - penetration * (1.0f + epsilon);
         entity2->setPosition(newPos);
         
+        // Wall sliding - if moving against a static wall
+        if (glm::length(entity2->getVelocity()) > 0.0f && glm::length(penetration) > 0.0f) {
+            glm::vec2 normal = -glm::normalize(penetration);  // Normal points from entity1 to entity2
+            applyWallSliding(entity2, normal);
+        }
+        
         // Velocity reflection for bouncy entities
         if (entity2->getBounciness() > 0.0f && glm::length(penetration) > 0.0f) {
             glm::vec2 normal = -glm::normalize(penetration);
