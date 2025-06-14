@@ -115,7 +115,9 @@ std::vector<PathNode> Pathfinder::findPath(int startX, int startY, int goalX, in
                 node = node->parent;
             }
             std::reverse(path.begin(), path.end());
-            return path;
+            
+            // Apply path smoothing
+            return smoothPath(path, map);
         }
         
         // Mark as closed
@@ -186,6 +188,69 @@ std::vector<PathNode> Pathfinder::findPath(int startX, int startY, int goalX, in
         // For debugging: could log this condition
     }
     return {};
+}
+
+std::vector<PathNode> Pathfinder::smoothPath(const std::vector<PathNode>& path, const Map& map) {
+    if (path.size() <= 2) {
+        return path;  // Already optimal
+    }
+    
+    std::vector<PathNode> smoothed;
+    smoothed.push_back(path[0]);  // Always include start
+    
+    size_t current = 0;
+    while (current < path.size() - 1) {
+        size_t farthest = current + 1;
+        
+        // Find the farthest point we can reach with line of sight
+        for (size_t i = path.size() - 1; i > current + 1; i--) {
+            if (hasLineOfSight(path[current].x, path[current].y, 
+                              path[i].x, path[i].y, map)) {
+                farthest = i;
+                break;
+            }
+        }
+        
+        smoothed.push_back(path[farthest]);
+        current = farthest;
+    }
+    
+    return smoothed;
+}
+
+bool Pathfinder::hasLineOfSight(int x1, int y1, int x2, int y2, const Map& map) {
+    // Use Bresenham's line algorithm to check all cells along the line
+    int dx = std::abs(x2 - x1);
+    int dy = std::abs(y2 - y1);
+    int sx = (x1 < x2) ? 1 : -1;
+    int sy = (y1 < y2) ? 1 : -1;
+    int err = dx - dy;
+    
+    int x = x1;
+    int y = y1;
+    
+    while (true) {
+        // Check if current position is walkable
+        if (!map.isWalkable(x, y)) {
+            return false;
+        }
+        
+        // Reached the target
+        if (x == x2 && y == y2) {
+            return true;
+        }
+        
+        // Bresenham's algorithm step
+        int e2 = 2 * err;
+        if (e2 > -dy) {
+            err -= dy;
+            x += sx;
+        }
+        if (e2 < dx) {
+            err += dx;
+            y += sy;
+        }
+    }
 }
 
 } // namespace d2::map

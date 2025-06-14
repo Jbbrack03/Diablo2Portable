@@ -37,7 +37,8 @@ TEST_F(PathfindingTest, FindSimplePath) {
     // Test simple horizontal path with no obstacles
     auto horizontalPath = pathfinder.findPath(0, 0, 5, 0, *emptyMap);
     ASSERT_FALSE(horizontalPath.empty()) << "Horizontal path in empty map should work";
-    EXPECT_EQ(horizontalPath.size(), 6) << "Direct path should have 6 nodes (0 to 5)";
+    // With path smoothing, a direct horizontal path should only have start and end points
+    EXPECT_EQ(horizontalPath.size(), 2) << "Direct horizontal path should be smoothed to 2 points";
     
     // Test with a simple single obstacle
     auto simpleObstacleMap = loader.loadMap("pathfinding_test_single_obstacle.ds1");
@@ -67,7 +68,8 @@ TEST_F(PathfindingTest, FindSimplePath) {
     
     // Path should exist and go around the wall
     EXPECT_FALSE(path.empty());
-    EXPECT_GT(path.size(), 10);  // Must be longer than direct path due to wall
+    // With path smoothing, the path will be optimized but still need to go around
+    EXPECT_GE(path.size(), 3);  // At minimum: start, turn point, end
     
     // Verify start and end points
     if (!path.empty()) {
@@ -113,4 +115,35 @@ TEST_F(PathfindingTest, PathfindingWithDiagonalMovement) {
         EXPECT_EQ(path.back().x, 3);
         EXPECT_EQ(path.back().y, 3);
     }
+}
+
+TEST_F(PathfindingTest, PathSmoothing) {
+    // Test that path smoothing removes unnecessary waypoints
+    MapLoader loader;
+    auto map = loader.loadMap("empty_map.ds1");  // Empty 10x10 map
+    
+    Pathfinder pathfinder;
+    
+    // Test diagonal path - should be smoothed to direct line
+    auto diagonalPath = pathfinder.findPath(0, 0, 5, 5, *map);
+    ASSERT_FALSE(diagonalPath.empty());
+    
+    // A direct diagonal path should only have start and end points after smoothing
+    EXPECT_EQ(diagonalPath.size(), 2) << "Direct diagonal path should be smoothed to 2 points";
+    
+    // Test L-shaped path
+    auto lPath = pathfinder.findPath(0, 0, 5, 0, *map);  // Horizontal
+    ASSERT_FALSE(lPath.empty());
+    
+    // Horizontal path should also be smoothed to just start and end
+    EXPECT_EQ(lPath.size(), 2) << "Straight horizontal path should be smoothed to 2 points";
+    
+    // Test path that requires going around obstacle
+    auto obstacleMap = loader.loadMap("pathfinding_test_single_obstacle.ds1");
+    auto aroundPath = pathfinder.findPath(0, 2, 4, 2, *obstacleMap);
+    ASSERT_FALSE(aroundPath.empty());
+    
+    // This path should have some waypoints but be optimized
+    // It shouldn't have redundant points in straight sections
+    EXPECT_LE(aroundPath.size(), 6) << "Path around obstacle should be smoothed";
 }
