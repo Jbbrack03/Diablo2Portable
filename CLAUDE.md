@@ -259,12 +259,14 @@ When tests fail, investigate carefully before changing them:
   - Control Mapping (Direct Movement) ✅
   - **READY FOR PHASE 4** (Game Logic Core)
   
-- **Phase 4**: Game Logic Core - **IN PROGRESS**
+- **Phase 4**: Game Logic Core - **COMPLETE** ✅
   - Character System ✅ (base stats, leveling)
   - Combat Engine ✅ (hit chance, damage calculation, resistances)
-  - Item System ✅ (creation, stats, rarity system)
-  - Skill System (pending)
-  - Monster System (pending)
+  - Item System ✅ (creation, stats, rarity system, affixes)
+  - Skill System ✅ (prerequisites, synergies, damage scaling)
+  - Monster System ✅ (AI behaviors, group mechanics)
+  - Inventory System ✅ (grid-based, equipment slots)
+  - Loot System ✅ (drop tables, rarity chances)
   
 See `Docs/TDD_IMPLEMENTATION_PLAN.md` for detailed phase breakdown.
 
@@ -611,8 +613,8 @@ The Diablo II Android Port project is now publicly available on GitHub:
 - ✅ Map loading and walkability (**COMPLETED**)
 - ✅ Monster spawning and advanced AI behaviors (**COMPLETED**)
 - ✅ A* pathfinding system implementation (**COMPLETED**)
-- 🚧 Collision detection and map interaction (pending)
-- 🚧 DS1 file format support for real Diablo II maps (pending)
+- ✅ Collision detection and map interaction (**COMPLETED**)
+- ✅ DS1 file format support for real Diablo II maps (**COMPLETED**)
 
 ### Session Summary (January 2025 - Map Loading System):
 Successfully implemented complete map loading foundation with 3 new tests:
@@ -697,6 +699,27 @@ Successfully implemented complete loot drop system with 3 new tests:
 - Item property generation (damage, defense, affixes)
 - 100% TDD compliance verified - every test written before implementation
 
+### Session Summary (June 2025 - Collision Detection System):
+Successfully implemented complete collision detection system with 30 new tests:
+- Basic shape collision (AABB, Circle, Mixed shapes)
+- Entity management with spatial grid optimization
+- Collision layers and group filtering
+- Position correction, velocity reflection, and wall sliding responses
+- Trigger zones and damage on collision
+- Continuous Collision Detection (CCD) for fast objects
+- Test setup corrections made after identifying wrong entity positions
+- 100% test pass rate achieved after fixing test configurations
+
+### Session Summary (June 2025 - DS1 File Parser):
+Successfully implemented DS1 file parser with 10 new tests:
+- DS1 header parsing (version, dimensions, act information)
+- Multiple floor and wall layer support
+- Shadow layer detection
+- Tile data parsing with orientation, main index, sub index
+- File loading from disk support
+- Test data adjustments for DS1 width/height format (stores value-1)
+- 100% TDD compliance - all tests written before implementation
+
 ## Important Notes
 
 - This is a clean-room implementation - no original Diablo II code
@@ -740,13 +763,15 @@ const uint8_t MPQ_COMPRESSION_PKWARE = 0x08;
 ## Current Development Status (June 2025)
 
 ### 📊 **Overall Project Statistics:**
-- **Total Tests**: 97 (100% passing)
-- **Total Source Files**: 70 (added pathfinding implementations)
-- **Lines of Code**: ~9,000 (increased with pathfinding code)
+- **Total Tests**: 138 (100% passing)
+- **Total Source Files**: 76 (added collision and DS1 parser)
+- **Lines of Code**: ~11,000 (increased with collision and DS1 code)
 - **Phases Completed**: 4 of 8
 - **Current Phase**: 5 (Game World & AI) - In Progress
 - **MPQ Compression**: ✅ FULLY IMPLEMENTED (all 19 MPQ tests passing)
 - **A* Pathfinding**: ✅ FULLY IMPLEMENTED (with optimizations)
+- **Collision Detection**: ✅ FULLY IMPLEMENTED (30 tests)
+- **DS1 Parser**: ✅ FULLY IMPLEMENTED (10 tests)
 - **Test Suite Health**: ✅ All tests passing
 
 ### ✅ **Completed Features:**
@@ -764,10 +789,12 @@ const uint8_t MPQ_COMPRESSION_PKWARE = 0x08;
 12. **Loot System** - Monster-specific drop tables
 13. **Map Loading** - Basic tile-based maps with walkability
 14. **A* Pathfinding** - Optimized with path smoothing and octile distance
+15. **Collision Detection** - AABB, Circle, entity management, spatial grid
+16. **DS1 File Parser** - Real Diablo II map format support with layers
 
 ### 🚧 **In Progress:**
-- A* Pathfinding ✅ IMPLEMENTED (with path smoothing and octile distance)
-- Advanced map features (DS1 file support)
+- Collision detection system ✅ IMPLEMENTED (AABB, Circle, entity management)
+- DS1 file format support ✅ IMPLEMENTED (map parsing with layers)
 - Network multiplayer foundation
 
 ### 📅 **Upcoming Features:**
