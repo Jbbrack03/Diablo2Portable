@@ -1,6 +1,7 @@
 #include "utils/mpq_loader.h"
 #include "utils/pkware_explode.h"
 #include "utils/huffman_decompress.h"
+#include "utils/bzip2_decompress.h"
 #include <fstream>
 #include <cstring>
 #include <filesystem>
@@ -248,10 +249,6 @@ public:
         // For multi-compression, the outermost compression is decompressed first
         
         // Check for unsupported compression types
-        if (compression_mask & MPQ_COMPRESSION_BZIP2) {
-            last_error = "BZip2 compression not supported";
-            return false;
-        }
         if (compression_mask & MPQ_COMPRESSION_SPARSE) {
             last_error = "Sparse compression not supported";
             return false;
@@ -266,8 +263,8 @@ public:
         
         // Decompression order for multi-compression:
         // When data is compressed with multiple algorithms, it's compressed in order:
-        // Original -> PKWARE -> Zlib -> Huffman
-        // So we decompress in reverse order: Huffman -> Zlib -> PKWARE
+        // Original -> PKWARE -> Zlib -> BZip2 -> Huffman
+        // So we decompress in reverse order: Huffman -> BZip2 -> Zlib -> PKWARE
         
         // Huffman decompression (outermost layer)
         if (compression_mask & MPQ_COMPRESSION_HUFFMAN) {
@@ -276,6 +273,18 @@ public:
             size_t huffman_output_size = expected_size * 2;
             if (!HuffmanDecompress(current_data, temp_output, huffman_output_size)) {
                 last_error = "Huffman decompression failed";
+                return false;
+            }
+            current_data = temp_output;
+        }
+        
+        // BZip2 decompression
+        if (compression_mask & MPQ_COMPRESSION_BZIP2) {
+            temp_output.clear();
+            // For BZip2, we don't know the exact output size
+            size_t bzip2_output_size = expected_size * 2;
+            if (!bzip2_decompress(current_data, temp_output, bzip2_output_size)) {
+                last_error = "BZip2 decompression failed";
                 return false;
             }
             current_data = temp_output;
