@@ -36,6 +36,9 @@ set(TEST_SOURCES
     game/loot_system_test.cpp
     map/map_loader_test.cpp
     map/pathfinding_test.cpp
+    world/test_collision_system.cpp
+    #world/test_entity_collision.cpp
+    #world/test_collision_response.cpp
     # Tests will be added as we implement features following TDD
     # core/game_state_test.cpp
     # audio/sound_system_test.cpp
