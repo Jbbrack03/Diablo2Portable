@@ -41,6 +41,7 @@ set(TEST_SOURCES
     world/test_entity_collision.cpp
     world/test_collision_response.cpp
     utils/pkware_test.cpp
+    utils/bzip2_test.cpp
     # Tests will be added as we implement features following TDD
     # core/game_state_test.cpp
     # audio/sound_system_test.cpp

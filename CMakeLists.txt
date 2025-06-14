@@ -12,6 +12,7 @@ option(BUILD_BENCHMARKS "Build performance benchmarks" OFF)
 
 # Find packages
 find_package(Threads REQUIRED)
+find_package(BZip2 REQUIRED)
 
 # Add subdirectories
 add_subdirectory(engine)
