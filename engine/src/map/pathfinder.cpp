@@ -36,6 +36,9 @@ struct CoordHash {
 };
 
 std::vector<PathNode> Pathfinder::findPath(int startX, int startY, int goalX, int goalY, const Map& map) {
+    // Reset nodes explored counter
+    m_nodesExplored = 0;
+    
     // Debug output
     bool debug = false;
     if (debug) {
@@ -65,11 +68,21 @@ std::vector<PathNode> Pathfinder::findPath(int startX, int startY, int goalX, in
     // Store all allocated nodes for cleanup
     std::vector<std::unique_ptr<AStarNode>> allNodes;
     
-    // Heuristic function (Euclidean distance for diagonal movement)
-    auto heuristic = [](int x1, int y1, int x2, int y2) -> float {
+    // Heuristic function (Octile distance for grid-based diagonal movement)
+    auto heuristic = [this](int x1, int y1, int x2, int y2) -> float {
         int dx = std::abs(x2 - x1);
         int dy = std::abs(y2 - y1);
-        return std::sqrt(static_cast<float>(dx * dx + dy * dy));
+        
+        if (m_useOctileDistance) {
+            // Octile distance: D * (dx + dy) + (D2 - 2 * D) * min(dx, dy)
+            // where D = 1 (cardinal move cost) and D2 = sqrt(2) (diagonal move cost)
+            const float D = 1.0f;
+            const float D2 = 1.414f;  // sqrt(2)
+            return D * (dx + dy) + (D2 - 2 * D) * std::min(dx, dy);
+        } else {
+            // Euclidean distance (for comparison)
+            return std::sqrt(static_cast<float>(dx * dx + dy * dy));
+        }
     };
     
     // Create start node
@@ -103,6 +116,7 @@ std::vector<PathNode> Pathfinder::findPath(int startX, int startY, int goalX, in
         }
         
         nodesExplored++;
+        m_nodesExplored = nodesExplored;
         
         
         // Check if we reached the goal

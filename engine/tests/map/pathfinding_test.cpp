@@ -147,3 +147,29 @@ TEST_F(PathfindingTest, PathSmoothing) {
     // It shouldn't have redundant points in straight sections
     EXPECT_LE(aroundPath.size(), 6) << "Path around obstacle should be smoothed";
 }
+
+TEST_F(PathfindingTest, OctileDistanceHeuristic) {
+    // Test that the pathfinder uses octile distance for more accurate heuristics
+    MapLoader loader;
+    auto map = loader.loadMap("empty_map.ds1");
+    
+    Pathfinder pathfinder;
+    
+    // Test the heuristic directly - octile distance should be more accurate than Euclidean
+    // For a diagonal path from (0,0) to (5,5):
+    // - Euclidean distance = sqrt(50) ≈ 7.07
+    // - Octile distance = 5 * sqrt(2) ≈ 7.07 (but computed differently)
+    // The key is that octile distance accounts for grid-based movement better
+    
+    // We'll test this by checking the pathfinder's efficiency
+    // With octile distance, the pathfinder should be configured to use it
+    EXPECT_TRUE(pathfinder.isUsingOctileDistance()) << "Pathfinder should use octile distance heuristic";
+    
+    // Test diagonal path - with octile distance, the cost estimate should be accurate
+    auto diagonalPath = pathfinder.findPath(0, 0, 5, 5, *map);
+    ASSERT_FALSE(diagonalPath.empty());
+    EXPECT_EQ(diagonalPath.size(), 2);
+    
+    // The pathfinder should have explored minimal nodes with octile distance
+    EXPECT_LE(pathfinder.getNodesExplored(), 20) << "Octile distance should minimize nodes explored";
+}
