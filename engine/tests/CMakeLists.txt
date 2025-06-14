@@ -36,6 +36,7 @@ set(TEST_SOURCES
     game/loot_system_test.cpp
     map/map_loader_test.cpp
     map/pathfinding_test.cpp
+    map/test_ds1_parser.cpp
     world/test_collision_system.cpp
     world/test_entity_collision.cpp
     world/test_collision_response.cpp

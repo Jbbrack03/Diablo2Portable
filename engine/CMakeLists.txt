@@ -42,6 +42,7 @@ add_library(d2engine STATIC
     src/game/loot_system.cpp
     src/map/map_loader.cpp
     src/map/pathfinder.cpp
+    src/map/ds1_parser.cpp
     src/world/collision_system.cpp
     src/world/collision_response.cpp
 )
