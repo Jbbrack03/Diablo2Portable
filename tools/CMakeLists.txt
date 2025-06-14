@@ -25,3 +25,11 @@ target_include_directories(find_extractable PRIVATE ${CMAKE_SOURCE_DIR}/engine/i
 add_executable(check_compression check_compression.cpp)
 target_link_libraries(check_compression PRIVATE d2engine)
 target_include_directories(check_compression PRIVATE ${CMAKE_SOURCE_DIR}/engine/include)
+
+add_executable(test_dc6_extraction test_dc6_extraction.cpp)
+target_link_libraries(test_dc6_extraction PRIVATE d2engine)
+target_include_directories(test_dc6_extraction PRIVATE ${CMAKE_SOURCE_DIR}/engine/include)
+
+add_executable(integration_test integration_test.cpp)
+target_link_libraries(integration_test PRIVATE d2engine)
+target_include_directories(integration_test PRIVATE ${CMAKE_SOURCE_DIR}/engine/include)
