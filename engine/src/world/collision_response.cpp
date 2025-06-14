@@ -222,6 +222,7 @@ void CollisionResponse::resolveMixedCollision(CollisionEntity* entity1, Collisio
         std::swap(entity1, entity2);
     }
     
+    
     // entity1 is AABB, entity2 is Circle
     AABB box(entity1->getPosition(), entity1->getSize());
     Circle circle(entity2->getPosition(), entity2->getRadius());
@@ -233,6 +234,7 @@ void CollisionResponse::resolveMixedCollision(CollisionEntity* entity1, Collisio
     
     glm::vec2 diff = circle.center - closestPoint;
     float distance = glm::length(diff);
+    
     
     if (distance < circle.radius && distance > 0.001f) {
         glm::vec2 normal = diff / distance;
