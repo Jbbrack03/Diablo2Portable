@@ -12,13 +12,15 @@ using namespace d2portable::utils;
 using namespace testing;
 
 // MPQ compression constants for tests
-const uint8_t MPQ_COMPRESSION_HUFFMAN = 0x01;
-const uint8_t MPQ_COMPRESSION_ZLIB = 0x02;
-const uint8_t MPQ_COMPRESSION_PKWARE = 0x08;
-const uint8_t MPQ_COMPRESSION_BZIP2 = 0x10;
-const uint8_t MPQ_COMPRESSION_SPARSE = 0x20;
-const uint8_t MPQ_COMPRESSION_ADPCM_MONO = 0x40;
-const uint8_t MPQ_COMPRESSION_ADPCM_STEREO = 0x80;
+// Reference: MPQ format specification (http://www.zezula.net/en/mpq/mpqformat.html)
+// These values match the compression flags used in Diablo II MPQ archives
+const uint8_t MPQ_COMPRESSION_HUFFMAN = 0x01;      // Huffman tree compression (Deflate)
+const uint8_t MPQ_COMPRESSION_ZLIB = 0x02;         // ZLIB compression (Deflate)
+const uint8_t MPQ_COMPRESSION_PKWARE = 0x08;       // PKWARE DCL compression (Implode)
+const uint8_t MPQ_COMPRESSION_BZIP2 = 0x10;        // BZIP2 compression (added in Warcraft III)
+const uint8_t MPQ_COMPRESSION_SPARSE = 0x20;       // Sparse compression (added in StarCraft II)
+const uint8_t MPQ_COMPRESSION_ADPCM_MONO = 0x40;   // ADPCM mono compression (audio)
+const uint8_t MPQ_COMPRESSION_ADPCM_STEREO = 0x80; // ADPCM stereo compression (audio)
 
 class MPQLoaderTest : public ::testing::Test {
 protected:
@@ -39,20 +41,22 @@ protected:
 
     void createMockMPQFile(const std::filesystem::path& path) {
         // Create a minimal MPQ header for testing
-        // Real MPQ format: 'MPQ\x1A' signature followed by header
+        // MPQ Format Reference: http://www.zezula.net/en/mpq/mpqformat.html
+        // All Diablo II MPQ files start with signature 'MPQ\x1A' (0x1A = 26 decimal)
         std::ofstream file(path, std::ios::binary);
         const char signature[] = {'M', 'P', 'Q', 0x1A};
         file.write(signature, 4);
         
-        // Write mock header data (32 bytes)
-        uint32_t header_size = 32;
-        uint32_t archive_size = 1024;
-        uint16_t format_version = 0;
-        uint16_t block_size = 3; // 4096 bytes (512 * 2^3)
-        uint32_t hash_table_offset = 64;
-        uint32_t block_table_offset = 128;
-        uint32_t hash_table_entries = 16;
-        uint32_t block_table_entries = 8;
+        // MPQ Header Structure (32 bytes for format version 0)
+        // Used by Diablo II and earlier Blizzard games
+        uint32_t header_size = 32;          // Size of the archive header
+        uint32_t archive_size = 1024;       // Size of the whole archive, including header
+        uint16_t format_version = 0;        // Format version (0 = Original, used by D2)
+        uint16_t block_size = 3;            // Size of file block is 512 * 2^block_size (3 = 4096 bytes)
+        uint32_t hash_table_offset = 64;    // Offset to the hash table, relative to archive start
+        uint32_t block_table_offset = 128;  // Offset to the block table, relative to archive start
+        uint32_t hash_table_entries = 16;   // Number of entries in hash table (must be power of 2)
+        uint32_t block_table_entries = 8;   // Number of entries in block table
         
         file.write(reinterpret_cast<const char*>(&header_size), 4);
         file.write(reinterpret_cast<const char*>(&archive_size), 4);
@@ -64,27 +68,35 @@ protected:
         file.write(reinterpret_cast<const char*>(&block_table_entries), 4);
         
         // Write empty hash table
+        // Hash table is encrypted in D2 MPQs using key "(hash table)"
         file.seekp(hash_table_offset);
         struct HashEntry {
-            uint32_t name1;
-            uint32_t name2;
-            uint16_t locale;
-            uint16_t platform;
-            uint32_t block_index;
+            uint32_t name1;       // Hash of filename using MPQ_HASH_NAME_A (type 1)
+            uint32_t name2;       // Hash of filename using MPQ_HASH_NAME_B (type 2)
+            uint16_t locale;      // Locale ID (0 = neutral)
+            uint16_t platform;    // Platform ID (0 = default)
+            uint32_t block_index; // Index into block table, 0xFFFFFFFF = empty
         };
+        // Empty hash table entry uses all 0xFF to indicate unused slot
         HashEntry empty_entry = {0xFFFFFFFF, 0xFFFFFFFF, 0xFFFF, 0, 0xFFFFFFFF};
         for (uint32_t i = 0; i < hash_table_entries; i++) {
             file.write(reinterpret_cast<const char*>(&empty_entry), sizeof(HashEntry));
         }
         
         // Write empty block table
+        // Block table is encrypted in D2 MPQs using key "(block table)"
         file.seekp(block_table_offset);
         struct BlockEntry {
-            uint32_t file_pos;
-            uint32_t packed_size;
-            uint32_t unpacked_size;
-            uint32_t flags;
+            uint32_t file_pos;      // Position of file data, relative to archive start
+            uint32_t packed_size;   // Size of compressed file data
+            uint32_t unpacked_size; // Size of uncompressed file data
+            uint32_t flags;         // File flags (0x80000000 = exists, 0x00000100 = compressed, etc.)
         };
+        // Flags reference:
+        // 0x80000000 - FILE_EXISTS
+        // 0x00000100 - FILE_COMPRESS (PKWARE compression)
+        // 0x00000200 - FILE_COMPRESS2 (multi-compression)
+        // 0x00010000 - FILE_ENCRYPTED
         BlockEntry empty_block = {0, 0, 0, 0};
         for (uint32_t i = 0; i < block_table_entries; i++) {
             file.write(reinterpret_cast<const char*>(&empty_block), sizeof(BlockEntry));
@@ -915,14 +927,21 @@ TEST_F(MPQLoaderTest, ListFilesWithContent) {
 
 // Test: StormHash algorithm implementation
 TEST_F(MPQLoaderTest, StormHashAlgorithm) {
-    // Test known hash values - these are from actual MPQ implementations
+    // StormHash algorithm reference: Created by Justin Olbrantz (Quantam) for Storm.dll
+    // Used in all Blizzard MPQ archives including Diablo II
+    // The algorithm uses a 1280-entry cryptographic table initialized with pseudo-random values
+    
+    // Hash types used in MPQ:
+    // Type 0 (MPQ_HASH_TABLE_OFFSET): Used to find initial position in hash table
+    // Type 1 (MPQ_HASH_NAME_A): First part of filename verification
+    // Type 2 (MPQ_HASH_NAME_B): Second part of filename verification
+    // Type 3 (MPQ_HASH_FILE_KEY): Used for file encryption (not tested here)
+    
     uint32_t hash_a = loader.hashString("test.txt", 1);    // MPQ_HASH_NAME_A
     uint32_t hash_b = loader.hashString("test.txt", 2);    // MPQ_HASH_NAME_B
     uint32_t hash_offset = loader.hashString("test.txt", 0); // MPQ_HASH_TABLE_OFFSET
     
-    // Hash values should all be different (good collision resistance)
-    
-    // These should be different values (collision resistance)
+    // Hash values should all be different to provide good collision resistance
     EXPECT_NE(hash_a, hash_b);
     EXPECT_NE(hash_a, hash_offset);
     EXPECT_NE(hash_b, hash_offset);
