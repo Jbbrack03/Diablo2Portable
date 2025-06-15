@@ -42,16 +42,16 @@ private:
         std::cout << "   ✅ MPQ opened successfully\n";
         
         // Test listfile
-        auto files = loader.getFileList();
+        auto files = loader.listFiles();
         std::cout << "   ✅ Found " << files.size() << " files in listfile\n";
         
         // Test compression detection
         int compressed = 0, uncompressed = 0;
-        for (const auto& file : files) {
-            if (file.find(".dc6") != std::string::npos || 
-                file.find(".txt") != std::string::npos) {
+        for (const auto& fileInfo : files) {
+            if (fileInfo.filename.find(".dc6") != std::string::npos || 
+                fileInfo.filename.find(".txt") != std::string::npos) {
                 std::vector<uint8_t> data;
-                if (loader.extractFile(file, data)) {
+                if (loader.extractFile(fileInfo.filename, data)) {
                     // Check if it was compressed (rough heuristic)
                     if (data.size() > 0) {
                         compressed++;
@@ -101,13 +101,14 @@ private:
                 continue;
             }
             
-            if (!parser.parse(data)) {
+            auto sprite = parser.parseData(data);
+            if (!sprite) {
                 std::cout << "     ❌ DC6 parse failed\n";
                 continue;
             }
             
-            auto info = parser.getInfo();
-            std::cout << "     ✅ Parsed: " << info.getTotalFrames() << " frames\n";
+            uint32_t total_frames = sprite->getDirectionCount() * sprite->getFramesPerDirection();
+            std::cout << "     ✅ Parsed: " << total_frames << " frames\n";
             success_count++;
         }
         
@@ -122,17 +123,20 @@ private:
         std::cout << "3. Testing Asset Manager Integration...\n";
         
         AssetManager manager;
-        manager.setAssetPath("vendor"); // Assuming MPQs are in vendor dir
+        if (!manager.initialize("vendor")) {
+            std::cout << "   ❌ Failed to initialize asset manager\n";
+            return false;
+        }
         
         // Test loading a sprite through asset manager
-        auto dc6_data = manager.loadAsset("ui/cursor/cursor.dc6");
-        if (!dc6_data) {
+        auto sprite = manager.loadSprite("data\\global\\ui\\cursor\\cursor.dc6");
+        if (!sprite) {
             std::cout << "   ⚠️  Asset manager needs MPQ integration\n";
             std::cout << "   ℹ️  Currently only supports direct file access\n\n";
             return true; // Not a failure, just not implemented
         }
         
-        std::cout << "   ✅ Asset loaded: " << dc6_data->size() << " bytes\n\n";
+        std::cout << "   ✅ Asset loaded: sprite with " << sprite->getDirectionCount() << " directions\n\n";
         return true;
     }
     
