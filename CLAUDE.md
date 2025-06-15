@@ -760,19 +760,30 @@ const uint8_t MPQ_COMPRESSION_PKWARE = 0x08;
 - Fixed loot system test that was incorrectly including gold drops in ratios
 - Achieved 100% test pass rate (91 tests) with proper TDD compliance
 
+### **PKWARE Compression Investigation (June 2025):**
+- **PKWARE DCL IS used extensively in Diablo II MPQ files**
+- Scan of D2DATA.MPQ revealed 87% of sampled files use PKWARE compression
+- 75 files use PKWARE alone, 12 use PKWARE with other compression methods
+- Essential for game asset extraction - without PKWARE support, majority of files cannot be extracted
+- Low-level PKWARE tests have 2 failures (edge cases in standalone implementation)
+- MPQ-integrated PKWARE tests pass successfully
+- Implementation based on StormLib's proven PKWARE DCL algorithm
+
 ## Current Development Status (June 2025)
 
 ### 📊 **Overall Project Statistics:**
-- **Total Tests**: 138 (100% passing)
+- **Total Tests**: 140 (138 passing, 2 failing)
+- **Test Success Rate**: 98.6%
 - **Total Source Files**: 76 (added collision and DS1 parser)
 - **Lines of Code**: ~11,000 (increased with collision and DS1 code)
 - **Phases Completed**: 4 of 8
 - **Current Phase**: 5 (Game World & AI) - In Progress
 - **MPQ Compression**: ✅ FULLY IMPLEMENTED (all 19 MPQ tests passing)
+- **PKWARE DCL**: ⚠️ FUNCTIONAL (2 low-level tests failing, MPQ integration working)
 - **A* Pathfinding**: ✅ FULLY IMPLEMENTED (with optimizations)
 - **Collision Detection**: ✅ FULLY IMPLEMENTED (30 tests)
 - **DS1 Parser**: ✅ FULLY IMPLEMENTED (10 tests)
-- **Test Suite Health**: ✅ All tests passing
+- **Test Suite Health**: ⚠️ 2 known failures in PKWARE edge cases
 
 ### ✅ **Completed Features:**
 1. **MPQ Archive System** - Full support for game asset extraction
