@@ -51,6 +51,22 @@ public:
     bool initialize(const std::string& data_path);
     
     /**
+     * Initialize the asset manager with a single MPQ archive
+     * @param mpq_path Path to the MPQ archive file
+     * @param fallback_path Optional fallback directory for files not in MPQ
+     * @return true if initialization successful, false otherwise
+     */
+    bool initializeWithMPQ(const std::string& mpq_path, const std::string& fallback_path = "");
+    
+    /**
+     * Initialize the asset manager with a directory containing MPQ archives
+     * @param mpq_directory Path to directory containing .mpq files
+     * @param fallback_path Optional fallback directory for files not in MPQs
+     * @return true if initialization successful, false otherwise
+     */
+    bool initializeWithMPQs(const std::string& mpq_directory, const std::string& fallback_path = "");
+    
+    /**
      * Check if the asset manager is initialized
      * @return true if initialized, false otherwise
      */

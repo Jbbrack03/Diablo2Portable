@@ -98,39 +98,37 @@ int main(int argc, char* argv[]) {
         std::cout << "  Extracted " << data.size() << " bytes\n";
         
         // Try to parse as DC6
-        if (!parser.parse(data)) {
-            std::cout << "  Failed to parse as DC6: " << parser.getLastError() << "\n";
+        auto sprite = parser.parseData(data);
+        if (!sprite) {
+            std::cout << "  Failed to parse as DC6\n";
             continue;
         }
         
-        auto info = parser.getInfo();
         std::cout << "  DC6 Info:\n";
-        std::cout << "    Version: " << info.version << "\n";
-        std::cout << "    Directions: " << info.directions << "\n";
-        std::cout << "    Frames per direction: " << info.frames_per_direction << "\n";
-        std::cout << "    Total frames: " << info.getTotalFrames() << "\n";
+        std::cout << "    Directions: " << sprite->getDirectionCount() << "\n";
+        std::cout << "    Frames per direction: " << sprite->getFramesPerDirection() << "\n";
+        std::cout << "    Total frames: " << (sprite->getDirectionCount() * sprite->getFramesPerDirection()) << "\n";
         
         // Extract first frame
-        if (info.getTotalFrames() > 0) {
-            auto frame_info = parser.getFrameInfo(0);
-            std::cout << "    Frame 0: " << frame_info.width << "x" << frame_info.height << "\n";
+        if (sprite->getDirectionCount() > 0 && sprite->getFramesPerDirection() > 0) {
+            auto frame = sprite->getFrame(0, 0);
+            std::cout << "    Frame 0: " << frame.width << "x" << frame.height << "\n";
             
-            // Use default palette if no palette loaded
-            std::vector<uint8_t> palette;
-            std::vector<uint8_t> rgba_data;
+            // Get RGBA data with default palette
+            auto rgba_data = sprite->getFrameImage(0, 0);
             
-            if (parser.extractFrame(0, palette, rgba_data)) {
+            if (!rgba_data.empty()) {
                 std::cout << "    Frame extracted successfully (" << rgba_data.size() << " bytes RGBA)\n";
                 
                 // Save the frame
                 std::string base_name = filename.substr(filename.find_last_of("\\") + 1);
                 base_name = base_name.substr(0, base_name.find_last_of("."));
-                saveFrameAsPNG(rgba_data, frame_info.width, frame_info.height, 
+                saveFrameAsPNG(rgba_data, frame.width, frame.height, 
                               output_dir + "/" + base_name + "_frame0");
                 
                 extracted_count++;
             } else {
-                std::cout << "    Failed to extract frame: " << parser.getLastError() << "\n";
+                std::cout << "    Failed to extract frame\n";
             }
         }
     }
