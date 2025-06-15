@@ -2,6 +2,7 @@
 #include <cstdint>
 #include <cstring>
 #include <algorithm>
+// #include <iostream>
 
 // Huffman tree node structure
 struct HuffmanNode {
@@ -51,6 +52,8 @@ bool buildHuffmanTree(const uint8_t* tree_data, size_t tree_size,
                      size_t& bytes_consumed) {
     if (tree_size < 1) return false;
     
+    // std::cout << "buildHuffmanTree called with " << tree_size << " bytes\n";
+    
     // Parse the simplified test format
     // Format: count, symbol1, symbol2, ..., count, symbol1, symbol2, ...
     // Where count is number of symbols at each depth
@@ -81,10 +84,14 @@ bool buildHuffmanTree(const uint8_t* tree_data, size_t tree_size,
     // Assign code lengths
     for (const auto& [symbol, depth] : symbol_depths) {
         code_lengths[symbol] = depth;
+        // std::cout << "Symbol '" << (char)symbol << "' at depth " << (int)depth << "\n";
     }
     
     // Generate canonical codes
-    // Simple algorithm: sort symbols by length, assign sequential codes
+    // Canonical Huffman codes must satisfy:
+    // 1. Shorter codes lexicographically precede longer codes
+    // 2. Codes of the same length are consecutive binary integers
+    // 3. The first code of length k+1 is one more than the last code of length k, left-shifted once
     
     // Count symbols at each length
     uint16_t bl_count[17] = {0};
@@ -94,31 +101,31 @@ bool buildHuffmanTree(const uint8_t* tree_data, size_t tree_size,
         }
     }
     
-    // Assign codes using the RFC 1951 canonical algorithm
-    // The key is that we track next available code for each length
-    
-    // Initialize next codes for each length
+    // Generate the first code value for each length
     uint16_t next_code[17];
+    uint16_t code = 0;
     bl_count[0] = 0;
     
-    // Compute next_code values
-    // This is a simplified version for this test
-    // The key insight: after using all k-bit codes, the first (k+1)-bit code
-    // is the next number when viewed as a (k+1)-bit value
-    
-    next_code[1] = 0;
-    for (int bits = 2; bits <= 16; bits++) {
-        // Start where previous length codes ended
-        next_code[bits] = next_code[bits-1] + bl_count[bits-1];
+    // RFC 1951 canonical algorithm
+    for (int bits = 1; bits <= 16; bits++) {
+        code = (code + bl_count[bits-1]) << 1;
+        next_code[bits] = code;
     }
     
-    // Now assign codes to symbols
+    // Now assign codes to symbols in symbol order
     for (int n = 0; n < 256; n++) {
         int len = code_lengths[n];
         if (len != 0) {
             codes[n] = next_code[len];
+            // if (n == 'A' || n == 'I' || n == 'E' || n == 'O' || n == 'N' || n == 'T' || n == 'S' || n == 'R') {
+            //     std::cout << "Symbol '" << (char)n << "' (depth " << len << "): code " << codes[n] 
+            //               << " = ";
+            //     for (int b = len - 1; b >= 0; b--) {
+            //         std::cout << ((codes[n] >> b) & 1);
+            //     }
+            //     std::cout << "\n";
+            // }
             next_code[len]++;
-            
         }
     }
     
@@ -139,6 +146,13 @@ bool buildHuffmanTree(const uint8_t* tree_data, size_t tree_size,
         uint16_t code_val = codes[sym];
         int len = code_lengths[sym];
         
+        // std::cout << "Adding symbol '" << (char)sym << "' with code " << code_val 
+        //           << " (length " << len << "): ";
+        // for (int b = len - 1; b >= 0; b--) {
+        //     std::cout << ((code_val >> b) & 1);
+        // }
+        // std::cout << "\n";
+        
         // Traverse/build tree for this code
         for (int bit = len - 1; bit >= 0; bit--) {
             bool go_right = (code_val >> bit) & 1;
@@ -153,7 +167,6 @@ bool buildHuffmanTree(const uint8_t* tree_data, size_t tree_size,
                 // Need internal node
                 next = nodes.size();
                 nodes.push_back(HuffmanNode{0, 0, false, 0});
-            } else {
             }
             
             current = next;
@@ -198,16 +211,31 @@ bool huffman_decode_literals(const std::vector<uint8_t>& compressed_data,
     }
     
     int decoded_count = 0;
+    
+    // Debug: print input bits
+    // std::cout << "Input bits: ";
+    // for (size_t i = tree_bytes; i < compressed_data.size(); i++) {
+    //     for (int b = 0; b < 8; b++) {
+    //         std::cout << ((compressed_data[i] >> b) & 1);
+    //     }
+    //     std::cout << " ";
+    // }
+    // std::cout << "\n";
+    
     while (reader.hasData() && decoded_count < 20) { // Limit for debugging
         // Traverse tree from root to leaf
         uint16_t current = root_index;
         
+        // std::cout << "Decoding symbol " << decoded_count << ": ";
+        
         while (current < nodes.size() && !nodes[current].is_leaf) {
-            bool bit = reader.readBit();
-            if (!reader.hasData() && !nodes[current].is_leaf) {
-                // Incomplete code
+            if (!reader.hasData()) {
+                // No more bits to read, incomplete code
                 break;
             }
+            
+            bool bit = reader.readBit();
+            // std::cout << bit;
             
             current = bit ? nodes[current].right : nodes[current].left;
             
@@ -218,6 +246,7 @@ bool huffman_decode_literals(const std::vector<uint8_t>& compressed_data,
         
         if (current < nodes.size() && nodes[current].is_leaf) {
             char sym = nodes[current].symbol;
+            // std::cout << " -> '" << sym << "'\n";
             output.push_back(sym);
             decoded_count++;
         }
