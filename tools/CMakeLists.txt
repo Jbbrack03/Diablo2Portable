@@ -33,3 +33,13 @@ target_include_directories(test_dc6_extraction PRIVATE ${CMAKE_SOURCE_DIR}/engin
 add_executable(integration_test integration_test.cpp)
 target_link_libraries(integration_test PRIVATE d2engine)
 target_include_directories(integration_test PRIVATE ${CMAKE_SOURCE_DIR}/engine/include)
+
+# MPQ Extractor tool
+add_executable(mpq_extractor mpq_extractor.cpp)
+target_link_libraries(mpq_extractor PRIVATE d2engine)
+target_include_directories(mpq_extractor PRIVATE ${CMAKE_SOURCE_DIR}/engine/include)
+
+# Asset Cache Builder tool
+add_executable(asset_cache_builder asset_cache_builder.cpp)
+target_link_libraries(asset_cache_builder PRIVATE d2engine)
+target_include_directories(asset_cache_builder PRIVATE ${CMAKE_SOURCE_DIR}/engine/include)
