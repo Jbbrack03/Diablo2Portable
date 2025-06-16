@@ -547,7 +547,7 @@ protected:
         block.file_pos = 512; // Data starts at offset 512
         block.packed_size = mpq_compressed.size();
         block.unpacked_size = original_content.size();
-        block.flags = 0x80000200; // FILE_EXISTS | COMPRESS
+        block.flags = 0x80000200 | 0x01000000; // FILE_EXISTS | COMPRESS | SINGLE_UNIT
         file.write(reinterpret_cast<const char*>(&block), sizeof(BlockEntry));
         
         // Write compressed file content
@@ -643,7 +643,7 @@ protected:
         block.file_pos = 512;
         block.packed_size = pkware_compressed.size();
         block.unpacked_size = original_content.size();
-        block.flags = 0x80000100; // FILE_EXISTS | IMPLODE (PKWARE)
+        block.flags = 0x80000100 | 0x01000000; // FILE_EXISTS | IMPLODE | SINGLE_UNIT
         file.write(reinterpret_cast<const char*>(&block), sizeof(BlockEntry));
         
         // Write compressed file content
@@ -751,7 +751,7 @@ protected:
         block.file_pos = 512;
         block.packed_size = multi_compressed.size();
         block.unpacked_size = original_content.size();
-        block.flags = 0x80000300; // FILE_EXISTS | COMPRESS + IMPLODE
+        block.flags = 0x80000300 | 0x01000000; // FILE_EXISTS | COMPRESS + IMPLODE | SINGLE_UNIT
         file.write(reinterpret_cast<const char*>(&block), sizeof(BlockEntry));
         
         // Write compressed file content

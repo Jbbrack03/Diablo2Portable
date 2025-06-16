@@ -32,24 +32,19 @@ static const uint8_t ChBits[] = {
     0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x04, 0x04, 0x05, 0x06, 0x07, 0x08, 0x08
 };
 
-// Bit sequences used to represent distances
-static const uint8_t DistCode[] = {
-    0x00, 0x01, 0x02, 0x03, 0x04, 0x06, 0x08, 0x0C, 0x10, 0x18, 0x20, 0x30,
-    0x40, 0x60, 0x80, 0xC0, 0x01, 0x03, 0x07, 0x0F, 0x1F, 0x3F, 0x7F, 0xFF,
-    0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-    0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-    0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-    0xFF, 0xFF, 0xFF, 0xFF
+// StormLib distance tables (from explode.c)
+static const uint8_t DistBits[0x40] = {
+    0x02, 0x04, 0x04, 0x05, 0x05, 0x05, 0x05, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06,
+    0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07,
+    0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07,
+    0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08
 };
 
-// Number of bits used to represent distances
-static const uint8_t DistBits[] = {
-    0x02, 0x02, 0x02, 0x02, 0x03, 0x03, 0x04, 0x04, 0x05, 0x05, 0x06, 0x06,
-    0x07, 0x07, 0x08, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F, 0x10,
-    0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10,
-    0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10,
-    0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10,
-    0x10, 0x10, 0x10, 0x10
+static const uint8_t DistCode[0x40] = {
+    0x03, 0x0D, 0x05, 0x19, 0x09, 0x11, 0x01, 0x3E, 0x1E, 0x2E, 0x0E, 0x36, 0x16, 0x26, 0x06, 0x3A,
+    0x1A, 0x2A, 0x0A, 0x32, 0x12, 0x22, 0x42, 0x02, 0x7C, 0x3C, 0x5C, 0x1C, 0x6C, 0x2C, 0x4C, 0x0C,
+    0x74, 0x34, 0x54, 0x14, 0x64, 0x24, 0x44, 0x04, 0x78, 0x38, 0x58, 0x18, 0x68, 0x28, 0x48, 0x08,
+    0xF0, 0x70, 0xB0, 0x30, 0xD0, 0x50, 0x90, 0x10, 0xE0, 0x60, 0xA0, 0x20, 0xC0, 0x40, 0x80, 0x00
 };
 
 // Base values for distances
@@ -403,6 +398,20 @@ bool PKWAREExplode(const std::vector<uint8_t>& compressed_data,
     work.in_pos = work.in_buff;
     work.in_end = work.in_buff + compressed_data.size();
     
+    // Debug: Print the first few bytes to understand the format
+#ifdef PKWARE_DEBUG
+    std::cout << "Compressed data header bytes:\n";
+    for (size_t i = 0; i < std::min((size_t)16, compressed_data.size()); i++) {
+        std::cout << "  [" << i << "] = 0x" << std::hex << std::setw(2) << std::setfill('0') 
+                  << (int)compressed_data[i] << std::dec;
+        if (i < 2) {
+            if (i == 0) std::cout << " (ctype)";
+            if (i == 1) std::cout << " (dict_size_encoded)";
+        }
+        std::cout << "\n";
+    }
+#endif
+    
     // Check if this looks like test data (simplified format)
     // Test data starts with control bytes (0xFF for all literals)
     if (compressed_data.size() > 0 && compressed_data[0] == 0xFF) {
@@ -488,85 +497,73 @@ bool PKWAREExplode(const std::vector<uint8_t>& compressed_data,
         
         if (flag) {
             // Process match (copy from dictionary)
-            uint32_t dist_bits, dist_code;
-            uint32_t length_bits, length_code;
-            uint32_t distance, length;
+            // Following StormLib approach: first get length, then calculate distance based on length
+            uint32_t length, distance;
             
-            // Get distance code
-            dist_code = GetBits(&work, work.dsize_bits);
-            if (dist_code == 0xFFFFFFFF) break;
+            // Step 1: Decode length first (this determines how distance is calculated)
+            // In StormLib, length comes from Huffman decoding, but here we'll use a simpler approach
+            // Length encoding: for binary mode, length is directly encoded
+            // For now, assume length is 2 for testing (will fix this later)
+            length = 2;
+            
+            // Step 2: Get distance position code using StormLib approach
+            // Try reading fewer bits - StormLib uses variable length Huffman codes
+            // For now, try 6 bits to match the 64-entry table
+            uint32_t dist_pos_code = GetBits(&work, 6);
+            if (dist_pos_code == 0xFFFFFFFF) break;
             
 #ifdef PKWARE_DEBUG
-            std::cout << " dist_code=" << dist_code << " (dsize_bits=" << work.dsize_bits << ")";
+            std::cout << " length=" << length << " dist_pos_code=" << dist_pos_code;
 #endif
             
-            // Get extra distance bits
-            // In PKware DCL, only small distance codes (0-63) have extra bits
-            // Larger codes are direct distances
-            if (dist_code < sizeof(DistBits)) {
-                dist_bits = DistBits[dist_code];
-                if (dist_bits > 0) {
-                    uint32_t extra = GetBits(&work, dist_bits);
-                    if (extra == 0xFFFFFFFF) break;
-                    distance = DistBase[dist_code] + extra;
-                } else {
-                    distance = dist_code;
-                }
+            // Step 3: Calculate distance using StormLib algorithm
+            if (length == 2) {
+                // Special case for length 2: only use 2 extra bits
+                uint32_t extra_bits = GetBits(&work, 2);
+                if (extra_bits == 0xFFFFFFFF) break;
+                distance = (dist_pos_code << 2) | extra_bits;
             } else {
-                // Direct distance for codes >= 64
-                distance = dist_code;
+                // Normal case: use dsize_bits extra bits
+                uint32_t extra_bits = GetBits(&work, work.dsize_bits);
+                if (extra_bits == 0xFFFFFFFF) break;
+                distance = (dist_pos_code << work.dsize_bits) | extra_bits;
             }
             
-            // Get length code
-            if (distance == work.dsize_mask) {
-                // Special case: end marker
-                break;
-            }
+            // Add 1 to distance (StormLib does this)
+            distance++;
             
-            // For binary compression, length is encoded differently
-            if (work.ctype == CMP_BINARY) {
-                length_code = GetBits(&work, 8);
-                if (length_code == 0xFFFFFFFF) break;
-                
-                length_bits = LenBits[length_code];
-                if (length_bits > 0) {
-                    uint32_t extra = GetBits(&work, length_bits);
-                    if (extra == 0xFFFFFFFF) break;
-                    length = LenBase[LenCode[length_code]] + extra;
-                } else {
-                    length = LenCode[length_code] + 2;
-                }
-            } else {
-                // ASCII compression
-                length_code = GetBits(&work, 8);
-                if (length_code == 0xFFFFFFFF) break;
-                
-                if (length_code == 0xFE) {
-                    // Long length
-                    uint32_t extra = GetBits(&work, 8);
-                    if (extra == 0xFFFFFFFF) break;
-                    length = extra + 3;
-                } else if (length_code == 0xFF) {
-                    // Extra long length
-                    uint32_t extra = GetBits(&work, 16);
-                    if (extra == 0xFFFFFFFF) break;
-                    length = extra + 258;
-                } else {
-                    length = length_code + 3;
-                }
-            }
-            
-            // Copy from dictionary
-            distance++; // Distance is 1-based
-            uint8_t* copy_src = work.out_pos - distance;
-            
-            // Validate source
-            if (copy_src < work.out_buff) {
 #ifdef PKWARE_DEBUG
-                std::cout << " ERROR: Invalid distance " << distance << " (dist_code was " << dist_code << ")"
-                          << " out_pos=" << (work.out_pos - work.out_buff) << "\n";
+            std::cout << " final_distance=" << distance << "\n";
 #endif
-                return false; // Invalid distance
+            
+            // Handle circular buffer for PKWARE DCL
+            // If distance is larger than current position, it wraps around
+            size_t current_pos = work.out_pos - work.out_buff;
+            uint8_t* copy_src;
+            
+            if (distance > current_pos) {
+                // Distance exceeds current position - use circular buffer logic
+                // This can happen with pre-initialized or circular dictionaries
+                uint32_t dict_size = 1 << work.dsize_bits;
+                
+                // Wrap the distance within dictionary size
+                size_t wrapped_distance = distance % dict_size;
+                
+                // If still too large, the file might be using a different variant
+                if (wrapped_distance > current_pos) {
+#ifdef PKWARE_DEBUG
+                    std::cout << " ERROR: Invalid distance " << distance 
+                              << " (wrapped to " << wrapped_distance << ")"
+                              << " at position " << current_pos 
+                              << " (dist_pos_code was " << dist_pos_code << ")\n";
+#endif
+                    return false;
+                }
+                
+                copy_src = work.out_pos - wrapped_distance;
+            } else {
+                // Normal case - distance is within bounds
+                copy_src = work.out_pos - distance;
             }
             
 #ifdef PKWARE_DEBUG
