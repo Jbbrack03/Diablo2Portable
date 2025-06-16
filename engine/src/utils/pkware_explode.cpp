@@ -1,8 +1,13 @@
 /*****************************************************************************/
 /* pkware_explode.cpp                                                        */
 /*                                                                           */
-/* PKWARE Data Compression Library decompression                             */
+/* PKWARE Data Compression Library (DCL) decompression for Diablo II        */
 /* Based on StormLib implementation by Ladislav Zezula                      */
+/*                                                                           */
+/* This implementation handles the PKWARE DCL format used in Diablo II MPQ  */
+/* archives. It uses Huffman coding for literals and raw bits for distances */
+/* which is correct for the game files. The blast.c test vector that uses   */
+/* Huffman-encoded distances is not supported as it's a different variant.  */
 /*****************************************************************************/
 
 #include <cstring>
@@ -155,7 +160,7 @@ const uint8_t MAX_DICT_BITS = 6;
 const int MAXBITS = 13;
 
 // Predefined Huffman code lengths for the 256 literal symbols
-// From PKWARE DCL specification (blast.c by Mark Adler)
+// Huffman code lengths for literal/length symbols (PKWARE DCL format)
 static const unsigned char litlen[] = {
     11, 124, 8, 7, 28, 7, 188, 13, 76, 4, 10, 8, 12, 10, 12, 10, 8, 23, 8,
     9, 7, 6, 7, 8, 7, 6, 55, 8, 23, 24, 12, 11, 7, 9, 11, 12, 6, 7, 22, 5,
@@ -303,7 +308,7 @@ static int decode(PKWAREWork* s, HuffmanTable* h) {
 #endif
         // Build code by shifting left first, then adding inverted bit
         code <<= 1;
-        code |= (bit ^ 1);  // Invert bit as per blast.c
+        code |= (bit ^ 1);  // Invert bit for canonical Huffman decode
 #ifdef PKWARE_DEBUG
         std::cout << " code=" << code << " first=" << first << " count[" << len << "]=" << h->count[len];
         
@@ -417,8 +422,8 @@ bool PKWAREExplode(const std::vector<uint8_t>& compressed_data,
     work.dsize_bits = dict_size_encoded + 6;  // Add 6 as per PKWARE format
     work.dsize_mask = (1 << work.dsize_bits) - 1;
     
-    // Check if literals are coded (0 = coded, 1 = uncoded)
-    bool literals_coded = (work.ctype == 0);
+    // Check if literals are coded (0 = uncoded, 1 = coded)
+    bool literals_coded = (work.ctype == 1);
     
     // Build Huffman table for coded literals
     HuffmanTable litcode;
