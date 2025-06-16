@@ -43,6 +43,7 @@ set(TEST_SOURCES
     world/test_entity_collision.cpp
     world/test_collision_response.cpp
     utils/pkware_test.cpp
+    audio/test_audio_engine.cpp
     utils/bzip2_test.cpp
     integration/test_real_mpq_files.cpp
     test_pkware_real_format.cpp
