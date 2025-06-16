@@ -23,3 +23,16 @@ TEST_F(AudioEngineTest, InitializeAudioEngine) {
     EXPECT_TRUE(success);
     EXPECT_TRUE(engine.isInitialized());
 }
+
+TEST_F(AudioEngineTest, LoadAndPlaySound) {
+    AudioEngine engine;
+    engine.initialize();
+    
+    // Test loading a sound file
+    auto soundId = engine.loadSound("sword_swing.ogg");
+    EXPECT_NE(soundId, AudioEngine::INVALID_SOUND_ID);
+    
+    // Test playing the loaded sound
+    bool playSuccess = engine.playSound(soundId);
+    EXPECT_TRUE(playSuccess);
+}
