@@ -74,9 +74,10 @@ private:
         }
         
         // Test files that should exist in d2data.mpq
+        // Updated based on actual Diablo II file structure research
         std::vector<std::string> test_sprites = {
-            "data\\global\\ui\\cursor\\cursor.dc6",
-            "data\\global\\ui\\fonts\\font8.dc6",
+            "data\\global\\ui\\cursor\\ohand.dc6",
+            "data\\local\\font\\latin\\font8.dc6",
             "data\\global\\items\\misc\\gold\\gold01.dc6"
         };
         
@@ -129,7 +130,7 @@ private:
         }
         
         // Test loading a sprite through asset manager
-        auto sprite = manager.loadSprite("data\\global\\ui\\cursor\\cursor.dc6");
+        auto sprite = manager.loadSprite("data\\global\\ui\\cursor\\ohand.dc6");
         if (!sprite) {
             std::cout << "   ⚠️  Asset manager needs MPQ integration\n";
             std::cout << "   ℹ️  Currently only supports direct file access\n\n";

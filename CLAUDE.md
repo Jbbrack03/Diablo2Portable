@@ -760,7 +760,9 @@ const uint8_t MPQ_COMPRESSION_PKWARE = 0x08;
 - Fixed loot system test that was incorrectly including gold drops in ratios
 - Clarified PKWARE implementation: Correctly uses Huffman for literals and raw bits for distances (Diablo II format)
 - Disabled blast.c test vectors as they use a different PKWARE variant with Huffman-encoded distances
-- Achieved 100% test pass rate with all 162 tests passing (6 integration tests skipped by default)
+- **Removed unused huffman_decode implementation and tests** - cleaned up dead code
+- **Fixed DS1Parser test** - now creates test data programmatically instead of relying on external files
+- **Achieved clean test suite**: 151 tests passing, 0 disabled tests, 6 integration tests (conditional)
 
 ### **PKWARE Compression Investigation (June 2025):**
 - **PKWARE DCL IS used extensively in Diablo II MPQ files**
@@ -778,21 +780,52 @@ const uint8_t MPQ_COMPRESSION_PKWARE = 0x08;
 - All production code tests pass - the implementation is ready for use
 - No changes needed to the decompression algorithm
 
+## Integration Testing with Real Game Files (June 2025)
+
+### 🎯 **Real MPQ File Extraction and Testing**
+
+Successfully extracted all Diablo II MPQ files from original game ISOs and ran comprehensive integration tests:
+
+#### **MPQ Files Extracted:**
+- **d2data.mpq** (267.6 MB) - Main game data
+- **d2exp.mpq** (250.2 MB) - Lords of Destruction expansion
+- **d2char.mpq, d2music.mpq, d2sfx.mpq, d2speech.mpq** - Character, audio, and sound data
+- **d2video.mpq, d2xvideo.mpq** - Cinematics and video files
+- **Total**: 12 MPQ files, ~1.3 GB of game data
+
+#### **Integration Test Results:**
+- **5/6 integration tests passing** ✅
+- **Files correctly detected** in MPQ archives (10,815 files in d2data.mpq)
+- **Text files extract successfully** (armor.txt, weapons.txt, misc.txt)
+- **MPQ table decryption working** with real encrypted files
+- **Compression statistics verified**: 5,321 uncompressed, 5,494 compressed files
+
+#### **Critical Issue Identified:**
+🚨 **PKWARE decompression fails on real game files** - while unit tests pass with synthetic data, actual Diablo II PKWARE-compressed files cannot be extracted. This affects all DC6 sprites and binary assets.
+
+**Files affected**: All UI sprites (cursors, fonts), character graphics, and most binary game data.
+
+#### **Next Priority:**
+- Fix PKWARE decompression for production Diablo II file format
+- Validate DC6 sprite extraction and parsing with real game assets
+- Complete integration testing before advancing to new phases
+
 ## Current Development Status (June 2025)
 
 ### 📊 **Overall Project Statistics:**
-- **Total Tests**: 162 (156 passing, 6 skipped)
-- **Test Success Rate**: 100% (of non-skipped tests)
-- **Total Source Files**: 76 (added collision and DS1 parser)
-- **Lines of Code**: ~11,000 (increased with collision and DS1 code)
+- **Total Tests**: 157 (151 passing, 0 disabled, 6 integration tests conditional)
+- **Test Success Rate**: 100% (of active unit tests)
+- **Integration Tests**: 5/6 passing (1 failing due to PKWARE compression issue)
+- **Total Source Files**: 73 (reduced after cleanup)
+- **Lines of Code**: ~10,500 (after removing dead code)
 - **Phases Completed**: 4 of 8
-- **Current Phase**: 5 (Game World & AI) - In Progress
-- **MPQ Compression**: ✅ FULLY IMPLEMENTED (all 19 MPQ tests passing)
-- **PKWARE DCL**: ✅ FULLY IMPLEMENTED (correct for Diablo II format)
+- **Current Phase**: 5 (Game World & AI) - **PAUSED** pending asset extraction fix
+- **MPQ Compression**: ⚠️ PARTIALLY WORKING (unit tests pass, real files fail)
+- **PKWARE DCL**: ⚠️ NEEDS FIX for production file format
 - **A* Pathfinding**: ✅ FULLY IMPLEMENTED (with optimizations)
 - **Collision Detection**: ✅ FULLY IMPLEMENTED (30 tests)
 - **DS1 Parser**: ✅ FULLY IMPLEMENTED (10 tests)
-- **Test Suite Health**: ✅ All tests passing (blast.c tests properly disabled)
+- **Test Suite Health**: ✅ Clean suite, no disabled tests
 
 ### ✅ **Completed Features:**
 1. **MPQ Archive System** - Full support for game asset extraction
