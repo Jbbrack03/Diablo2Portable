@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 #include "audio/audio_engine.h"
+#include <glm/glm.hpp>
 
 using namespace d2::audio;
 
@@ -35,4 +36,25 @@ TEST_F(AudioEngineTest, LoadAndPlaySound) {
     // Test playing the loaded sound
     bool playSuccess = engine.playSound(soundId);
     EXPECT_TRUE(playSuccess);
+}
+
+TEST_F(AudioEngineTest, PositionalAudio3D) {
+    AudioEngine engine;
+    engine.initialize();
+    
+    // Set listener position (e.g., player position)
+    engine.setListenerPosition(glm::vec3(0.0f, 0.0f, 0.0f));
+    
+    auto soundId = engine.loadSound("monster_growl.ogg");
+    EXPECT_NE(soundId, AudioEngine::INVALID_SOUND_ID);
+    
+    // Play sound at a position in 3D space (e.g., monster to the right)
+    bool playSuccess = engine.playPositional(soundId, glm::vec3(10.0f, 0.0f, 0.0f));
+    EXPECT_TRUE(playSuccess);
+    
+    // Verify that we can get the channel levels for 3D audio verification
+    auto levels = engine.getChannelLevels();
+    
+    // For a sound to the right, the right channel should be louder
+    EXPECT_GT(levels.right, levels.left);
 }
