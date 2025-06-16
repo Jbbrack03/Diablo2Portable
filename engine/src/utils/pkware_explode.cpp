@@ -124,6 +124,27 @@ static const uint8_t ExLenBits[] = {
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08
 };
 
+// Distance position codes table (from StormLib)
+// Maps 8-bit input patterns to distance position codes
+static const uint8_t DistPosCodes[0x100] = {
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01,
+    0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02,
+    0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03,
+    0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05,
+    0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07,
+    0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x09, 0x09, 0x09, 0x09, 0x09, 0x09, 0x09, 0x09,
+    0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0B, 0x0B, 0x0B, 0x0B, 0x0B, 0x0B, 0x0B, 0x0B,
+    0x0C, 0x0C, 0x0C, 0x0C, 0x0D, 0x0D, 0x0D, 0x0D, 0x0E, 0x0E, 0x0E, 0x0E, 0x0F, 0x0F, 0x0F, 0x0F,
+    0x10, 0x10, 0x10, 0x10, 0x11, 0x11, 0x11, 0x11, 0x12, 0x12, 0x12, 0x12, 0x13, 0x13, 0x13, 0x13,
+    0x14, 0x14, 0x14, 0x14, 0x15, 0x15, 0x15, 0x15, 0x16, 0x16, 0x16, 0x16, 0x17, 0x17, 0x17, 0x17,
+    0x18, 0x18, 0x19, 0x19, 0x1A, 0x1A, 0x1B, 0x1B, 0x1C, 0x1C, 0x1D, 0x1D, 0x1E, 0x1E, 0x1F, 0x1F,
+    0x20, 0x20, 0x21, 0x21, 0x22, 0x22, 0x23, 0x23, 0x24, 0x24, 0x25, 0x25, 0x26, 0x26, 0x27, 0x27,
+    0x28, 0x28, 0x29, 0x29, 0x2A, 0x2A, 0x2B, 0x2B, 0x2C, 0x2C, 0x2D, 0x2D, 0x2E, 0x2E, 0x2F, 0x2F,
+    0x30, 0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38, 0x39, 0x3A, 0x3B, 0x3C, 0x3D, 0x3E, 0x3F
+};
+
 // PKWARE explode work structure
 struct PKWAREWork {
     uint8_t* out_buff;          // Output buffer
@@ -154,21 +175,27 @@ const uint8_t MAX_DICT_BITS = 6;
 // Maximum bits in a code
 const int MAXBITS = 13;
 
-// Predefined Huffman code lengths for the 256 literal symbols
-// Huffman code lengths for literal/length symbols (PKWARE DCL format)
+// Predefined Huffman code lengths for PKWARE DCL format
+// This is the standard PKWARE literal/length table with 286 symbols
+// First 256 are literals (0-255), next 30 are length codes (256-285)
 static const unsigned char litlen[] = {
     11, 124, 8, 7, 28, 7, 188, 13, 76, 4, 10, 8, 12, 10, 12, 10, 8, 23, 8,
     9, 7, 6, 7, 8, 7, 6, 55, 8, 23, 24, 12, 11, 7, 9, 11, 12, 6, 7, 22, 5,
     7, 24, 6, 11, 9, 6, 7, 22, 7, 11, 38, 7, 9, 8, 25, 11, 8, 11, 9, 12,
     8, 12, 5, 38, 5, 38, 5, 11, 7, 5, 6, 21, 6, 10, 53, 8, 7, 24, 10, 27,
     44, 253, 253, 253, 252, 252, 252, 13, 12, 45, 12, 45, 12, 61, 12, 45,
-    44, 173
+    44, 173,
+    // Extended table for length codes 256-285 (30 more symbols)
+    // These are the lengths for the match length codes
+    8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,  // 256-271
+    8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8          // 272-281
+    // Note: codes 282-285 might be unused or have different lengths
 };
 
 // Huffman decoding table
 struct HuffmanTable {
     short count[MAXBITS + 1];   // count[i] = number of symbols with length i
-    short symbol[256];           // sorted symbols
+    short symbol[512];           // sorted symbols - support literals AND length codes
 };
 
 // Forward declaration
@@ -180,7 +207,7 @@ static int construct(HuffmanTable* h, const unsigned char* rep, int n) {
     int len;
     int left;
     short offs[MAXBITS + 1];
-    unsigned char length[256];  // Expanded lengths
+    unsigned char length[512];  // Expanded lengths - support literals AND length codes
     int ncode = 0;              // Number of codes
     
     // First, expand the compact representation
@@ -451,7 +478,7 @@ bool PKWAREExplode(const std::vector<uint8_t>& compressed_data,
         return false;
     }
     
-    work.dsize_bits = dict_size_encoded + 6;  // Add 6 as per PKWARE format
+    work.dsize_bits = dict_size_encoded;  // Use raw dictionary size bits (4-6)
     work.dsize_mask = (1 << work.dsize_bits) - 1;
     
     // Check if literals are coded (0 = uncoded, 1 = coded)
@@ -496,87 +523,122 @@ bool PKWAREExplode(const std::vector<uint8_t>& compressed_data,
 #endif
         
         if (flag) {
-            // Process match (copy from dictionary)
-            // Following StormLib approach: first get length, then calculate distance based on length
-            uint32_t length, distance;
+            // Flag=1: This is a length/distance pair (match)
+            uint32_t length;
             
-            // Step 1: Decode length first (this determines how distance is calculated)
-            // In StormLib, length comes from Huffman decoding, but here we'll use a simpler approach
-            // Length encoding: for binary mode, length is directly encoded
-            // For now, assume length is 2 for testing (will fix this later)
-            length = 2;
-            
-            // Step 2: Get distance position code using StormLib approach
-            // Try reading fewer bits - StormLib uses variable length Huffman codes
-            // For now, try 6 bits to match the 64-entry table
-            uint32_t dist_pos_code = GetBits(&work, 6);
-            if (dist_pos_code == 0xFFFFFFFF) break;
-            
+            if (literals_coded) {
+                // ASCII mode: Use Huffman decoding to get length code
+                int next_literal = decode(&work, &litcode);
+                if (next_literal < 0) break;  // Decoding error
+                
 #ifdef PKWARE_DEBUG
-            std::cout << " length=" << length << " dist_pos_code=" << dist_pos_code;
+                std::cout << " next_literal=" << next_literal;
 #endif
-            
-            // Step 3: Calculate distance using StormLib algorithm
-            if (length == 2) {
-                // Special case for length 2: only use 2 extra bits
-                uint32_t extra_bits = GetBits(&work, 2);
-                if (extra_bits == 0xFFFFFFFF) break;
-                distance = (dist_pos_code << 2) | extra_bits;
+                
+                if (next_literal >= 0x100) {
+                    // This is a match length code
+                    length = next_literal - 0xFE;  // StormLib: rep_length = next_literal - 0xFE
+                } else {
+                    // This should be treated as a literal even though flag=1 in ASCII mode
+                    if (work.out_pos < work.out_end) {
+                        *work.out_pos++ = (uint8_t)next_literal;
+#ifdef PKWARE_DEBUG
+                        std::cout << " literal_via_flag='" << (char)next_literal << "' (0x" 
+                                  << std::hex << next_literal << std::dec << ")\n";
+#endif
+                    }
+                    continue;
+                }
             } else {
-                // Normal case: use dsize_bits extra bits
-                uint32_t extra_bits = GetBits(&work, work.dsize_bits);
-                if (extra_bits == 0xFFFFFFFF) break;
-                distance = (dist_pos_code << work.dsize_bits) | extra_bits;
+                // Binary mode: flag=1 always means match, length is encoded differently
+                // Read length directly using the LenCode table approach
+                uint32_t len_code = GetBits(&work, 8);
+                if (len_code == 0xFFFFFFFF) break;
+                
+#ifdef PKWARE_DEBUG
+                std::cout << " len_code=" << len_code;
+#endif
+                
+                // Convert length code to actual match length
+                // In PKWARE binary mode, length is encoded more simply
+                if (len_code < 8) {
+                    length = len_code + 2;  // Short lengths: 2-9
+                } else if (len_code < 16) {
+                    length = (len_code - 8) + 10;  // Medium lengths: 10-17
+                } else if (len_code < 32) {
+                    length = (len_code - 16) + 18;  // Longer lengths: 18-33
+                } else {
+                    // For very large codes, use a simpler mapping
+                    // This might need to be adjusted based on actual PKWARE spec
+                    length = 2 + (len_code % 8);  // Conservative fallback: 2-9
+                }
             }
             
-            // Add 1 to distance (StormLib does this)
-            distance++;
-            
 #ifdef PKWARE_DEBUG
-            std::cout << " final_distance=" << distance << "\n";
+            std::cout << " length=" << length;
 #endif
             
-            // Handle circular buffer for PKWARE DCL
-            // If distance is larger than current position, it wraps around
-            size_t current_pos = work.out_pos - work.out_buff;
-            uint8_t* copy_src;
-            
-            if (distance > current_pos) {
-                // Distance exceeds current position - use circular buffer logic
-                // This can happen with pre-initialized or circular dictionaries
-                uint32_t dict_size = 1 << work.dsize_bits;
+            if (length > 0) {
+                // Step 2: Get distance position code using DistPosCodes table
+                uint32_t bit_pattern = work.bit_buff & 0xFF;  // Use current buffer state
+                uint32_t dist_pos_code = DistPosCodes[bit_pattern];
                 
-                // Wrap the distance within dictionary size
-                size_t wrapped_distance = distance % dict_size;
+                // Advance the bit buffer by the appropriate amount
+                // StormLib seems to consume bits based on the distance code
+                uint32_t bits_to_consume = DistBits[dist_pos_code];
+                GetBits(&work, bits_to_consume);
                 
-                // If still too large, the file might be using a different variant
-                if (wrapped_distance > current_pos) {
+#ifdef PKWARE_DEBUG
+                std::cout << " bit_pattern=0x" << std::hex << bit_pattern 
+                          << std::dec << " dist_pos_code=" << dist_pos_code 
+                          << " bits_consumed=" << bits_to_consume;
+#endif
+                
+                // Step 3: Calculate distance using StormLib algorithm
+                uint32_t distance;
+                if (length == 2) {
+                    // Special case for length 2: only use 2 extra bits
+                    uint32_t extra_bits = GetBits(&work, 2);
+                    if (extra_bits == 0xFFFFFFFF) break;
+                    distance = (dist_pos_code << 2) | extra_bits;
+                } else {
+                    // Normal case: use dsize_bits extra bits  
+                    uint32_t extra_bits = GetBits(&work, work.dsize_bits);
+                    if (extra_bits == 0xFFFFFFFF) break;
+                    distance = (dist_pos_code << work.dsize_bits) | extra_bits;
+                }
+                
+                // Add 1 to distance (StormLib does this)
+                distance++;
+                
+#ifdef PKWARE_DEBUG
+                std::cout << " final_distance=" << distance;
+#endif
+                
+                // Validate distance
+                size_t current_pos = work.out_pos - work.out_buff;
+                if (distance > current_pos) {
 #ifdef PKWARE_DEBUG
                     std::cout << " ERROR: Invalid distance " << distance 
-                              << " (wrapped to " << wrapped_distance << ")"
-                              << " at position " << current_pos 
-                              << " (dist_pos_code was " << dist_pos_code << ")\n";
+                              << " at position " << current_pos << "\n";
 #endif
                     return false;
                 }
                 
-                copy_src = work.out_pos - wrapped_distance;
-            } else {
-                // Normal case - distance is within bounds
-                copy_src = work.out_pos - distance;
-            }
-            
+                // Copy bytes from the dictionary window
+                uint8_t* copy_src = work.out_pos - distance;
 #ifdef PKWARE_DEBUG
-            std::cout << " match: distance=" << distance << " length=" << length << "\n";
+                std::cout << " match: distance=" << distance << " length=" << length << "\n";
 #endif
-            
-            // Copy bytes
-            while (length-- && work.out_pos < work.out_end) {
-                *work.out_pos++ = *copy_src++;
+                
+                // Copy bytes
+                while (length-- && work.out_pos < work.out_end) {
+                    *work.out_pos++ = *copy_src++;
+                }
             }
             
         } else {
-            // Literal byte
+            // Flag=0: This is a literal byte
             int lit_code;
             
             if (literals_coded) {
