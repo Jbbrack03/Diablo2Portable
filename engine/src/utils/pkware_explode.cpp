@@ -13,9 +13,9 @@
 #include <cstring>
 #include <vector>
 #include <cstdint>
-// #define PKWARE_DEBUG
-#ifdef PKWARE_DEBUG
 #include <iostream>
+#define PKWARE_DEBUG
+#ifdef PKWARE_DEBUG
 #include <iomanip>
 #endif
 
@@ -374,6 +374,8 @@ static uint32_t GetBits(PKWAREWork* work, uint32_t bits_wanted) {
 bool PKWAREExplode(const std::vector<uint8_t>& compressed_data,
                    std::vector<uint8_t>& output,
                    size_t expected_size) {
+    std::cerr << "PKWAREExplode called with input size: " << compressed_data.size() 
+              << ", expected output: " << expected_size << std::endl;
 #ifdef PKWARE_DEBUG
     std::cout << "\n=== PKWARE DEBUG ===\n";
     std::cout << "Input size: " << compressed_data.size() << " bytes\n";
@@ -389,6 +391,7 @@ bool PKWAREExplode(const std::vector<uint8_t>& compressed_data,
 #ifdef PKWARE_DEBUG
         std::cout << "ERROR: Not enough data for header\n";
 #endif
+        std::cerr << "PKWARE ERROR: Not enough data for header" << std::endl;
         return false; // Not enough data for header
     }
     
@@ -428,8 +431,14 @@ bool PKWAREExplode(const std::vector<uint8_t>& compressed_data,
     work.ctype = *work.in_pos++;
     uint8_t dict_size_encoded = *work.in_pos++;
     
+#ifdef PKWARE_DEBUG
+    std::cout << "Header: ctype=" << (int)work.ctype 
+              << " dict_size_encoded=" << (int)dict_size_encoded << "\n";
+#endif
+    
     // Validate dictionary size (encoded value should be 4, 5, or 6)
     if (dict_size_encoded < 4 || dict_size_encoded > 6) {
+        std::cerr << "PKWARE ERROR: Invalid dict_size_encoded: " << (int)dict_size_encoded << std::endl;
         return false;
     }
     
@@ -458,6 +467,7 @@ bool PKWAREExplode(const std::vector<uint8_t>& compressed_data,
     work.out_end = work.out_buff + expected_size;
     
     // Main decompression loop
+    int decompressed_count = 0;
     while (work.out_pos < work.out_end) {
 #ifdef PKWARE_DEBUG
         std::cout << "\n[BEFORE FLAG] bit_buff=0x" << std::hex << work.bit_buff 
@@ -553,7 +563,8 @@ bool PKWAREExplode(const std::vector<uint8_t>& compressed_data,
             // Validate source
             if (copy_src < work.out_buff) {
 #ifdef PKWARE_DEBUG
-                std::cout << " ERROR: Invalid distance " << distance << " (dist_code was " << dist_code << ")\n";
+                std::cout << " ERROR: Invalid distance " << distance << " (dist_code was " << dist_code << ")"
+                          << " out_pos=" << (work.out_pos - work.out_buff) << "\n";
 #endif
                 return false; // Invalid distance
             }
@@ -594,6 +605,9 @@ bool PKWAREExplode(const std::vector<uint8_t>& compressed_data,
     
     // Check if we decompressed the expected amount
     size_t actual_size = work.out_pos - work.out_buff;
+    
+    std::cerr << "PKWAREExplode: actual_size = " << actual_size 
+              << ", expected = " << expected_size << std::endl;
     
     // Resize output to actual size if less than expected
     if (actual_size < expected_size) {

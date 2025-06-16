@@ -50,6 +50,7 @@ struct MPQBlockEntry {
 const uint32_t MPQ_FILE_EXISTS = 0x80000000;
 const uint32_t MPQ_FILE_HAS_METADATA = 0x04000000;
 const uint32_t MPQ_FILE_UNIT = 0x02000000;
+const uint32_t MPQ_FILE_SINGLE_UNIT = 0x01000000;
 const uint32_t MPQ_FILE_ADJUSTED_KEY = 0x00020000;
 const uint32_t MPQ_FILE_ENCRYPTED = 0x00010000;
 const uint32_t MPQ_FILE_COMPRESS = 0x00000200;
@@ -156,6 +157,59 @@ public:
         }
     }
     
+    // Decrypt file data (sector-based)
+    void decryptFileData(std::vector<uint8_t>& data, size_t size, uint32_t base_key) {
+        prepareCryptTable();
+        
+        // MPQ files are decrypted in sectors
+        const size_t sector_size = 4096; // Standard MPQ sector size
+        size_t num_sectors = (size + sector_size - 1) / sector_size;
+        
+        for (size_t sector = 0; sector < num_sectors; ++sector) {
+            size_t sector_start = sector * sector_size;
+            size_t sector_end = std::min(sector_start + sector_size, size);
+            size_t sector_length = sector_end - sector_start;
+            
+            // Each sector is decrypted with key = base_key + sector_number
+            uint32_t sector_key = base_key + sector;
+            uint32_t seed = 0xEEEEEEEE;
+            
+            // Decrypt as 32-bit words
+            size_t word_length = sector_length / 4;
+            uint32_t* sector_data = reinterpret_cast<uint32_t*>(data.data() + sector_start);
+            
+            for (size_t i = 0; i < word_length; ++i) {
+                seed += crypt_table[0x400 + (sector_key & 0xFF)];
+                uint32_t ch = sector_data[i] ^ (sector_key + seed);
+                
+                sector_key = ((~sector_key << 0x15) + 0x11111111) | (sector_key >> 0x0B);
+                seed = ch + seed + (seed << 5) + 3;
+                sector_data[i] = ch;
+            }
+            
+            // Handle remaining bytes (if sector size is not divisible by 4)
+            size_t remaining = sector_length % 4;
+            if (remaining > 0) {
+                uint32_t last_word = 0;
+                uint8_t* remaining_bytes = data.data() + sector_start + word_length * 4;
+                
+                // Read remaining bytes into a word
+                for (size_t i = 0; i < remaining; ++i) {
+                    last_word |= static_cast<uint32_t>(remaining_bytes[i]) << (i * 8);
+                }
+                
+                // Decrypt the word
+                seed += crypt_table[0x400 + (sector_key & 0xFF)];
+                last_word = last_word ^ (sector_key + seed);
+                
+                // Write back the decrypted bytes
+                for (size_t i = 0; i < remaining; ++i) {
+                    remaining_bytes[i] = static_cast<uint8_t>(last_word >> (i * 8));
+                }
+            }
+        }
+    }
+    
     // Helper function for PKWARE DCL decompression
     bool decompressPKWARE(const std::vector<uint8_t>& compressed_data,
                          std::vector<uint8_t>& output,
@@ -231,6 +285,199 @@ public:
         return true;
     }
     
+    // Decompress sector-based compressed data
+    bool decompressSectorBased(const std::vector<uint8_t>& compressed_data, 
+                               std::vector<uint8_t>& output, uint32_t expected_size,
+                               bool is_encrypted = false, uint32_t file_key = 0) {
+        // Standard MPQ sector size
+        const uint32_t sector_size = 4096;
+        
+        // Calculate number of sectors
+        uint32_t num_sectors = (expected_size + sector_size - 1) / sector_size;
+        
+        // Sector offset table is at the beginning
+        // It contains (num_sectors + 1) uint32_t values
+        size_t offset_table_size = (num_sectors + 1) * sizeof(uint32_t);
+        
+        if (compressed_data.size() < offset_table_size) {
+            last_error = "Compressed data too small for sector offset table";
+            return false;
+        }
+        
+        // Read sector offsets
+        std::vector<uint32_t> sector_offsets(num_sectors + 1);
+        const uint32_t* offset_ptr = reinterpret_cast<const uint32_t*>(compressed_data.data());
+        for (size_t i = 0; i <= num_sectors; ++i) {
+            sector_offsets[i] = offset_ptr[i];
+        }
+        
+        // Debug: Show raw offsets before decryption
+        std::vector<uint32_t> raw_offsets;
+        if (is_encrypted) {
+            raw_offsets = sector_offsets;  // Save a copy for debugging
+            // std::cerr << "DEBUG: Raw offsets before decryption: ";
+            // for (size_t i = 0; i < std::min(size_t(5), sector_offsets.size()); ++i) {
+            //     std::cerr << sector_offsets[i] << " ";
+            // }
+            // std::cerr << std::endl;
+        }
+        
+        // If the file is encrypted, the sector offset table is also encrypted with key - 1
+        if (is_encrypted && file_key > 0) {
+            uint32_t sector_table_key = file_key - 1;
+            // std::cerr << "DEBUG: Decrypting sector offset table with key 0x" << std::hex << sector_table_key << std::dec << std::endl;
+            
+            // Decrypt the sector offset table
+            // Use the same decryption algorithm as for tables
+            prepareCryptTable();
+            
+            uint32_t key = sector_table_key;  // Make a copy of the key
+            uint32_t seed = 0xEEEEEEEE;
+            for (size_t i = 0; i <= num_sectors; i++) {
+                seed += crypt_table[0x400 + (key & 0xFF)];
+                uint32_t ch = sector_offsets[i] ^ (key + seed);
+                
+                key = ((~key << 0x15) + 0x11111111) | (key >> 0x0B);
+                seed = ch + seed + (seed << 5) + 3;
+                sector_offsets[i] = ch;
+            }
+            
+            // Debug: Show decrypted offsets
+            // std::cerr << "DEBUG: Decrypted offsets: ";
+            // for (size_t i = 0; i < std::min(size_t(5), sector_offsets.size()); ++i) {
+            //     std::cerr << sector_offsets[i] << " ";
+            // }
+            // std::cerr << std::endl;
+        }
+        
+        // Debug output
+        // std::cerr << "DEBUG: Sector-based decompression:" << std::endl;
+        // std::cerr << "  Expected size: " << expected_size << std::endl;
+        // std::cerr << "  Number of sectors: " << num_sectors << std::endl;
+        // std::cerr << "  Compressed data size: " << compressed_data.size() << std::endl;
+        // std::cerr << "  Is encrypted: " << (is_encrypted ? "yes" : "no") << std::endl;
+        // if (is_encrypted) {
+        //     std::cerr << "  File key: 0x" << std::hex << file_key << std::dec << std::endl;
+        //     std::cerr << "  Sector table key: 0x" << std::hex << (file_key - 1) << std::dec << std::endl;
+        // }
+        // std::cerr << "  First few offsets: ";
+        // for (size_t i = 0; i < std::min(size_t(5), sector_offsets.size()); ++i) {
+        //     std::cerr << sector_offsets[i] << " ";
+        // }
+        // std::cerr << std::endl;
+        
+        // Validate sector offsets
+        bool offsets_valid = true;
+        if (sector_offsets[0] != offset_table_size) {
+            std::cerr << "  WARNING: First offset should be " << offset_table_size << " but is " << sector_offsets[0] << std::endl;
+            offsets_valid = false;
+        }
+        for (uint32_t i = 0; i < num_sectors; ++i) {
+            if (sector_offsets[i] >= sector_offsets[i + 1]) {
+                std::cerr << "  WARNING: Offset " << i << " (" << sector_offsets[i] << ") >= offset " << (i+1) << " (" << sector_offsets[i+1] << ")" << std::endl;
+                offsets_valid = false;
+                break;
+            }
+        }
+        if (sector_offsets[num_sectors] > compressed_data.size()) {
+            std::cerr << "  WARNING: Last offset " << sector_offsets[num_sectors] << " > compressed data size " << compressed_data.size() << std::endl;
+            offsets_valid = false;
+        }
+        if (!offsets_valid) {
+            std::cerr << "  WARNING: Sector offsets appear invalid!" << std::endl;
+        }
+        
+        // Allocate output buffer
+        output.clear();
+        output.reserve(expected_size);
+        
+        // Decompress each sector
+        for (uint32_t sector = 0; sector < num_sectors; ++sector) {
+            uint32_t sector_start = sector_offsets[sector];
+            uint32_t sector_end = sector_offsets[sector + 1];
+            
+            if (sector_start >= compressed_data.size() || sector_end > compressed_data.size() || 
+                sector_start >= sector_end) {
+                last_error = "Invalid sector offsets";
+                return false;
+            }
+            
+            // Extract sector data
+            std::vector<uint8_t> sector_data(
+                compressed_data.begin() + sector_start,
+                compressed_data.begin() + sector_end
+            );
+            
+            // If file is encrypted, decrypt this sector
+            if (is_encrypted && file_key > 0) {
+                // Each sector is encrypted with key = file_key + sector_number
+                uint32_t sector_key = file_key + sector;
+                uint32_t seed = 0xEEEEEEEE;
+                
+                // Decrypt as 32-bit words
+                size_t word_length = sector_data.size() / 4;
+                uint32_t* data_ptr = reinterpret_cast<uint32_t*>(sector_data.data());
+                
+                for (size_t i = 0; i < word_length; ++i) {
+                    seed += crypt_table[0x400 + (sector_key & 0xFF)];
+                    uint32_t ch = data_ptr[i] ^ (sector_key + seed);
+                    
+                    sector_key = ((~sector_key << 0x15) + 0x11111111) | (sector_key >> 0x0B);
+                    seed = ch + seed + (seed << 5) + 3;
+                    data_ptr[i] = ch;
+                }
+                
+                // Handle remaining bytes
+                size_t remaining = sector_data.size() % 4;
+                if (remaining > 0) {
+                    uint32_t last_word = 0;
+                    uint8_t* remaining_bytes = sector_data.data() + word_length * 4;
+                    
+                    // Read remaining bytes into a word
+                    for (size_t i = 0; i < remaining; ++i) {
+                        last_word |= static_cast<uint32_t>(remaining_bytes[i]) << (i * 8);
+                    }
+                    
+                    // Decrypt the word
+                    seed += crypt_table[0x400 + (sector_key & 0xFF)];
+                    last_word = last_word ^ (sector_key + seed);
+                    
+                    // Write back the decrypted bytes
+                    for (size_t i = 0; i < remaining; ++i) {
+                        remaining_bytes[i] = static_cast<uint8_t>(last_word >> (i * 8));
+                    }
+                }
+            }
+            
+            // Calculate expected sector size
+            uint32_t sector_unpacked_size = sector_size;
+            if (sector == num_sectors - 1) {
+                // Last sector might be smaller
+                sector_unpacked_size = expected_size - (sector * sector_size);
+            }
+            
+            // Decompress sector
+            std::vector<uint8_t> decompressed_sector;
+            // std::cerr << "DEBUG: Sector " << sector << " - compressed size: " << sector_data.size() 
+            //          << ", expected uncompressed: " << sector_unpacked_size << std::endl;
+            if (!decompressData(sector_data, decompressed_sector, sector_unpacked_size)) {
+                last_error = "Failed to decompress sector " + std::to_string(sector) + ": " + last_error;
+                return false;
+            }
+            
+            // Append to output
+            output.insert(output.end(), decompressed_sector.begin(), decompressed_sector.end());
+        }
+        
+        // Verify final size
+        if (output.size() != expected_size) {
+            last_error = "Decompressed size mismatch";
+            return false;
+        }
+        
+        return true;
+    }
+    
     // Decompress MPQ file data
     bool decompressData(const std::vector<uint8_t>& compressed_data, 
                        std::vector<uint8_t>& output, uint32_t expected_size) {
@@ -245,8 +492,15 @@ public:
         // Debug output
         // std::cerr << "DEBUG: Compression mask = 0x" << std::hex << (int)compression_mask << std::dec << std::endl;
         
-        // Skip compression mask byte
-        std::vector<uint8_t> current_data(compressed_data.begin() + 1, compressed_data.end());
+        // If compression mask is 0, the data might be stored without compression mask
+        std::vector<uint8_t> current_data;
+        if (compression_mask == 0 && compressed_data.size() == expected_size) {
+            // No compression mask byte - data is stored as-is
+            current_data = compressed_data;
+        } else {
+            // Skip compression mask byte
+            current_data.assign(compressed_data.begin() + 1, compressed_data.end());
+        }
         std::vector<uint8_t> temp_output;
         
         // Compression algorithms are applied in specific order during decompression
@@ -337,7 +591,13 @@ public:
         // If no compression was applied, data is stored as-is
         if (compression_mask == 0) {
             output = current_data;
-            return output.size() == expected_size;
+            // std::cerr << "DEBUG: No compression - data size: " << output.size() 
+            //          << ", expected: " << expected_size << std::endl;
+            if (output.size() != expected_size) {
+                last_error = "Uncompressed data size mismatch";
+                return false;
+            }
+            return true;
         }
         
         output = current_data;
@@ -702,16 +962,46 @@ bool MPQLoader::extractFile(const std::string& filename, std::vector<uint8_t>& o
             file_key = (file_key + block.file_pos) ^ block.unpacked_size;
         }
         
-        // For now, skip decryption as it's complex and we don't have sector-based encryption
-        pImpl->last_error = "File encryption not yet supported";
-        return false;
+        // For single-unit files, decrypt the entire data
+        // For sector-based files, we'll decrypt during decompression
+        if (block.flags & MPQ_FILE_SINGLE_UNIT) {
+            // Decrypt the entire file data for single-unit files
+            pImpl->decryptFileData(file_data, file_data.size(), file_key);
+        }
+        // For sector-based files, the decryption happens in decompressSectorBased
     }
     
     // Check if file is compressed
     if (block.flags & (MPQ_FILE_COMPRESS | MPQ_FILE_IMPLODE)) {
-        // Decompress data
-        if (!pImpl->decompressData(file_data, output, block.unpacked_size)) {
-            return false; // Error message already set in decompressData
+        // Check if file uses single unit or sector-based compression
+        if (block.flags & MPQ_FILE_SINGLE_UNIT) {
+            // Single unit compression - entire file is compressed as one block
+            if (!pImpl->decompressData(file_data, output, block.unpacked_size)) {
+                return false; // Error message already set in decompressData
+            }
+        } else {
+            // Sector-based compression
+            // Pass encryption info if file is encrypted
+            bool is_encrypted = (block.flags & MPQ_FILE_ENCRYPTED) != 0;
+            uint32_t file_key_for_sectors = 0;
+            if (is_encrypted) {
+                // Recalculate the file key (we need it for sector offset table)
+                std::string base_name = filename;
+                size_t slash_pos = filename.find_last_of("\\/");
+                if (slash_pos != std::string::npos) {
+                    base_name = filename.substr(slash_pos + 1);
+                }
+                for (char& c : base_name) {
+                    c = std::toupper(c);
+                }
+                file_key_for_sectors = pImpl->hashString(base_name, MPQ_HASH_FILE_KEY);
+                if (block.flags & MPQ_FILE_ADJUSTED_KEY) {
+                    file_key_for_sectors = (file_key_for_sectors + block.file_pos) ^ block.unpacked_size;
+                }
+            }
+            if (!pImpl->decompressSectorBased(file_data, output, block.unpacked_size, is_encrypted, file_key_for_sectors)) {
+                return false; // Error message already set in decompressSectorBased
+            }
         }
     } else {
         // Uncompressed file
@@ -728,8 +1018,39 @@ bool MPQLoader::extractFile(const std::string& filename, std::vector<uint8_t>& o
 }
 
 std::optional<MPQFileInfo> MPQLoader::getFileInfo(const std::string& filename) const {
-    // TODO: Implement file info retrieval
-    return std::nullopt;
+    if (!pImpl || !pImpl->file.is_open()) {
+        return std::nullopt;
+    }
+    
+    // Calculate hash values
+    uint32_t name1 = pImpl->hashString(filename, MPQ_HASH_NAME_A);
+    uint32_t name2 = pImpl->hashString(filename, MPQ_HASH_NAME_B);
+    
+    // Find in hash table
+    const MPQHashEntry* hash_entry = nullptr;
+    for (const auto& entry : pImpl->hash_table) {
+        if (entry.name1 == name1 && entry.name2 == name2 && 
+            entry.block_index != 0xFFFFFFFF) {
+            hash_entry = &entry;
+            break;
+        }
+    }
+    
+    if (!hash_entry || hash_entry->block_index >= pImpl->block_table.size()) {
+        return std::nullopt;
+    }
+    
+    const MPQBlockEntry& block = pImpl->block_table[hash_entry->block_index];
+    
+    MPQFileInfo info;
+    info.filename = filename;
+    info.compressed_size = block.packed_size;
+    info.uncompressed_size = block.unpacked_size;
+    info.flags = block.flags;
+    info.locale = hash_entry->locale;
+    info.platform = hash_entry->platform;
+    
+    return info;
 }
 
 std::string MPQLoader::getLastError() const {

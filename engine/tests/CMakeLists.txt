@@ -17,6 +17,7 @@ FetchContent_MakeAvailable(googletest)
 set(TEST_SOURCES
     main.cpp
     mpq/mpq_loader_test.cpp
+    mpq/test_file_encryption.cpp
     sprites/dc6_parser_test.cpp
     core/asset_manager_test.cpp
     core/test_asset_manager_mpq.cpp
@@ -44,6 +45,7 @@ set(TEST_SOURCES
     utils/pkware_test.cpp
     utils/bzip2_test.cpp
     integration/test_real_mpq_files.cpp
+    test_pkware_real_format.cpp
     # Tests will be added as we implement features following TDD
     # core/game_state_test.cpp
     # audio/sound_system_test.cpp

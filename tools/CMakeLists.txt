@@ -53,3 +53,43 @@ target_include_directories(debug_extraction PRIVATE ${CMAKE_SOURCE_DIR}/engine/i
 add_executable(test_pkware_real test_pkware_real.cpp)
 target_link_libraries(test_pkware_real PRIVATE d2engine)
 target_include_directories(test_pkware_real PRIVATE ${CMAKE_SOURCE_DIR}/engine/include)
+
+# List palette files
+add_executable(list_pal_files list_pal_files.cpp)
+target_link_libraries(list_pal_files PRIVATE d2engine)
+target_include_directories(list_pal_files PRIVATE ${CMAKE_SOURCE_DIR}/engine/include)
+
+# Diagnose MPQ issues
+add_executable(diagnose_mpq diagnose_mpq.cpp)
+target_link_libraries(diagnose_mpq PRIVATE d2engine)
+target_include_directories(diagnose_mpq PRIVATE ${CMAKE_SOURCE_DIR}/engine/include)
+
+# Extract listfile
+add_executable(extract_listfile extract_listfile.cpp)
+target_link_libraries(extract_listfile PRIVATE d2engine)
+target_include_directories(extract_listfile PRIVATE ${CMAKE_SOURCE_DIR}/engine/include)
+
+# Debug listfile
+add_executable(debug_listfile debug_listfile.cpp)
+target_link_libraries(debug_listfile PRIVATE d2engine)
+target_include_directories(debug_listfile PRIVATE ${CMAKE_SOURCE_DIR}/engine/include)
+
+# Test one PKWARE file
+add_executable(test_one_pkware test_one_pkware.cpp)
+target_link_libraries(test_one_pkware PRIVATE d2engine)
+target_include_directories(test_one_pkware PRIVATE ${CMAKE_SOURCE_DIR}/engine/include)
+
+# Debug compression mask
+add_executable(debug_compression_mask debug_compression_mask.cpp)
+target_link_libraries(debug_compression_mask PRIVATE d2engine)
+target_include_directories(debug_compression_mask PRIVATE ${CMAKE_SOURCE_DIR}/engine/include)
+
+# Analyze MPQ compression
+add_executable(analyze_mpq_compression analyze_mpq_compression.cpp)
+target_link_libraries(analyze_mpq_compression PRIVATE d2engine)
+target_include_directories(analyze_mpq_compression PRIVATE ${CMAKE_SOURCE_DIR}/engine/include)
+
+# Debug sector offsets
+add_executable(debug_sector_offsets debug_sector_offsets.cpp)
+target_link_libraries(debug_sector_offsets PRIVATE d2engine)
+target_include_directories(debug_sector_offsets PRIVATE ${CMAKE_SOURCE_DIR}/engine/include)
