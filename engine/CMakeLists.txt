@@ -23,6 +23,7 @@ add_library(d2engine STATIC
     src/utils/pkware_explode.cpp
     src/utils/huffman_decompress.cpp
     src/utils/bzip2_decompress.cpp
+    src/utils/sparse_decompress.cpp
     src/sprites/dc6_parser.cpp
     src/core/asset_manager.cpp
     src/rendering/egl_context.cpp

@@ -2,6 +2,7 @@
 #include "utils/pkware_explode.h"
 #include "utils/huffman_decompress.h"
 #include "utils/bzip2_decompress.h"
+#include "utils/sparse_decompress.h"
 #include <fstream>
 #include <cstring>
 #include <filesystem>
@@ -9,6 +10,7 @@
 #include <cctype>
 #include <cstdio>
 #include <sstream>
+#include <iostream>
 #include <zlib.h>
 
 namespace d2portable {
@@ -240,6 +242,9 @@ public:
         // Check compression type (first byte is a bitmask)
         uint8_t compression_mask = compressed_data[0];
         
+        // Debug output
+        // std::cerr << "DEBUG: Compression mask = 0x" << std::hex << (int)compression_mask << std::dec << std::endl;
+        
         // Skip compression mask byte
         std::vector<uint8_t> current_data(compressed_data.begin() + 1, compressed_data.end());
         std::vector<uint8_t> temp_output;
@@ -247,12 +252,6 @@ public:
         // Compression algorithms are applied in specific order during decompression
         // Based on MPQ format: decompress in the order they appear in the data
         // For multi-compression, the outermost compression is decompressed first
-        
-        // Check for unsupported compression types
-        if (compression_mask & MPQ_COMPRESSION_SPARSE) {
-            last_error = "Sparse compression not supported";
-            return false;
-        }
         
         // ADPCM decompression (for audio files)
         if (compression_mask & (MPQ_COMPRESSION_ADPCM_MONO | MPQ_COMPRESSION_ADPCM_STEREO)) {
@@ -311,6 +310,16 @@ public:
                     last_error = "Zlib decompression failed";
                     return false;
                 }
+            }
+            current_data = temp_output;
+        }
+        
+        // Sparse decompression (run-length encoding) - before PKWARE
+        if (compression_mask & MPQ_COMPRESSION_SPARSE) {
+            temp_output.clear();
+            if (!SparseDecompress(current_data, temp_output, expected_size)) {
+                last_error = "Sparse decompression failed";
+                return false;
             }
             current_data = temp_output;
         }

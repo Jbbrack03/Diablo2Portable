@@ -374,7 +374,21 @@ static uint32_t GetBits(PKWAREWork* work, uint32_t bits_wanted) {
 bool PKWAREExplode(const std::vector<uint8_t>& compressed_data,
                    std::vector<uint8_t>& output,
                    size_t expected_size) {
+#ifdef PKWARE_DEBUG
+    std::cout << "\n=== PKWARE DEBUG ===\n";
+    std::cout << "Input size: " << compressed_data.size() << " bytes\n";
+    std::cout << "Expected output size: " << expected_size << " bytes\n";
+    std::cout << "First 8 bytes: ";
+    for (size_t i = 0; i < std::min((size_t)8, compressed_data.size()); i++) {
+        std::cout << std::hex << (int)compressed_data[i] << " ";
+    }
+    std::cout << std::dec << std::endl;
+#endif
+    
     if (compressed_data.size() < 2) {
+#ifdef PKWARE_DEBUG
+        std::cout << "ERROR: Not enough data for header\n";
+#endif
         return false; // Not enough data for header
     }
     

@@ -43,3 +43,13 @@ target_include_directories(mpq_extractor PRIVATE ${CMAKE_SOURCE_DIR}/engine/incl
 add_executable(asset_cache_builder asset_cache_builder.cpp)
 target_link_libraries(asset_cache_builder PRIVATE d2engine)
 target_include_directories(asset_cache_builder PRIVATE ${CMAKE_SOURCE_DIR}/engine/include)
+
+# Debug extraction tool
+add_executable(debug_extraction debug_extraction.cpp)
+target_link_libraries(debug_extraction PRIVATE d2engine)
+target_include_directories(debug_extraction PRIVATE ${CMAKE_SOURCE_DIR}/engine/include)
+
+# Test PKWARE with real files
+add_executable(test_pkware_real test_pkware_real.cpp)
+target_link_libraries(test_pkware_real PRIVATE d2engine)
+target_include_directories(test_pkware_real PRIVATE ${CMAKE_SOURCE_DIR}/engine/include)
