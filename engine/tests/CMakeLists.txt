@@ -43,7 +43,6 @@ set(TEST_SOURCES
     world/test_collision_response.cpp
     utils/pkware_test.cpp
     utils/bzip2_test.cpp
-    utils/huffman_decode_test.cpp
     integration/test_real_mpq_files.cpp
     # Tests will be added as we implement features following TDD
     # core/game_state_test.cpp

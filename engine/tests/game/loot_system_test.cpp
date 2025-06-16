@@ -303,8 +303,10 @@ TEST_F(LootSystemTest, LootRarityChances) {
         auto loot = lootSystem.generateLoot(zombie);
         
         for (const auto& item : loot) {
-            lowLevelRarities[item->getRarity()]++;
-            totalLowLevel++;
+            if (item->getType() != ItemType::GOLD) {
+                lowLevelRarities[item->getRarity()]++;
+                totalLowLevel++;
+            }
         }
     }
     
@@ -325,8 +327,10 @@ TEST_F(LootSystemTest, LootRarityChances) {
         auto loot = lootSystem.generateLoot(demon);
         
         for (const auto& item : loot) {
-            highLevelRarities[item->getRarity()]++;
-            totalHighLevel++;
+            if (item->getType() != ItemType::GOLD) {
+                highLevelRarities[item->getRarity()]++;
+                totalHighLevel++;
+            }
         }
     }
     

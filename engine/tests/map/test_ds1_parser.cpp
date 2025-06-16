@@ -2,6 +2,8 @@
 #include <vector>
 #include <memory>
 #include <cstdint>
+#include <fstream>
+#include <cstdio>
 #include "map/ds1_parser.h"
 
 class DS1ParserTest : public ::testing::Test {
@@ -207,11 +209,46 @@ TEST_F(DS1ParserTest, ParseMultipleFloorLayers) {
 
 // Test 10: Load DS1 from file path
 TEST_F(DS1ParserTest, LoadFromFile) {
-    // This test assumes we'll have a test DS1 file
-    const std::string testFile = "test_data/minimal.ds1";
+    // Create a minimal DS1 file for testing
+    std::vector<uint8_t> testData;
     
+    // Version (4 bytes) - Version 18
+    testData.push_back(0x12); testData.push_back(0x00); testData.push_back(0x00); testData.push_back(0x00);
+    
+    // Width + 1 (4 bytes) - 10
+    testData.push_back(0x0A); testData.push_back(0x00); testData.push_back(0x00); testData.push_back(0x00);
+    
+    // Height + 1 (4 bytes) - 10
+    testData.push_back(0x0A); testData.push_back(0x00); testData.push_back(0x00); testData.push_back(0x00);
+    
+    // Act (4 bytes) - Act 1
+    testData.push_back(0x01); testData.push_back(0x00); testData.push_back(0x00); testData.push_back(0x00);
+    
+    // Layer type (4 bytes) - No shadow
+    testData.push_back(0x00); testData.push_back(0x00); testData.push_back(0x00); testData.push_back(0x00);
+    
+    // Number of walls (4 bytes) - 0 walls
+    testData.push_back(0x00); testData.push_back(0x00); testData.push_back(0x00); testData.push_back(0x00);
+    
+    // Number of floors (4 bytes) - 1 floor
+    testData.push_back(0x01); testData.push_back(0x00); testData.push_back(0x00); testData.push_back(0x00);
+    
+    // Write test file
+    const std::string testFile = "test_minimal.ds1";
+    std::ofstream file(testFile, std::ios::binary);
+    file.write(reinterpret_cast<const char*>(testData.data()), testData.size());
+    file.close();
+    
+    // Load and verify
     auto result = parser.loadFromFile(testFile);
+    ASSERT_TRUE(result != nullptr);
     
-    // Will fail until we have actual test files
-    EXPECT_TRUE(result != nullptr);
+    // Verify the loaded data
+    EXPECT_EQ(result->getVersion(), 18);
+    EXPECT_EQ(result->getWidth(), 9);  // Width is stored as width+1
+    EXPECT_EQ(result->getHeight(), 9); // Height is stored as height+1
+    EXPECT_EQ(result->getAct(), 1);
+    
+    // Clean up test file
+    std::remove(testFile.c_str());
 }

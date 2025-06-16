@@ -152,6 +152,7 @@ std::unique_ptr<DS1File> DS1Parser::parse(const std::vector<uint8_t>& data) {
 std::unique_ptr<DS1File> DS1Parser::loadFromFile(const std::string& filename) {
     std::ifstream file(filename, std::ios::binary);
     if (!file) {
+        // std::cerr << "Failed to open file: " << filename << std::endl;
         return nullptr;
     }
     
@@ -163,6 +164,11 @@ std::unique_ptr<DS1File> DS1Parser::loadFromFile(const std::string& filename) {
     // Read file data
     std::vector<uint8_t> data(fileSize);
     file.read(reinterpret_cast<char*>(data.data()), fileSize);
+    
+    if (file.gcount() != fileSize) {
+        // std::cerr << "Failed to read full file. Expected " << fileSize << " bytes, got " << file.gcount() << std::endl;
+        return nullptr;
+    }
     
     return parse(data);
 }
