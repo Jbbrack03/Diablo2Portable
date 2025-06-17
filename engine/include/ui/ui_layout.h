@@ -25,6 +25,7 @@ public:
     ~UILayout() = default;
     
     void setAnchor(UIElement* element, UIAnchor anchor, const glm::vec2& offset = glm::vec2(0, 0));
+    void setRelativeSize(UIElement* element, const glm::vec2& relativeSize);
     void layoutElement(UIElement* element, UIElement* parent);
     
 private:
@@ -34,6 +35,7 @@ private:
     };
     
     std::unordered_map<UIElement*, AnchorInfo> anchors_;
+    std::unordered_map<UIElement*, glm::vec2> relativeSizes_;
 };
 
 } // namespace d2

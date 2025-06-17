@@ -9,8 +9,22 @@ void UILayout::setAnchor(UIElement* element, UIAnchor anchor, const glm::vec2& o
     anchors_[element] = {anchor, offset};
 }
 
+void UILayout::setRelativeSize(UIElement* element, const glm::vec2& relativeSize) {
+    if (!element) return;
+    
+    relativeSizes_[element] = relativeSize;
+}
+
 void UILayout::layoutElement(UIElement* element, UIElement* parent) {
     if (!element || !parent) return;
+    
+    // Apply relative sizing first if set
+    auto sizeIt = relativeSizes_.find(element);
+    if (sizeIt != relativeSizes_.end()) {
+        glm::vec2 parentSize = parent->getSize();
+        glm::vec2 newSize = parentSize * sizeIt->second;
+        element->setSize(newSize);
+    }
     
     auto it = anchors_.find(element);
     if (it == anchors_.end()) return;
