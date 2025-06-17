@@ -22,4 +22,16 @@ TEST_F(TextRendererTest, CreateTextRenderer) {
     EXPECT_EQ(textRenderer.getColor(), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
 }
 
+TEST_F(TextRendererTest, SetTextColor) {
+    TextRenderer textRenderer;
+    
+    // Set red color
+    textRenderer.setColor(glm::vec4(1.0f, 0.0f, 0.0f, 1.0f));
+    EXPECT_EQ(textRenderer.getColor(), glm::vec4(1.0f, 0.0f, 0.0f, 1.0f));
+    
+    // Set semi-transparent blue
+    textRenderer.setColor(glm::vec4(0.0f, 0.0f, 1.0f, 0.5f));
+    EXPECT_EQ(textRenderer.getColor(), glm::vec4(0.0f, 0.0f, 1.0f, 0.5f));
+}
+
 } // namespace d2
