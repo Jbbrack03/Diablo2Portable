@@ -32,4 +32,19 @@ TEST_F(UIElementTest, SetPositionAndSize) {
     EXPECT_EQ(element.getSize(), glm::vec2(300.0f, 400.0f));
 }
 
+TEST_F(UIElementTest, FocusAndNavigation) {
+    UIElement element;
+    
+    // Initially not focused
+    EXPECT_FALSE(element.isFocused());
+    
+    // Can set focus
+    element.setFocused(true);
+    EXPECT_TRUE(element.isFocused());
+    
+    // Can clear focus
+    element.setFocused(false);
+    EXPECT_FALSE(element.isFocused());
+}
+
 } // namespace d2

@@ -19,6 +19,7 @@ public:
     bool isVisible() const { return visible_; }
     bool isEnabled() const { return enabled_; }
     bool isFocused() const { return focused_; }
+    void setFocused(bool focused) { focused_ = focused; }
     
 private:
     glm::vec2 position_{0.0f, 0.0f};
