@@ -29,7 +29,7 @@ public:
 
 class MockTextRenderer : public TextRenderer {
 public:
-    void renderText(const std::string& text, const glm::vec2& position, const Font* font) {
+    void renderText(const std::string& text, const glm::vec2& position, const Font* font) override {
         last_text_ = text;
         last_position_ = position;
         last_font_ = font;
@@ -99,6 +99,33 @@ TEST_F(UIRendererTest, RenderSingleUIElement) {
     
     // Verify that a sprite was rendered (sprite count should increase)
     EXPECT_EQ(sprite_renderer_->getSpriteCount(), initial_sprite_count + 1);
+}
+
+// Test 3: Render a UILabel with text
+TEST_F(UIRendererTest, RenderUILabelWithText) {
+    // Initialize the UI renderer
+    ASSERT_TRUE(ui_renderer_->initialize(renderer_.get(), sprite_renderer_.get(), text_renderer_.get(), font_manager_.get()));
+    
+    // Create a font and set it as default
+    auto font = font_manager_->createFont("Arial", 16);
+    ASSERT_NE(font, nullptr);
+    ui_renderer_->setDefaultFont(font.get());
+    
+    // Create a UILabel
+    auto label = std::make_unique<UILabel>("Hello World");
+    label->setPosition(glm::vec2(50, 100));
+    label->setSize(glm::vec2(200, 30));
+    
+    // Render the label
+    ui_renderer_->beginFrame();
+    ui_renderer_->renderElement(label.get());
+    ui_renderer_->endFrame();
+    
+    // Verify that text was rendered
+    EXPECT_EQ(text_renderer_->render_count_, 1);
+    EXPECT_EQ(text_renderer_->last_text_, "Hello World");
+    EXPECT_EQ(text_renderer_->last_position_, glm::vec2(50, 100));
+    EXPECT_EQ(text_renderer_->last_font_, font.get());
 }
 
 } // namespace d2::test
