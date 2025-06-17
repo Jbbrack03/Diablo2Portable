@@ -49,6 +49,7 @@ set(TEST_SOURCES
     utils/bzip2_test.cpp
     integration/test_real_mpq_files.cpp
     test_pkware_real_format.cpp
+    ui/test_ui_element.cpp
     # Tests will be added as we implement features following TDD
     # core/game_state_test.cpp
     # audio/sound_system_test.cpp
