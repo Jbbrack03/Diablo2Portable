@@ -1,11 +1,20 @@
 #include "game/item.h"
 #include <algorithm>
+#include <memory>
 #include <random>
 
 namespace d2::game {
 
 Item::Item(const std::string& name, ItemType type)
     : m_name(name), m_type(type) {
+}
+
+std::shared_ptr<Item> Item::createItem(const std::string& name, ItemType type, ItemRarity rarity, int level) {
+    auto item = std::make_shared<Item>(name, type);
+    item->setRarity(rarity);
+    item->setItemLevel(level);
+    item->setRequiredLevel(level);
+    return item;
 }
 
 void Item::setDamage(int minDamage, int maxDamage) {

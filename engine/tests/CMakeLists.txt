@@ -57,6 +57,7 @@ set(TEST_SOURCES
     ui/test_font_manager.cpp
     ui/test_text_renderer.cpp
     ui/test_ui_manager.cpp
+    ui/test_inventory_screen.cpp
     # Tests will be added as we implement features following TDD
     # core/game_state_test.cpp
     # audio/sound_system_test.cpp

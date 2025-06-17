@@ -3,6 +3,8 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include <memory>
+#include <glm/glm.hpp>
 #include "game/character.h"  // For StatType enum
 #include "game/equipment_slot.h"  // For EquipmentSlot enum
 
@@ -28,6 +30,9 @@ enum class ItemRarity {
 class Item {
 public:
     Item(const std::string& name, ItemType type);
+    
+    // Factory method
+    static std::shared_ptr<Item> createItem(const std::string& name, ItemType type, ItemRarity rarity, int level);
     
     const std::string& getName() const { return m_name; }
     ItemType getType() const { return m_type; }
@@ -73,6 +78,7 @@ public:
     
     // Item size in inventory grid
     void setSize(int width, int height);
+    void setSize(const glm::ivec2& size) { setSize(size.x, size.y); }
     int getWidth() const { return m_width; }
     int getHeight() const { return m_height; }
     
