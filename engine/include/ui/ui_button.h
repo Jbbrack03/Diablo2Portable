@@ -23,6 +23,9 @@ public:
     // Event handling
     void setOnClick(ClickCallback callback) { onClick_ = callback; }
     
+    // Touch input override
+    bool handleTouchInput(float x, float y, TouchEventType type) override;
+    
     void handleMouseDown(const glm::vec2& mousePos) {
         if (containsPoint(mousePos)) {
             pressed_ = true;
