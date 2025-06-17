@@ -56,6 +56,7 @@ add_library(d2engine STATIC
     src/ui/ui_manager.cpp
     src/ui/inventory_screen.cpp
     src/ui/character_screen.cpp
+    src/ui/skill_screen.cpp
 )
 
 # Include directories

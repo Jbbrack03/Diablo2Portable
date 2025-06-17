@@ -32,6 +32,7 @@ public:
     
     // Stat management
     void setStatPoints(int points) { m_statPoints = points; }
+    void setSkillPoints(int points) { m_skillPoints = points; }
     
     // Stat getters
     int getBaseDamage() const;
