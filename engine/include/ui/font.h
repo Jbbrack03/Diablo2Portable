@@ -16,6 +16,15 @@ public:
     int getSize() const { return size_; }
     int getLineHeight() const { return lineHeight_; }
     
+    int getTextWidth(const std::string& text) const {
+        if (text.empty()) return 0;
+        
+        // Simple placeholder implementation
+        // In real implementation, this would use font metrics
+        // For now, approximate each character as size/2 wide
+        return static_cast<int>(text.length() * size_ / 2);
+    }
+    
 private:
     std::string name_;
     int size_;
