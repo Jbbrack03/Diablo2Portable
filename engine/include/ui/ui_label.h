@@ -11,6 +11,7 @@ public:
     virtual ~UILabel() = default;
     
     const std::string& getText() const { return text_; }
+    void setText(const std::string& text) { text_ = text; }
     
 private:
     std::string text_;

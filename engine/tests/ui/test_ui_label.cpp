@@ -23,4 +23,17 @@ TEST_F(UILabelTest, CreateBasicLabel) {
     EXPECT_TRUE(label.isEnabled());
 }
 
+TEST_F(UILabelTest, SetTextDynamically) {
+    UILabel label("Initial text");
+    EXPECT_EQ(label.getText(), "Initial text");
+    
+    // Should be able to change text
+    label.setText("Updated text");
+    EXPECT_EQ(label.getText(), "Updated text");
+    
+    // Setting empty text should work
+    label.setText("");
+    EXPECT_EQ(label.getText(), "");
+}
+
 } // namespace d2
