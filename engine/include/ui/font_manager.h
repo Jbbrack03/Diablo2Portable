@@ -19,6 +19,19 @@ public:
         return (it != fonts_.end()) ? it->second : nullptr;
     }
     
+    std::shared_ptr<Font> createFont(const std::string& name, int size) {
+        // If font already exists with this name, return it
+        auto existing = getFont(name);
+        if (existing) {
+            return existing;
+        }
+        
+        // Create new font
+        auto font = std::make_shared<Font>(name, size);
+        fonts_[name] = font;
+        return font;
+    }
+    
 private:
     std::unordered_map<std::string, std::shared_ptr<Font>> fonts_;
 };
