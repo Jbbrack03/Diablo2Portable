@@ -51,6 +51,8 @@ add_library(d2engine STATIC
     src/world/world_object.cpp
     src/world/interaction_manager.cpp
     src/audio/audio_engine.cpp
+    src/network/network_manager.cpp
+    src/network/game_session.cpp
 )
 
 # Include directories
