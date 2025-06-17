@@ -27,4 +27,22 @@ TEST_F(UIButtonTest, CreateBasicButton) {
     EXPECT_FALSE(button.isHovered());
 }
 
+TEST_F(UIButtonTest, HandleClickEvents) {
+    UIButton button("Click Me");
+    button.setPosition(glm::vec2(100.0f, 100.0f));
+    button.setSize(glm::vec2(200.0f, 50.0f));
+    
+    // Click callback tracking
+    bool clicked = false;
+    button.setOnClick([&clicked]() { clicked = true; });
+    
+    // Click inside button bounds
+    button.handleMouseDown(glm::vec2(150.0f, 125.0f));
+    EXPECT_TRUE(button.isPressed());
+    
+    button.handleMouseUp(glm::vec2(150.0f, 125.0f));
+    EXPECT_FALSE(button.isPressed());
+    EXPECT_TRUE(clicked);
+}
+
 } // namespace d2
