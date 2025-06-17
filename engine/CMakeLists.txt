@@ -55,6 +55,7 @@ add_library(d2engine STATIC
     src/network/game_session.cpp
     src/ui/ui_element.cpp
     src/ui/ui_button.cpp
+    src/ui/ui_panel.cpp
     src/ui/ui_manager.cpp
     src/ui/inventory_screen.cpp
     src/ui/character_screen.cpp

@@ -61,6 +61,9 @@ public:
         focusChild(prevIndex);
     }
     
+    // Touch input override
+    bool handleTouchInput(float x, float y, TouchEventType type) override;
+    
 private:
     std::vector<std::shared_ptr<UIElement>> children_;
     int focusedChildIndex_{-1};
