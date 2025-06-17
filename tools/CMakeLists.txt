@@ -98,3 +98,8 @@ target_include_directories(debug_sector_offsets PRIVATE ${CMAKE_SOURCE_DIR}/engi
 add_executable(debug_pkware_bytes debug_pkware_bytes.cpp)
 target_link_libraries(debug_pkware_bytes PRIVATE d2engine)
 target_include_directories(debug_pkware_bytes PRIVATE ${CMAKE_SOURCE_DIR}/engine/include)
+
+# Debug PKWARE distance issues
+add_executable(debug_pkware_distance debug_pkware_distance.cpp)
+target_link_libraries(debug_pkware_distance PRIVATE d2engine)
+target_include_directories(debug_pkware_distance PRIVATE ${CMAKE_SOURCE_DIR}/engine/include)

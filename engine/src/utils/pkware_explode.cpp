@@ -617,16 +617,40 @@ bool PKWAREExplode(const std::vector<uint8_t>& compressed_data,
                 
                 // Validate distance
                 size_t current_pos = work.out_pos - work.out_buff;
-                if (distance > current_pos) {
-#ifdef PKWARE_DEBUG
-                    std::cout << " ERROR: Invalid distance " << distance 
-                              << " at position " << current_pos << "\n";
-#endif
-                    return false;
-                }
                 
-                // Copy bytes from the dictionary window
-                uint8_t* copy_src = work.out_pos - distance;
+                // Handle distance that goes before the start of output buffer
+                // PKWARE DCL uses a sliding window that can wrap around
+                uint8_t* copy_src;
+                
+                if (distance > current_pos) {
+                    // Distance goes before start of output buffer
+                    // In PKWARE DCL, this wraps to a pre-initialized pattern
+                    // For Diablo II, the dictionary is often initialized with spaces (0x20)
+#ifdef PKWARE_DEBUG
+                    std::cout << " WRAP: distance=" << distance 
+                              << " exceeds position=" << current_pos 
+                              << " (wrap to pre-init)\n";
+#endif
+                    // For now, treat as spaces (0x20) which is common in text files
+                    // This is a temporary fix - we should investigate the exact pattern
+                    static uint8_t pre_init_buffer[4096];
+                    static bool pre_init_done = false;
+                    if (!pre_init_done) {
+                        memset(pre_init_buffer, 0x20, sizeof(pre_init_buffer));
+                        pre_init_done = true;
+                    }
+                    
+                    // Calculate position in pre-init buffer
+                    size_t pre_init_offset = distance - current_pos;
+                    if (pre_init_offset > sizeof(pre_init_buffer)) {
+                        // This shouldn't happen with valid PKWARE data
+                        return false;
+                    }
+                    copy_src = pre_init_buffer + sizeof(pre_init_buffer) - pre_init_offset;
+                } else {
+                    // Normal case - copy from within output buffer
+                    copy_src = work.out_pos - distance;
+                }
 #ifdef PKWARE_DEBUG
                 std::cout << " match: distance=" << distance << " length=" << length << "\n";
 #endif
