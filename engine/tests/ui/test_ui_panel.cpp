@@ -39,4 +39,37 @@ TEST_F(UIPanelTest, AddChildElements) {
     EXPECT_EQ(panel.getChild(1), button2);
 }
 
+TEST_F(UIPanelTest, FocusManagement) {
+    UIPanel panel;
+    
+    auto button1 = std::make_shared<UIButton>("Button 1");
+    auto button2 = std::make_shared<UIButton>("Button 2");
+    auto button3 = std::make_shared<UIButton>("Button 3");
+    
+    panel.addChild(button1);
+    panel.addChild(button2);
+    panel.addChild(button3);
+    
+    // Initially no focus
+    EXPECT_EQ(panel.getFocusedChildIndex(), -1);
+    
+    // Focus first child
+    panel.focusChild(0);
+    EXPECT_EQ(panel.getFocusedChildIndex(), 0);
+    EXPECT_TRUE(button1->isFocused());
+    EXPECT_FALSE(button2->isFocused());
+    
+    // Focus next child
+    panel.focusNext();
+    EXPECT_EQ(panel.getFocusedChildIndex(), 1);
+    EXPECT_FALSE(button1->isFocused());
+    EXPECT_TRUE(button2->isFocused());
+    
+    // Focus previous child
+    panel.focusPrevious();
+    EXPECT_EQ(panel.getFocusedChildIndex(), 0);
+    EXPECT_TRUE(button1->isFocused());
+    EXPECT_FALSE(button2->isFocused());
+}
+
 } // namespace d2

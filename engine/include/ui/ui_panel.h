@@ -25,8 +25,45 @@ public:
         return nullptr;
     }
     
+    // Focus management
+    int getFocusedChildIndex() const { return focusedChildIndex_; }
+    
+    void focusChild(int index) {
+        if (focusedChildIndex_ >= 0 && focusedChildIndex_ < static_cast<int>(children_.size())) {
+            children_[focusedChildIndex_]->setFocused(false);
+        }
+        
+        if (index >= 0 && index < static_cast<int>(children_.size())) {
+            focusedChildIndex_ = index;
+            children_[index]->setFocused(true);
+        } else {
+            focusedChildIndex_ = -1;
+        }
+    }
+    
+    void focusNext() {
+        if (children_.empty()) return;
+        
+        int nextIndex = focusedChildIndex_ + 1;
+        if (nextIndex >= static_cast<int>(children_.size())) {
+            nextIndex = 0;  // Wrap around
+        }
+        focusChild(nextIndex);
+    }
+    
+    void focusPrevious() {
+        if (children_.empty()) return;
+        
+        int prevIndex = focusedChildIndex_ - 1;
+        if (prevIndex < 0) {
+            prevIndex = static_cast<int>(children_.size()) - 1;  // Wrap around
+        }
+        focusChild(prevIndex);
+    }
+    
 private:
     std::vector<std::shared_ptr<UIElement>> children_;
+    int focusedChildIndex_{-1};
 };
 
 } // namespace d2
