@@ -12,6 +12,8 @@ public:
     // Position and size
     glm::vec2 getPosition() const { return position_; }
     glm::vec2 getSize() const { return size_; }
+    void setPosition(const glm::vec2& pos) { position_ = pos; }
+    void setSize(const glm::vec2& size) { size_ = size; }
     
     // State
     bool isVisible() const { return visible_; }

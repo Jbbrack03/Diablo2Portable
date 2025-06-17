@@ -22,4 +22,14 @@ TEST_F(UIElementTest, CreateBasicElement) {
     EXPECT_FALSE(element.isFocused());
 }
 
+TEST_F(UIElementTest, SetPositionAndSize) {
+    UIElement element;
+    
+    element.setPosition(glm::vec2(100.0f, 200.0f));
+    element.setSize(glm::vec2(300.0f, 400.0f));
+    
+    EXPECT_EQ(element.getPosition(), glm::vec2(100.0f, 200.0f));
+    EXPECT_EQ(element.getSize(), glm::vec2(300.0f, 400.0f));
+}
+
 } // namespace d2
