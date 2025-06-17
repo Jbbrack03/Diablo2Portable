@@ -1,4 +1,5 @@
 #include "game/monster.h"
+#include <cmath>
 
 namespace d2::game {
 
@@ -45,6 +46,58 @@ void Monster::initializeStats() {
             // Set current life to max life
             m_currentLife = m_life;
             break;
+            
+        case MonsterType::FALLEN:
+            m_life = 15 + m_level * 5;
+            m_damage = 3 + m_level * 2;
+            m_defense = 10 + m_level * 3;
+            m_attackRating = 30 + m_level * 8;
+            m_currentLife = m_life;
+            break;
+            
+        case MonsterType::DEMON:
+            m_life = 50 + m_level * 15;
+            m_damage = 8 + m_level * 3;
+            m_defense = 30 + m_level * 8;
+            m_attackRating = 80 + m_level * 12;
+            m_currentLife = m_life;
+            break;
+            
+        case MonsterType::ZOMBIE:
+            m_life = 25 + m_level * 8;
+            m_damage = 4 + m_level * 2;
+            m_defense = 15 + m_level * 4;
+            m_attackRating = 40 + m_level * 7;
+            m_currentLife = m_life;
+            break;
+            
+        case MonsterType::GOLEM:
+            m_life = 80 + m_level * 20;
+            m_damage = 12 + m_level * 4;
+            m_defense = 50 + m_level * 10;
+            m_attackRating = 60 + m_level * 10;
+            m_currentLife = m_life;
+            break;
+    }
+}
+
+void Monster::initializeEliteStats() {
+    // Elite monsters get stat bonuses
+    if (m_isElite) {
+        m_life = static_cast<int>(m_life * 1.5f);      // 50% more life
+        m_damage = static_cast<int>(m_damage * 1.3f);  // 30% more damage
+        m_defense = static_cast<int>(m_defense * 1.2f); // 20% more defense
+        m_currentLife = m_life;
+        
+        // Add special abilities based on elite type
+        if (m_eliteType == "Champion") {
+            SpecialAbility ability;
+            ability.name = "Berserk";
+            ability.cooldown = 10;
+            ability.range = 5;
+            ability.effect = "Increased attack speed";
+            m_specialAbilities.push_back(ability);
+        }
     }
 }
 
@@ -79,6 +132,12 @@ void Monster::startPatrolling(int centerX, int centerY) {
 }
 
 void Monster::updateAI() {
+    // Sleep check first - sleeping monsters stay idle
+    if (m_isSleeping) {
+        m_aiState = AIState::IDLE;
+        return;
+    }
+    
     // Advanced AI logic
     
     // Priority 1: Fleeing when low health (less than 25% of max life)
@@ -97,7 +156,23 @@ void Monster::updateAI() {
             m_aiState = AIState::ATTACKING;
             return;
         } else {
-            m_aiState = AIState::SEEKING;
+            // Check territory constraints if monster has territory
+            if (m_hasTerritory) {
+                int territoryDx = m_territoryCenterX - m_positionX;
+                int territoryDy = m_territoryCenterY - m_positionY;
+                int territoryDistSquared = territoryDx * territoryDx + territoryDy * territoryDy;
+                int maxTerritoryDistSquared = m_territoryRadius * m_territoryRadius;
+                
+                // Don't pursue target if it would take us too far from territory
+                if (territoryDistSquared <= maxTerritoryDistSquared) {
+                    m_aiState = AIState::SEEKING;
+                } else {
+                    // Return to territory center
+                    m_aiState = AIState::PATROLLING;
+                }
+            } else {
+                m_aiState = AIState::SEEKING;
+            }
             return;
         }
     }
@@ -110,6 +185,36 @@ void Monster::updateAI() {
     
     // Default: Idle
     m_aiState = AIState::IDLE;
+}
+
+void Monster::setTerritoryCenter(int x, int y, int radius) {
+    m_hasTerritory = true;
+    m_territoryCenterX = x;
+    m_territoryCenterY = y;
+    m_territoryRadius = radius;
+}
+
+void Monster::setEliteType(const std::string& eliteType) {
+    m_isElite = true;
+    m_eliteType = eliteType;
+    
+    // Reinitialize stats with elite bonuses
+    initializeEliteStats();
+}
+
+void Monster::checkPlayerProximity(int playerX, int playerY, float wakeRange) {
+    if (m_isSleeping) {
+        int dx = playerX - m_positionX;
+        int dy = playerY - m_positionY;
+        float distanceSquared = static_cast<float>(dx * dx + dy * dy);
+        float wakeRangeSquared = wakeRange * wakeRange;
+        
+        if (distanceSquared <= wakeRangeSquared) {
+            m_isSleeping = false;
+            // Set the player as target when awakening
+            setTarget(playerX, playerY);
+        }
+    }
 }
 
 std::unique_ptr<Monster> MonsterSpawner::spawnMonster(MonsterType type, int level, int x, int y) {

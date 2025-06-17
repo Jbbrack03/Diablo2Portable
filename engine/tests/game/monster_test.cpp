@@ -141,3 +141,91 @@ TEST_F(MonsterTest, GroupBehaviors) {
     EXPECT_EQ(monster1->getAIState(), AIState::SEEKING);
     EXPECT_EQ(monster2->getAIState(), AIState::SEEKING);
 }
+
+// Test for Phase 5, Task 5.2: Advanced Monster AI - Pack hunting behavior
+TEST_F(MonsterTest, PackHuntingBehavior) {
+    MonsterSpawner spawner;
+    MonsterGroup pack;
+    
+    // Create a pack of monsters
+    auto monster1 = spawner.spawnMonster(MonsterType::FALLEN, 10, 0, 0);
+    auto monster2 = spawner.spawnMonster(MonsterType::FALLEN, 10, 1, 0);
+    auto monster3 = spawner.spawnMonster(MonsterType::FALLEN, 10, 2, 0);
+    
+    int id1 = pack.addMonster(std::move(monster1));
+    int id2 = pack.addMonster(std::move(monster2));
+    int id3 = pack.addMonster(std::move(monster3));
+    
+    // Set pack target
+    pack.setGroupTarget(id1, 100, 100);  // Player position
+    
+    // Update pack AI - monsters should coordinate
+    pack.updateGroupAI();
+    
+    // All monsters should be seeking the same target
+    EXPECT_EQ(pack.getMonster(id1)->getAIState(), AIState::SEEKING);
+    EXPECT_EQ(pack.getMonster(id2)->getAIState(), AIState::SEEKING);
+    EXPECT_EQ(pack.getMonster(id3)->getAIState(), AIState::SEEKING);
+}
+
+// Test for Phase 5, Task 5.2: Advanced Monster AI - Fear behavior
+TEST_F(MonsterTest, FearBehaviorWhenOutnumbered) {
+    Monster monster(MonsterType::SKELETON, 5);
+    monster.setPosition(50, 50);
+    
+    // Monster should flee when severely outnumbered or low health
+    monster.takeDamage(70);  // Reduce to 15 health (from 85)
+    monster.updateAI();
+    
+    // Low health should trigger fleeing behavior
+    EXPECT_EQ(monster.getAIState(), AIState::FLEEING);
+}
+
+// Test for Phase 5, Task 5.2: Advanced Monster AI - Territorial behavior
+TEST_F(MonsterTest, TerritorialBehavior) {
+    Monster guardian(MonsterType::GOLEM, 15);
+    guardian.setPosition(25, 25);
+    guardian.setTerritoryCenter(25, 25, 10);  // 10 unit radius territory
+    
+    // Set target outside territory - monster should not pursue far
+    guardian.setTarget(100, 100);
+    guardian.updateAI();
+    
+    // Should be in SEEKING state but with territorial constraints
+    EXPECT_EQ(guardian.getAIState(), AIState::SEEKING);
+    EXPECT_TRUE(guardian.hasTerritory());
+    EXPECT_EQ(guardian.getTerritoryRadius(), 10);
+}
+
+// Test for Phase 5, Task 5.2: Advanced Monster AI - Elite monster abilities
+TEST_F(MonsterTest, EliteMonsterAbilities) {
+    Monster elite(MonsterType::DEMON, 20);
+    elite.setEliteType("Champion");  // Elite monster type
+    
+    // Elite monsters should have enhanced stats
+    EXPECT_GT(elite.getLife(), 200);  // Higher than normal level 20 demon
+    EXPECT_TRUE(elite.isElite());
+    EXPECT_EQ(elite.getEliteType(), "Champion");
+    
+    // Elite should have special abilities
+    auto abilities = elite.getSpecialAbilities();
+    EXPECT_GT(abilities.size(), 0);
+}
+
+// Test for Phase 5, Task 5.2: Advanced Monster AI - Sleep/awakening behavior  
+TEST_F(MonsterTest, SleepAwakeningBehavior) {
+    Monster sleeper(MonsterType::ZOMBIE, 8);
+    sleeper.setPosition(10, 10);
+    sleeper.setSleeping(true);
+    
+    // Sleeping monster should be in IDLE state
+    EXPECT_EQ(sleeper.getAIState(), AIState::IDLE);
+    EXPECT_TRUE(sleeper.isSleeping());
+    
+    // Should wake up when player gets close
+    sleeper.checkPlayerProximity(25, 25, 25.0f);  // Player far enough to trigger SEEKING, not ATTACKING
+    sleeper.updateAI();
+    
+    EXPECT_FALSE(sleeper.isSleeping());
+    EXPECT_EQ(sleeper.getAIState(), AIState::SEEKING);
+}
