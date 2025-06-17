@@ -103,3 +103,63 @@ target_include_directories(debug_pkware_bytes PRIVATE ${CMAKE_SOURCE_DIR}/engine
 add_executable(debug_pkware_distance debug_pkware_distance.cpp)
 target_link_libraries(debug_pkware_distance PRIVATE d2engine)
 target_include_directories(debug_pkware_distance PRIVATE ${CMAKE_SOURCE_DIR}/engine/include)
+
+# Test DC6 extraction manually
+add_executable(test_dc6_manually test_dc6_manually.cpp)
+target_link_libraries(test_dc6_manually PRIVATE d2engine)
+target_include_directories(test_dc6_manually PRIVATE ${CMAKE_SOURCE_DIR}/engine/include)
+
+# Check DC6 compression types
+add_executable(check_dc6_compression check_dc6_compression.cpp)
+target_link_libraries(check_dc6_compression PRIVATE d2engine)
+target_include_directories(check_dc6_compression PRIVATE ${CMAKE_SOURCE_DIR}/engine/include)
+
+# Analyze DC6 files
+add_executable(analyze_dc6_files analyze_dc6_files.cpp)
+target_link_libraries(analyze_dc6_files PRIVATE d2engine)
+target_include_directories(analyze_dc6_files PRIVATE ${CMAKE_SOURCE_DIR}/engine/include)
+
+# Test single DC6 file (disabled due to compilation issues)
+# add_executable(test_single_dc6 test_single_dc6.cpp)
+# target_link_libraries(test_single_dc6 PRIVATE d2engine)
+# target_include_directories(test_single_dc6 PRIVATE ${CMAKE_SOURCE_DIR}/engine/include)
+
+# Dump DC6 bytes
+add_executable(dump_dc6_bytes dump_dc6_bytes.cpp)
+target_link_libraries(dump_dc6_bytes PRIVATE d2engine)
+target_include_directories(dump_dc6_bytes PRIVATE ${CMAKE_SOURCE_DIR}/engine/include)
+
+# Find DC6 header
+add_executable(find_dc6_header find_dc6_header.cpp)
+target_link_libraries(find_dc6_header PRIVATE d2engine)
+target_include_directories(find_dc6_header PRIVATE ${CMAKE_SOURCE_DIR}/engine/include)
+
+# Test StormLib DC6 extraction
+add_executable(test_stormlib_dc6 test_stormlib_dc6.cpp)
+target_link_libraries(test_stormlib_dc6 PRIVATE d2engine)
+target_include_directories(test_stormlib_dc6 PRIVATE ${CMAKE_SOURCE_DIR}/engine/include)
+
+# StormLib integration test
+add_executable(stormlib_integration_test stormlib_integration_test.cpp)
+target_link_libraries(stormlib_integration_test PRIVATE d2engine)
+target_include_directories(stormlib_integration_test PRIVATE ${CMAKE_SOURCE_DIR}/engine/include)
+
+# Test AssetManager with StormLib
+add_executable(test_asset_manager_stormlib test_asset_manager_stormlib.cpp)
+target_link_libraries(test_asset_manager_stormlib PRIVATE d2engine)
+target_include_directories(test_asset_manager_stormlib PRIVATE ${CMAKE_SOURCE_DIR}/engine/include)
+
+# Test all file extraction
+add_executable(test_all_extraction test_all_extraction.cpp)
+target_link_libraries(test_all_extraction PRIVATE d2engine)
+target_include_directories(test_all_extraction PRIVATE ${CMAKE_SOURCE_DIR}/engine/include)
+
+# Extract from all MPQs
+add_executable(extract_all_mpqs extract_all_mpqs.cpp)
+target_link_libraries(extract_all_mpqs PRIVATE d2engine)
+target_include_directories(extract_all_mpqs PRIVATE ${CMAKE_SOURCE_DIR}/engine/include)
+
+# Diagnose MPQ file issues
+add_executable(diagnose_mpq_issues diagnose_mpq_issues.cpp)
+target_link_libraries(diagnose_mpq_issues PRIVATE d2engine)
+target_include_directories(diagnose_mpq_issues PRIVATE ${CMAKE_SOURCE_DIR}/engine/include)

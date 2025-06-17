@@ -20,6 +20,7 @@ set(ENGINE_HEADERS
 add_library(d2engine STATIC 
     src/dummy.cpp
     src/utils/mpq_loader.cpp
+    src/utils/stormlib_mpq_loader.cpp
     src/utils/pkware_explode.cpp
     src/utils/huffman_decompress.cpp
     src/utils/bzip2_decompress.cpp
@@ -84,6 +85,7 @@ target_link_libraries(d2engine
         glm::glm
         ZLIB::ZLIB
         BZip2::BZip2
+        storm
 )
 
 # Platform-specific settings

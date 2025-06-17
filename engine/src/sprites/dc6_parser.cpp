@@ -1,6 +1,7 @@
 #include "sprites/dc6_parser.h"
 #include <fstream>
 #include <filesystem>
+#include <cstring>
 
 namespace d2portable {
 namespace sprites {
@@ -232,8 +233,80 @@ std::unique_ptr<DC6Sprite> DC6Parser::parseFile(const std::string& filepath) {
 }
 
 std::unique_ptr<DC6Sprite> DC6Parser::parseData(const std::vector<uint8_t>& data) {
-    // TODO: Implement parsing from memory buffer
-    return nullptr;
+    if (data.size() < sizeof(DC6Header)) {
+        return nullptr;
+    }
+    
+    // Read header from buffer
+    DC6Header header;
+    std::memcpy(&header, data.data(), sizeof(DC6Header));
+    
+    if (header.version != 6) {
+        return nullptr;
+    }
+    
+    // Calculate required size
+    size_t required_size = sizeof(DC6Header) + 
+                          (header.directions * header.frames_per_dir * sizeof(uint32_t));
+    if (data.size() < required_size) {
+        return nullptr;
+    }
+    
+    // Read frame pointers
+    std::vector<uint32_t> frame_pointers(header.directions * header.frames_per_dir);
+    std::memcpy(frame_pointers.data(), 
+                data.data() + sizeof(DC6Header), 
+                frame_pointers.size() * sizeof(uint32_t));
+    
+    // Create sprite
+    auto sprite = std::make_unique<DC6SpriteImpl>(header.directions, header.frames_per_dir);
+    
+    // Read each frame
+    for (uint32_t dir = 0; dir < header.directions; dir++) {
+        for (uint32_t frame = 0; frame < header.frames_per_dir; frame++) {
+            uint32_t idx = dir * header.frames_per_dir + frame;
+            uint32_t offset = frame_pointers[idx];
+            
+            if (offset + sizeof(DC6FrameHeader) > data.size()) {
+                continue; // Skip invalid frame
+            }
+            
+            // Read frame header
+            DC6FrameHeader frame_header;
+            std::memcpy(&frame_header, data.data() + offset, sizeof(DC6FrameHeader));
+            
+            // Create frame
+            DC6Frame dc6_frame;
+            dc6_frame.width = frame_header.width;
+            dc6_frame.height = frame_header.height;
+            dc6_frame.offset_x = frame_header.offset_x;
+            dc6_frame.offset_y = frame_header.offset_y;
+            
+            // Check if we have enough data for the pixels
+            uint32_t pixel_offset = offset + sizeof(DC6FrameHeader);
+            if (pixel_offset + frame_header.length > data.size()) {
+                continue; // Skip frame with invalid data
+            }
+            
+            // Extract pixel data
+            std::vector<uint8_t> raw_data(data.begin() + pixel_offset,
+                                         data.begin() + pixel_offset + frame_header.length);
+            
+            // Check if data needs RLE decompression
+            uint32_t expected_size = frame_header.width * frame_header.height;
+            if (frame_header.length == expected_size) {
+                // Data is already uncompressed
+                dc6_frame.pixel_data = raw_data;
+            } else {
+                // Data is RLE compressed
+                dc6_frame.pixel_data = decompressRLE(raw_data, expected_size);
+            }
+            
+            sprite->setFrame(dir, frame, dc6_frame);
+        }
+    }
+    
+    return sprite;
 }
 
 std::vector<uint32_t> DC6Parser::getDefaultPalette() const {

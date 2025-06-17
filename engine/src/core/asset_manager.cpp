@@ -1,5 +1,5 @@
 #include "core/asset_manager.h"
-#include "utils/mpq_loader.h"
+#include "utils/stormlib_mpq_loader.h"
 #include "sprites/dc6_parser.h"
 #include <filesystem>
 #include <unordered_map>
@@ -32,7 +32,7 @@ public:
     bool use_mpq;
     
     // MPQ support
-    std::vector<std::unique_ptr<utils::MPQLoader>> mpq_loaders;
+    std::vector<std::unique_ptr<utils::StormLibMPQLoader>> mpq_loaders;
     std::string fallback_path;
     
     // Cache management
@@ -109,7 +109,7 @@ bool AssetManager::initializeWithMPQ(const std::string& mpq_path, const std::str
         return false;
     }
     
-    auto loader = std::make_unique<utils::MPQLoader>();
+    auto loader = std::make_unique<utils::StormLibMPQLoader>();
     if (!loader->open(mpq_path)) {
         pImpl->last_error = "Failed to open MPQ: " + loader->getLastError();
         return false;
@@ -141,7 +141,7 @@ bool AssetManager::initializeWithMPQs(const std::string& mpq_directory, const st
     // Find and open all MPQ files in the directory
     for (const auto& entry : std::filesystem::directory_iterator(mpq_directory)) {
         if (entry.is_regular_file() && entry.path().extension() == ".mpq") {
-            auto loader = std::make_unique<utils::MPQLoader>();
+            auto loader = std::make_unique<utils::StormLibMPQLoader>();
             if (loader->open(entry.path().string())) {
                 pImpl->mpq_loaders.push_back(std::move(loader));
             }

@@ -14,6 +14,11 @@ option(BUILD_BENCHMARKS "Build performance benchmarks" OFF)
 find_package(Threads REQUIRED)
 find_package(BZip2 REQUIRED)
 
+# Add third-party libraries
+set(BUILD_SHARED_LIBS OFF CACHE BOOL "Build static libraries" FORCE)
+set(STORM_BUILD_TESTS OFF CACHE BOOL "Build StormLib tests" FORCE)
+add_subdirectory(third_party/StormLib)
+
 # Add subdirectories
 add_subdirectory(engine)
 

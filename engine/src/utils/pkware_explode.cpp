@@ -14,7 +14,7 @@
 #include <vector>
 #include <cstdint>
 #include <iostream>
-#define PKWARE_DEBUG
+// #define PKWARE_DEBUG
 #ifdef PKWARE_DEBUG
 #include <iomanip>
 #endif

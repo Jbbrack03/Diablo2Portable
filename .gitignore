@@ -46,6 +46,7 @@ coverage/
 assets/
 extracted_assets/
 vendor/
+!vendor/StormLib/
 
 # Temporary files
 *.tmp
