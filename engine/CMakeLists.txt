@@ -63,6 +63,7 @@ add_library(d2engine STATIC
     src/ui/main_menu_screen.cpp
     src/ui/pause_screen.cpp
     src/ui/ui_renderer.cpp
+    src/ui/ui_layout.cpp
 )
 
 # Include directories

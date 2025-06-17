@@ -63,6 +63,7 @@ set(TEST_SOURCES
     ui/test_main_menu_screen.cpp
     ui/test_pause_screen.cpp
     ui/test_ui_renderer.cpp
+    ui/test_ui_layout.cpp
     # Tests will be added as we implement features following TDD
     # core/game_state_test.cpp
     # audio/sound_system_test.cpp
