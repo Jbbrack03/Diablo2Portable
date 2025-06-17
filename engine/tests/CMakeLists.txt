@@ -51,6 +51,7 @@ set(TEST_SOURCES
     test_pkware_real_format.cpp
     ui/test_ui_element.cpp
     ui/test_ui_button.cpp
+    ui/test_ui_panel.cpp
     # Tests will be added as we implement features following TDD
     # core/game_state_test.cpp
     # audio/sound_system_test.cpp
