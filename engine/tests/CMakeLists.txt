@@ -42,6 +42,7 @@ set(TEST_SOURCES
     world/test_collision_system.cpp
     world/test_entity_collision.cpp
     world/test_collision_response.cpp
+    world/test_world_objects.cpp
     utils/pkware_test.cpp
     audio/test_audio_engine.cpp
     utils/bzip2_test.cpp

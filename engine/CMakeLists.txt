@@ -48,6 +48,8 @@ add_library(d2engine STATIC
     src/map/ds1_parser.cpp
     src/world/collision_system.cpp
     src/world/collision_response.cpp
+    src/world/world_object.cpp
+    src/world/interaction_manager.cpp
     src/audio/audio_engine.cpp
 )
 
