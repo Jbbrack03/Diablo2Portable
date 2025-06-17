@@ -30,11 +30,22 @@ public:
     void addStatPoint(StatType stat, int points);
     void addExperience(int experience);
     
+    // Stat management
+    void setStatPoints(int points) { m_statPoints = points; }
+    
+    // Stat getters
     int getBaseDamage() const;
     int getLife() const;
     int getLevel() const { return m_level; }
     int getStatPoints() const { return m_statPoints; }
     int getSkillPoints() const { return m_skillPoints; }
+    CharacterClass getCharacterClass() const { return m_class; }
+    
+    // Individual stat getters
+    int getStrength() const { return m_strength; }
+    int getDexterity() const { return m_dexterity; }
+    int getVitality() const { return m_vitality; }
+    int getEnergy() const { return m_energy; }
     
 private:
     CharacterClass m_class;
