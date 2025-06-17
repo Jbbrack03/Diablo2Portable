@@ -1,6 +1,7 @@
 #pragma once
 
 #include <glm/glm.hpp>
+#include "ui/touch_input.h"
 
 namespace d2 {
 
@@ -20,6 +21,9 @@ public:
     bool isEnabled() const { return enabled_; }
     bool isFocused() const { return focused_; }
     void setFocused(bool focused) { focused_ = focused; }
+    
+    // Touch input
+    virtual bool handleTouchInput(float x, float y, TouchEventType type);
     
 private:
     glm::vec2 position_{0.0f, 0.0f};

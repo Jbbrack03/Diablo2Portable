@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 #include <glm/glm.hpp>
 #include "ui/ui_element.h"
+#include "ui/touch_input.h"
 
 namespace d2 {
 
@@ -45,6 +46,32 @@ TEST_F(UIElementTest, FocusAndNavigation) {
     // Can clear focus
     element.setFocused(false);
     EXPECT_FALSE(element.isFocused());
+}
+
+TEST_F(UIElementTest, HandleTouchInput) {
+    UIElement element;
+    element.setPosition(glm::vec2(100.0f, 100.0f));
+    element.setSize(glm::vec2(200.0f, 100.0f));
+    
+    // Touch within bounds should return true
+    bool handled = element.handleTouchInput(150.0f, 150.0f, TouchEventType::TOUCH_DOWN);
+    EXPECT_TRUE(handled);
+    
+    // Touch outside bounds should return false
+    handled = element.handleTouchInput(50.0f, 50.0f, TouchEventType::TOUCH_DOWN);
+    EXPECT_FALSE(handled);
+    
+    // Touch on exact boundary should return true
+    handled = element.handleTouchInput(100.0f, 100.0f, TouchEventType::TOUCH_DOWN);
+    EXPECT_TRUE(handled);
+    
+    // Touch at far edge should return true
+    handled = element.handleTouchInput(299.0f, 199.0f, TouchEventType::TOUCH_DOWN);
+    EXPECT_TRUE(handled);
+    
+    // Touch just outside far edge should return false
+    handled = element.handleTouchInput(300.0f, 200.0f, TouchEventType::TOUCH_DOWN);
+    EXPECT_FALSE(handled);
 }
 
 } // namespace d2
