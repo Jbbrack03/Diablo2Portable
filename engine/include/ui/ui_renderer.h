@@ -9,6 +9,7 @@ class SpriteRenderer;
 
 class TextRenderer;
 class FontManager;
+class UIElement;
 
 class UIRenderer {
 public:
@@ -22,8 +23,13 @@ public:
     
     bool isInitialized() const;
     
+    void beginFrame();
+    void renderElement(UIElement* element);
+    void endFrame();
+    
 private:
     bool initialized_ = false;
+    rendering::SpriteRenderer* sprite_renderer_ = nullptr;
 };
 
 } // namespace d2

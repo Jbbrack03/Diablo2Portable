@@ -7,6 +7,7 @@
 #include "ui/ui_panel.h"
 #include "rendering/renderer.h"
 #include "rendering/sprite_renderer.h"
+#include "rendering/texture_manager.h"
 #include "ui/text_renderer.h"
 #include "ui/font_manager.h"
 
@@ -23,25 +24,7 @@ private:
 
 class MockSpriteRenderer : public rendering::SpriteRenderer {
 public:
-    MockSpriteRenderer() { initialized_ = true; }
-    bool isInitialized() const { return initialized_; }
-    void beginFrame() { frame_begun_ = true; }
-    void endFrame() { frame_ended_ = true; }
-    void drawSprite(uint32_t texture_id, const glm::vec2& position, const glm::vec2& size) {
-        last_texture_id_ = texture_id;
-        last_position_ = position;
-        last_size_ = size;
-        sprite_count_++;
-    }
-    
-    bool frame_begun_ = false;
-    bool frame_ended_ = false;
-    uint32_t last_texture_id_ = 0;
-    glm::vec2 last_position_{0, 0};
-    glm::vec2 last_size_{0, 0};
-    uint32_t sprite_count_ = 0;
-private:
-    bool initialized_ = false;
+    MockSpriteRenderer() = default;
 };
 
 class MockTextRenderer : public TextRenderer {
@@ -93,6 +76,29 @@ TEST_F(UIRendererTest, InitializationRequiresValidComponents) {
     // Should succeed with all valid components
     EXPECT_TRUE(ui_renderer_->initialize(renderer_.get(), sprite_renderer_.get(), text_renderer_.get(), font_manager_.get()));
     EXPECT_TRUE(ui_renderer_->isInitialized());
+}
+
+// Test 2: Render a single UIElement
+TEST_F(UIRendererTest, RenderSingleUIElement) {
+    // Initialize the UI renderer
+    ASSERT_TRUE(ui_renderer_->initialize(renderer_.get(), sprite_renderer_.get(), text_renderer_.get(), font_manager_.get()));
+    
+    // Create a simple UI element
+    auto element = std::make_unique<UIElement>();
+    element->setPosition(glm::vec2(100, 200));
+    element->setSize(glm::vec2(50, 30));
+    // Element is visible by default
+    
+    // Get initial sprite count
+    uint32_t initial_sprite_count = sprite_renderer_->getSpriteCount();
+    
+    // Render the element
+    ui_renderer_->beginFrame();
+    ui_renderer_->renderElement(element.get());
+    ui_renderer_->endFrame();
+    
+    // Verify that a sprite was rendered (sprite count should increase)
+    EXPECT_EQ(sprite_renderer_->getSpriteCount(), initial_sprite_count + 1);
 }
 
 } // namespace d2::test
