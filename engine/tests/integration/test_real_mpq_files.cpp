@@ -21,6 +21,8 @@ protected:
         // Look for common MPQ file locations
         std::vector<std::string> search_paths = {
             // Vendor directory (if MPQs are extracted)
+            "/Users/jbbrack03/Diablo2Portable/vendor/extracted_mpq/",
+            "vendor/extracted_mpq/",
             "vendor/mpq/",
             "vendor/Diablo II/",
             "vendor/d2data/",
@@ -36,8 +38,11 @@ protected:
             
             if (std::filesystem::exists(path)) {
                 data_path = path;
-                // Look for d2data.mpq
-                if (std::filesystem::exists(path + "d2data.mpq")) {
+                // Look for d2data.mpq or D2DATA.MPQ
+                if (std::filesystem::exists(path + "D2DATA.MPQ")) {
+                    d2data_mpq = path + "D2DATA.MPQ";
+                    break;
+                } else if (std::filesystem::exists(path + "d2data.mpq")) {
                     d2data_mpq = path + "d2data.mpq";
                     break;
                 }
