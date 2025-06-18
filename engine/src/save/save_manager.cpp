@@ -91,6 +91,17 @@ bool SaveManager::saveCharacter(const d2::game::Character& character, const std:
     // Write level (offset 43)
     header[43] = static_cast<uint8_t>(character.getLevel());
     
+    // Write stats at custom offsets (simplified for our implementation)
+    // These offsets are in unused parts of the header
+    // Strength at offset 100
+    *reinterpret_cast<uint16_t*>(&header[100]) = static_cast<uint16_t>(character.getStrength());
+    // Dexterity at offset 102
+    *reinterpret_cast<uint16_t*>(&header[102]) = static_cast<uint16_t>(character.getDexterity());
+    // Vitality at offset 104
+    *reinterpret_cast<uint16_t*>(&header[104]) = static_cast<uint16_t>(character.getVitality());
+    // Energy at offset 106
+    *reinterpret_cast<uint16_t*>(&header[106]) = static_cast<uint16_t>(character.getEnergy());
+    
     // Calculate checksum using proper D2S algorithm
     uint32_t checksum = calculateChecksum(header);
     
@@ -151,6 +162,34 @@ std::unique_ptr<d2::game::Character> SaveManager::loadCharacter(const std::strin
     auto character = std::make_unique<d2::game::Character>(charClass);
     character->setLevel(level);
     
+    // Read stats from custom offsets
+    uint16_t strength = *reinterpret_cast<uint16_t*>(&header[100]);
+    uint16_t dexterity = *reinterpret_cast<uint16_t*>(&header[102]);
+    uint16_t vitality = *reinterpret_cast<uint16_t*>(&header[104]);
+    uint16_t energy = *reinterpret_cast<uint16_t*>(&header[106]);
+    
+    // Apply stats to character (need to subtract base stats first)
+    // Get base stats for the class
+    d2::game::Character tempChar(charClass);
+    int baseStr = tempChar.getStrength();
+    int baseDex = tempChar.getDexterity();
+    int baseVit = tempChar.getVitality();
+    int baseEne = tempChar.getEnergy();
+    
+    // Add the difference as stat points
+    if (strength > baseStr) {
+        character->addStatPoint(d2::game::StatType::STRENGTH, strength - baseStr);
+    }
+    if (dexterity > baseDex) {
+        character->addStatPoint(d2::game::StatType::DEXTERITY, dexterity - baseDex);
+    }
+    if (vitality > baseVit) {
+        character->addStatPoint(d2::game::StatType::VITALITY, vitality - baseVit);
+    }
+    if (energy > baseEne) {
+        character->addStatPoint(d2::game::StatType::ENERGY, energy - baseEne);
+    }
+    
     return character;
 }
 
@@ -193,6 +232,17 @@ bool SaveManager::saveCharacterWithInventory(const d2::game::Character& characte
     
     // Write level (offset 43)
     header[43] = static_cast<uint8_t>(character.getLevel());
+    
+    // Write stats at custom offsets (simplified for our implementation)
+    // These offsets are in unused parts of the header
+    // Strength at offset 100
+    *reinterpret_cast<uint16_t*>(&header[100]) = static_cast<uint16_t>(character.getStrength());
+    // Dexterity at offset 102
+    *reinterpret_cast<uint16_t*>(&header[102]) = static_cast<uint16_t>(character.getDexterity());
+    // Vitality at offset 104
+    *reinterpret_cast<uint16_t*>(&header[104]) = static_cast<uint16_t>(character.getVitality());
+    // Energy at offset 106
+    *reinterpret_cast<uint16_t*>(&header[106]) = static_cast<uint16_t>(character.getEnergy());
     
     // Add header to save data
     saveData.insert(saveData.end(), header.begin(), header.end());
@@ -457,6 +507,34 @@ std::unique_ptr<d2::game::Character> SaveManager::loadCharacterFromBackup(const 
     // Create character
     auto character = std::make_unique<d2::game::Character>(charClass);
     character->setLevel(level);
+    
+    // Read stats from custom offsets
+    uint16_t strength = *reinterpret_cast<uint16_t*>(&header[100]);
+    uint16_t dexterity = *reinterpret_cast<uint16_t*>(&header[102]);
+    uint16_t vitality = *reinterpret_cast<uint16_t*>(&header[104]);
+    uint16_t energy = *reinterpret_cast<uint16_t*>(&header[106]);
+    
+    // Apply stats to character (need to subtract base stats first)
+    // Get base stats for the class
+    d2::game::Character tempChar(charClass);
+    int baseStr = tempChar.getStrength();
+    int baseDex = tempChar.getDexterity();
+    int baseVit = tempChar.getVitality();
+    int baseEne = tempChar.getEnergy();
+    
+    // Add the difference as stat points
+    if (strength > baseStr) {
+        character->addStatPoint(d2::game::StatType::STRENGTH, strength - baseStr);
+    }
+    if (dexterity > baseDex) {
+        character->addStatPoint(d2::game::StatType::DEXTERITY, dexterity - baseDex);
+    }
+    if (vitality > baseVit) {
+        character->addStatPoint(d2::game::StatType::VITALITY, vitality - baseVit);
+    }
+    if (energy > baseEne) {
+        character->addStatPoint(d2::game::StatType::ENERGY, energy - baseEne);
+    }
     
     return character;
 }

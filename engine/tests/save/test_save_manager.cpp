@@ -242,4 +242,34 @@ TEST_F(SaveManagerTest, SaveFileBackup) {
     EXPECT_EQ(currentChar->getLevel(), 36);  // New level
 }
 
+// Test 8: Character stats persistence
+TEST_F(SaveManagerTest, CharacterStatsPersistence) {
+    SaveManager saveManager(m_testSaveDir.string());
+    
+    // Create a character with specific stats
+    d2::game::Character testChar(d2::game::CharacterClass::ASSASSIN);
+    testChar.setLevel(40);
+    
+    // Allocate stat points
+    testChar.addStatPoint(d2::game::StatType::STRENGTH, 25);
+    testChar.addStatPoint(d2::game::StatType::DEXTERITY, 30);
+    testChar.addStatPoint(d2::game::StatType::VITALITY, 20);
+    testChar.addStatPoint(d2::game::StatType::ENERGY, 15);
+    
+    // Save the character
+    std::string saveFileName = "TestAssassin.d2s";
+    ASSERT_TRUE(saveManager.saveCharacter(testChar, saveFileName));
+    
+    // Load it back
+    auto loadedChar = saveManager.loadCharacter(saveFileName);
+    ASSERT_NE(loadedChar, nullptr);
+    
+    // Verify all stats were persisted correctly
+    EXPECT_EQ(loadedChar->getLevel(), 40);
+    EXPECT_EQ(loadedChar->getStrength(), 25 + 15);  // allocated + base assassin strength (15)
+    EXPECT_EQ(loadedChar->getDexterity(), 30 + 15);  // allocated + base assassin dexterity (15)
+    EXPECT_EQ(loadedChar->getVitality(), 20 + 15);  // allocated + base assassin vitality (15)
+    EXPECT_EQ(loadedChar->getEnergy(), 15 + 15);  // allocated + base assassin energy (15)
+}
+
 } // namespace d2::save
