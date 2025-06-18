@@ -6,6 +6,8 @@
 #include <fstream>
 #include <cstring>
 #include <vector>
+#include <set>
+#include <tuple>
 
 namespace d2::save {
 
@@ -188,25 +190,16 @@ bool SaveManager::saveCharacterWithInventory(const d2::game::Character& characte
     
     // Count items in inventory
     uint16_t itemCount = 0;
-    std::vector<std::pair<int, int>> itemPositions;
+    std::vector<std::tuple<int, int, std::shared_ptr<d2::game::Item>>> uniqueItems;
+    std::set<std::shared_ptr<d2::game::Item>> countedItems;
     
     for (int y = 0; y < inventory.getHeight(); ++y) {
         for (int x = 0; x < inventory.getWidth(); ++x) {
             auto item = inventory.getItemAt(x, y);
-            if (item) {
-                // Check if we've already counted this item (multi-slot items)
-                bool alreadyCounted = false;
-                for (const auto& pos : itemPositions) {
-                    if (pos.first == x && pos.second == y) {
-                        alreadyCounted = true;
-                        break;
-                    }
-                }
-                
-                if (!alreadyCounted) {
-                    itemCount++;
-                    itemPositions.push_back({x, y});
-                }
+            if (item && countedItems.find(item) == countedItems.end()) {
+                countedItems.insert(item);
+                uniqueItems.push_back({x, y, item});
+                itemCount++;
             }
         }
     }
@@ -215,8 +208,44 @@ bool SaveManager::saveCharacterWithInventory(const d2::game::Character& characte
     saveData.push_back(itemCount & 0xFF);
     saveData.push_back((itemCount >> 8) & 0xFF);
     
-    // TODO: Write actual item data for each item
-    // For now, we'll just write the count to pass the test
+    // Write item data for each unique item
+    for (const auto& [x, y, item] : uniqueItems) {
+        // Write item header "JM"
+        saveData.push_back('J');
+        saveData.push_back('M');
+        
+        // Write basic item data (simplified format)
+        // Position
+        saveData.push_back(static_cast<uint8_t>(x));
+        saveData.push_back(static_cast<uint8_t>(y));
+        
+        // Item type
+        saveData.push_back(static_cast<uint8_t>(item->getType()));
+        
+        // Item rarity
+        saveData.push_back(static_cast<uint8_t>(item->getRarity()));
+        
+        // Item size
+        saveData.push_back(static_cast<uint8_t>(item->getWidth()));
+        saveData.push_back(static_cast<uint8_t>(item->getHeight()));
+        
+        // Item name length and name
+        const std::string& name = item->getName();
+        saveData.push_back(static_cast<uint8_t>(name.length()));
+        saveData.insert(saveData.end(), name.begin(), name.end());
+        
+        // Combat stats
+        uint16_t minDamage = static_cast<uint16_t>(item->getMinDamage());
+        uint16_t maxDamage = static_cast<uint16_t>(item->getMaxDamage());
+        uint16_t defense = static_cast<uint16_t>(item->getDefense());
+        
+        saveData.push_back(minDamage & 0xFF);
+        saveData.push_back((minDamage >> 8) & 0xFF);
+        saveData.push_back(maxDamage & 0xFF);
+        saveData.push_back((maxDamage >> 8) & 0xFF);
+        saveData.push_back(defense & 0xFF);
+        saveData.push_back((defense >> 8) & 0xFF);
+    }
     
     // Update file size in header
     uint32_t fileSize = static_cast<uint32_t>(saveData.size());
@@ -235,6 +264,134 @@ bool SaveManager::saveCharacterWithInventory(const d2::game::Character& characte
     file.close();
     
     return true;
+}
+
+SaveManager::LoadResult SaveManager::loadCharacterWithInventory(const std::string& fileName) {
+    LoadResult result;
+    
+    // Create full path
+    std::filesystem::path savePath = std::filesystem::path(m_saveDirectory) / fileName;
+    
+    // Open file for binary reading
+    std::ifstream file(savePath, std::ios::binary);
+    if (!file.is_open()) {
+        return result;
+    }
+    
+    // Get file size
+    file.seekg(0, std::ios::end);
+    size_t fileSize = file.tellg();
+    file.seekg(0, std::ios::beg);
+    
+    // Read entire file
+    std::vector<uint8_t> fileData(fileSize);
+    file.read(reinterpret_cast<char*>(fileData.data()), fileSize);
+    file.close();
+    
+    if (fileData.size() < D2S_HEADER_SIZE) {
+        return result;
+    }
+    
+    // Verify signature
+    uint32_t signature = *reinterpret_cast<uint32_t*>(&fileData[0]);
+    if (signature != D2S_SIGNATURE) {
+        return result;
+    }
+    
+    // Extract stored checksum before validation
+    uint32_t storedChecksum = *reinterpret_cast<uint32_t*>(&fileData[12]);
+    
+    // Calculate expected checksum
+    uint32_t calculatedChecksum = calculateChecksum(fileData);
+    
+    // Validate checksum
+    if (storedChecksum != calculatedChecksum) {
+        return result;  // Invalid checksum - file is corrupted
+    }
+    
+    // Read character class (offset 40)
+    auto charClass = static_cast<d2::game::CharacterClass>(fileData[40]);
+    
+    // Read level (offset 43)
+    uint8_t level = fileData[43];
+    
+    // Create character
+    result.character = std::make_unique<d2::game::Character>(charClass);
+    result.character->setLevel(level);
+    
+    // Create inventory
+    result.inventory = std::make_unique<d2::game::Inventory>(10, 4);  // Standard size
+    
+    // Parse item data if present
+    size_t pos = D2S_HEADER_SIZE;
+    if (pos + 2 <= fileData.size() && fileData[pos] == 'J' && fileData[pos + 1] == 'M') {
+        pos += 2;  // Skip JM marker
+        
+        // Read item count
+        if (pos + 2 <= fileData.size()) {
+            uint16_t itemCount = fileData[pos] | (fileData[pos + 1] << 8);
+            pos += 2;
+            
+            // Read each item
+            for (uint16_t i = 0; i < itemCount && pos < fileData.size(); ++i) {
+                // Check for item header
+                if (pos + 2 > fileData.size() || fileData[pos] != 'J' || fileData[pos + 1] != 'M') {
+                    break;
+                }
+                pos += 2;  // Skip JM marker
+                
+                // Read item data
+                if (pos + 8 > fileData.size()) {
+                    break;
+                }
+                
+                uint8_t x = fileData[pos++];
+                uint8_t y = fileData[pos++];
+                auto itemType = static_cast<d2::game::ItemType>(fileData[pos++]);
+                auto rarity = static_cast<d2::game::ItemRarity>(fileData[pos++]);
+                uint8_t width = fileData[pos++];
+                uint8_t height = fileData[pos++];
+                
+                // Read item name
+                if (pos >= fileData.size()) {
+                    break;
+                }
+                uint8_t nameLength = fileData[pos++];
+                if (pos + nameLength > fileData.size()) {
+                    break;
+                }
+                std::string itemName(reinterpret_cast<const char*>(&fileData[pos]), nameLength);
+                pos += nameLength;
+                
+                // Read combat stats
+                if (pos + 6 > fileData.size()) {
+                    break;
+                }
+                uint16_t minDamage = fileData[pos] | (fileData[pos + 1] << 8);
+                pos += 2;
+                uint16_t maxDamage = fileData[pos] | (fileData[pos + 1] << 8);
+                pos += 2;
+                uint16_t defense = fileData[pos] | (fileData[pos + 1] << 8);
+                pos += 2;
+                
+                // Create item
+                auto item = std::make_shared<d2::game::Item>(itemName, itemType);
+                item->setRarity(rarity);
+                item->setSize(width, height);
+                
+                if (itemType == d2::game::ItemType::WEAPON) {
+                    item->setDamage(minDamage, maxDamage);
+                } else if (itemType == d2::game::ItemType::ARMOR) {
+                    item->setDefense(defense);
+                }
+                
+                // Add to inventory
+                result.inventory->addItem(item, x, y);
+            }
+        }
+    }
+    
+    return result;
 }
 
 } // namespace d2::save

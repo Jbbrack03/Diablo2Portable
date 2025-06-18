@@ -156,4 +156,60 @@ TEST_F(SaveManagerTest, SaveInventoryItems) {
     EXPECT_EQ(itemCount, 2);  // We added 2 items
 }
 
+// Test 6: Load inventory items from D2S format
+TEST_F(SaveManagerTest, LoadInventoryItems) {
+    SaveManager saveManager(m_testSaveDir.string());
+    
+    // First save a character with inventory
+    d2::game::Character originalChar(d2::game::CharacterClass::AMAZON);
+    originalChar.setLevel(20);
+    
+    d2::game::Inventory originalInventory(10, 4);
+    
+    // Add a bow and some armor
+    auto bow = std::make_shared<d2::game::Item>("Hunter's Bow", d2::game::ItemType::WEAPON);
+    bow->setRarity(d2::game::ItemRarity::MAGIC);
+    bow->setDamage(15, 25);
+    bow->setSize(2, 3);  // Bows are typically 2x3
+    
+    auto helm = std::make_shared<d2::game::Item>("Cap", d2::game::ItemType::ARMOR);
+    helm->setRarity(d2::game::ItemRarity::NORMAL);
+    helm->setDefense(8);
+    helm->setSize(2, 2);  // Helms are typically 2x2
+    
+    originalInventory.addItem(bow, 0, 0);
+    originalInventory.addItem(helm, 3, 0);
+    
+    std::string saveFileName = "TestAmazon.d2s";
+    ASSERT_TRUE(saveManager.saveCharacterWithInventory(originalChar, originalInventory, saveFileName));
+    
+    // Now load it back
+    auto result = saveManager.loadCharacterWithInventory(saveFileName);
+    ASSERT_NE(result.character, nullptr);
+    ASSERT_NE(result.inventory, nullptr);
+    
+    // Verify character data
+    EXPECT_EQ(result.character->getCharacterClass(), d2::game::CharacterClass::AMAZON);
+    EXPECT_EQ(result.character->getLevel(), 20);
+    
+    // Verify inventory has the correct items
+    EXPECT_FALSE(result.inventory->isEmpty());
+    EXPECT_EQ(result.inventory->getUsedSlots(), 10);  // 2x3 + 2x2 = 10 slots
+    
+    // Check bow at position (0, 0)
+    auto loadedBow = result.inventory->getItemAt(0, 0);
+    ASSERT_NE(loadedBow, nullptr);
+    EXPECT_EQ(loadedBow->getName(), "Hunter's Bow");
+    EXPECT_EQ(loadedBow->getRarity(), d2::game::ItemRarity::MAGIC);
+    EXPECT_EQ(loadedBow->getMinDamage(), 15);
+    EXPECT_EQ(loadedBow->getMaxDamage(), 25);
+    
+    // Check helm at position (3, 0)
+    auto loadedHelm = result.inventory->getItemAt(3, 0);
+    ASSERT_NE(loadedHelm, nullptr);
+    EXPECT_EQ(loadedHelm->getName(), "Cap");
+    EXPECT_EQ(loadedHelm->getRarity(), d2::game::ItemRarity::NORMAL);
+    EXPECT_EQ(loadedHelm->getDefense(), 8);
+}
+
 } // namespace d2::save

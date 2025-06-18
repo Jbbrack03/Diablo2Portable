@@ -23,6 +23,14 @@ public:
                                     const std::string& fileName);
     std::unique_ptr<d2::game::Character> loadCharacter(const std::string& fileName);
     
+    // Result structure for loading character with inventory
+    struct LoadResult {
+        std::unique_ptr<d2::game::Character> character;
+        std::unique_ptr<d2::game::Inventory> inventory;
+    };
+    
+    LoadResult loadCharacterWithInventory(const std::string& fileName);
+    
 private:
     std::string m_saveDirectory;
 };
