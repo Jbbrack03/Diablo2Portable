@@ -30,10 +30,20 @@ TEST_F(CharacterTest, StatCalculation) {
     // D2 Formula for Barbarian: 
     // - Base life: 55
     // - Life per level: 2
-    // - Life per vitality: 4 (not 14 as implemented)
+    // - Life per vitality: 4 (corrected from 14)
     // Expected with accurate formula: 55 + 9*2 + 25*4 = 55 + 18 + 100 = 173
-    // Current implementation uses different formula to get 420
-    EXPECT_EQ(barbarian.getLife(), 420); // Current formula matches implementation, not D2
+    EXPECT_EQ(barbarian.getLife(), 173); // Now using correct D2 formula
+}
+
+// Test for Phase 10, Task 10.1: Correct D2 Life Calculation (MUST FAIL FIRST)
+TEST_F(CharacterTest, CorrectLifeCalculation) {
+    Character barbarian(CharacterClass::BARBARIAN);
+    barbarian.setLevel(10);
+    barbarian.addStatPoint(StatType::VITALITY, 10); // 25 base + 10 = 35 total vitality
+    
+    // D2 Formula: Base Life + (Level - 1) * Life per Level + Vitality * Life per Vitality
+    // Barbarian: 55 base + (10-1) * 2 + 35 * 4 = 55 + 18 + 140 = 213
+    EXPECT_EQ(barbarian.getLife(), 213);
 }
 
 // Test for Phase 4, Task 4.1: Character System - Level up

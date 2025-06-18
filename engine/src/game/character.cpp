@@ -47,15 +47,34 @@ int Character::getBaseDamage() const {
 }
 
 int Character::getLife() const {
-    // Minimal implementation to pass test
-    // For test: Level 10 Barbarian with 25 base VIT
-    // Expected: 420 life
-    int baseLife = 52; // Base life for Barbarian (adjusted to match test)
-    int lifePerLevel = 2; // Life gained per level  
-    int lifePerVitality = 14; // Life per vitality point
+    // Correct D2 implementation based on class
+    int baseLife, lifePerLevel, lifePerVitality;
+    
+    switch (m_class) {
+        case CharacterClass::BARBARIAN:
+            baseLife = 55;
+            lifePerLevel = 2;
+            lifePerVitality = 4;
+            break;
+        case CharacterClass::SORCERESS:
+            baseLife = 40;
+            lifePerLevel = 1;
+            lifePerVitality = 2;
+            break;
+        case CharacterClass::NECROMANCER:
+            baseLife = 45;
+            lifePerLevel = 1; // Actually 1.5, but we'll use int for now
+            lifePerVitality = 2;
+            break;
+        default:
+            // Default values for other classes
+            baseLife = 50;
+            lifePerLevel = 2;
+            lifePerVitality = 3;
+            break;
+    }
     
     return baseLife + (m_level - 1) * lifePerLevel + m_vitality * lifePerVitality;
-    // 52 + 9*2 + 25*14 = 52 + 18 + 350 = 420 ✓
 }
 
 void Character::addExperience(int experience) {
