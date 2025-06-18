@@ -3,6 +3,8 @@
 #include <fstream>
 #include "save/save_manager.h"
 #include "game/character.h"
+#include "game/item.h"
+#include "game/inventory.h"
 
 namespace d2::save {
 
@@ -104,6 +106,54 @@ TEST_F(SaveManagerTest, ChecksumValidation) {
     // Loading should fail due to invalid checksum
     auto loadedChar = saveManager.loadCharacter(saveFileName);
     EXPECT_EQ(loadedChar, nullptr);
+}
+
+// Test 5: Save inventory items to D2S format
+TEST_F(SaveManagerTest, SaveInventoryItems) {
+    SaveManager saveManager(m_testSaveDir.string());
+    
+    // Create a character with inventory items
+    d2::game::Character testChar(d2::game::CharacterClass::PALADIN);
+    testChar.setLevel(15);
+    
+    // Create a character inventory
+    d2::game::Inventory inventory(10, 4);  // Standard D2 inventory size
+    
+    // Add some items to inventory
+    auto sword = std::make_shared<d2::game::Item>("Short Sword", d2::game::ItemType::WEAPON);
+    sword->setRarity(d2::game::ItemRarity::MAGIC);
+    sword->setDamage(10, 20);
+    
+    auto armor = std::make_shared<d2::game::Item>("Leather Armor", d2::game::ItemType::ARMOR);
+    armor->setRarity(d2::game::ItemRarity::RARE);
+    armor->setDefense(50);
+    
+    // Add items to inventory
+    inventory.addItem(sword, 0, 0);
+    inventory.addItem(armor, 2, 0);
+    
+    // Save the character with inventory
+    std::string saveFileName = "TestPaladin.d2s";
+    ASSERT_TRUE(saveManager.saveCharacterWithInventory(testChar, inventory, saveFileName));
+    
+    // Verify the save file contains item data after the header
+    auto savePath = m_testSaveDir / saveFileName;
+    std::ifstream file(savePath, std::ios::binary);
+    ASSERT_TRUE(file.is_open());
+    
+    // Skip header
+    file.seekg(765);
+    
+    // Read item list header (should have "JM" marker)
+    char itemListMarker[2];
+    file.read(itemListMarker, 2);
+    EXPECT_EQ(itemListMarker[0], 'J');
+    EXPECT_EQ(itemListMarker[1], 'M');
+    
+    // Read item count
+    uint16_t itemCount;
+    file.read(reinterpret_cast<char*>(&itemCount), sizeof(itemCount));
+    EXPECT_EQ(itemCount, 2);  // We added 2 items
 }
 
 } // namespace d2::save

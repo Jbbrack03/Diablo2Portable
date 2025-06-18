@@ -5,6 +5,7 @@
 
 namespace d2::game {
     class Character;
+    class Inventory;
 }
 
 namespace d2::save {
@@ -17,6 +18,9 @@ public:
     
     // Save/load character
     bool saveCharacter(const d2::game::Character& character, const std::string& fileName);
+    bool saveCharacterWithInventory(const d2::game::Character& character, 
+                                    const d2::game::Inventory& inventory,
+                                    const std::string& fileName);
     std::unique_ptr<d2::game::Character> loadCharacter(const std::string& fileName);
     
 private:
