@@ -65,6 +65,7 @@ add_library(d2engine STATIC
     src/ui/ui_renderer.cpp
     src/ui/ui_layout.cpp
     src/save/save_manager.cpp
+    src/android/jni_bridge.cpp
 )
 
 # Include directories
