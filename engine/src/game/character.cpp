@@ -1,4 +1,5 @@
 #include "game/character.h"
+#include "game/item.h"
 
 namespace d2::game {
 
@@ -31,6 +32,29 @@ void Character::addStatPoint(StatType stat, int points) {
             break;
         case StatType::ENERGY:
             m_energy += points;
+            break;
+        case StatType::DAMAGE:
+            // Damage is not a character stat
+            break;
+    }
+}
+
+void Character::setStat(StatType stat, int value) {
+    switch (stat) {
+        case StatType::STRENGTH:
+            m_strength = value;
+            break;
+        case StatType::DEXTERITY:
+            m_dexterity = value;
+            break;
+        case StatType::VITALITY:
+            m_vitality = value;
+            break;
+        case StatType::ENERGY:
+            m_energy = value;
+            break;
+        case StatType::DAMAGE:
+            // Damage is not a character stat
             break;
     }
 }
@@ -135,6 +159,25 @@ bool Character::isWaypointActive(int waypointId) const {
         return m_waypointProgress[waypointId];
     }
     return false;
+}
+
+void Character::equipWeapon(std::shared_ptr<Item> weapon) {
+    m_equippedWeapon = weapon;
+}
+
+float Character::getStrengthDamageBonus() const {
+    if (!m_equippedWeapon) {
+        return 0.0f;
+    }
+    
+    int requiredStrength = m_equippedWeapon->getRequiredStrength();
+    if (m_strength < requiredStrength) {
+        return 0.0f;  // No bonus if requirements not met
+    }
+    
+    // D2 Formula: 1% damage per strength point (for most weapons)
+    // Strength above requirement doesn't matter - all strength contributes
+    return m_strength * 0.01f;
 }
 
 } // namespace d2::game

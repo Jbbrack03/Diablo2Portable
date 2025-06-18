@@ -2,8 +2,12 @@
 
 #include <cstdint>
 #include <vector>
+#include <memory>
 
 namespace d2::game {
+
+// Forward declaration  
+class Item;
 
 enum class CharacterClass {
     BARBARIAN,
@@ -29,6 +33,7 @@ public:
     
     void setLevel(int level);
     void addStatPoint(StatType stat, int points);
+    void setStat(StatType stat, int value);  // For testing
     void addExperience(int experience);
     
     // Stat management
@@ -48,6 +53,13 @@ public:
     int getDexterity() const { return m_dexterity; }
     int getVitality() const { return m_vitality; }
     int getEnergy() const { return m_energy; }
+    
+    // Equipment methods  
+    void equipWeapon(std::shared_ptr<Item> weapon);
+    std::shared_ptr<Item> getEquippedWeapon() const { return m_equippedWeapon; }
+    
+    // Damage bonus calculations
+    float getStrengthDamageBonus() const;
     
     // Quest management
     void setQuestComplete(int questId, bool complete);
@@ -81,6 +93,9 @@ private:
     // Act 1: 9, Act 2: 9, Act 3: 9, Act 4: 3, Act 5: 9
     std::vector<bool> m_waypointProgress;
     static constexpr int MAX_WAYPOINTS = 39;
+    
+    // Equipment
+    std::shared_ptr<Item> m_equippedWeapon;
     
     // Base stats by class
     void initializeBaseStats();

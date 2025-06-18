@@ -1,7 +1,16 @@
 #include <gtest/gtest.h>
 #include "game/character.h"
+#include "game/item.h"
 
 using namespace d2::game;
+
+// Helper function to create test weapons
+std::shared_ptr<Item> createTestWeapon(int minDamage, int maxDamage, int strengthRequirement) {
+    auto weapon = std::make_shared<Item>("Test Sword", ItemType::WEAPON);
+    weapon->setDamage(minDamage, maxDamage);
+    weapon->setRequiredStrength(strengthRequirement);
+    return weapon;
+}
 
 class CharacterTest : public ::testing::Test {
 protected:
@@ -69,4 +78,32 @@ TEST_F(CharacterTest, LevelUp) {
     
     // Check skill points awarded (1 per level in D2) ✓ CORRECT
     EXPECT_EQ(sorc.getSkillPoints(), 1);
+}
+
+// Test for Phase 10, Task 10.7: Strength Damage Bonus (MUST FAIL FIRST)
+TEST_F(CharacterTest, StrengthDamageBonusCalculation) {
+    Character character(CharacterClass::BARBARIAN);
+    character.setStat(StatType::STRENGTH, 100); // 100 total strength
+    
+    // D2 Formula: 1% damage per strength point above required
+    // But actually, ALL strength contributes, not just above requirement
+    auto weapon = createTestWeapon(10, 20, 50); // 50 STR required
+    character.equipWeapon(weapon);
+    
+    float expectedBonus = 100 * 0.01f; // 100% bonus (1.0)
+    float actualBonus = character.getStrengthDamageBonus();
+    
+    EXPECT_NEAR(actualBonus, expectedBonus, 0.001f);
+}
+
+// Test for Phase 10, Task 10.7: Insufficient Strength No Damage Bonus
+TEST_F(CharacterTest, InsufficientStrengthNoDamageBonus) {
+    Character character(CharacterClass::SORCERESS);
+    character.setStat(StatType::STRENGTH, 30); // Low strength
+    
+    auto weapon = createTestWeapon(10, 20, 50); // 50 STR required
+    character.equipWeapon(weapon);
+    
+    // No bonus if strength requirement not met
+    EXPECT_EQ(character.getStrengthDamageBonus(), 0.0f);
 }
