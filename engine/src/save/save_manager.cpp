@@ -71,4 +71,41 @@ bool SaveManager::saveCharacter(const d2::game::Character& character, const std:
     return true;
 }
 
+std::unique_ptr<d2::game::Character> SaveManager::loadCharacter(const std::string& fileName) {
+    // Create full path
+    std::filesystem::path savePath = std::filesystem::path(m_saveDirectory) / fileName;
+    
+    // Open file for binary reading
+    std::ifstream file(savePath, std::ios::binary);
+    if (!file.is_open()) {
+        return nullptr;
+    }
+    
+    // Read header
+    std::vector<uint8_t> header(D2S_HEADER_SIZE);
+    file.read(reinterpret_cast<char*>(header.data()), header.size());
+    
+    if (!file.good()) {
+        return nullptr;
+    }
+    
+    // Verify signature
+    uint32_t signature = *reinterpret_cast<uint32_t*>(&header[0]);
+    if (signature != D2S_SIGNATURE) {
+        return nullptr;
+    }
+    
+    // Read character class (offset 40)
+    auto charClass = static_cast<d2::game::CharacterClass>(header[40]);
+    
+    // Read level (offset 43)
+    uint8_t level = header[43];
+    
+    // Create character
+    auto character = std::make_unique<d2::game::Character>(charClass);
+    character->setLevel(level);
+    
+    return character;
+}
+
 } // namespace d2::save

@@ -59,4 +59,24 @@ TEST_F(SaveManagerTest, SaveCharacterToD2S) {
     EXPECT_EQ(signature, 0xAA55AA55);
 }
 
+// Test 3: Load character data from D2S format
+TEST_F(SaveManagerTest, LoadCharacterFromD2S) {
+    SaveManager saveManager(m_testSaveDir.string());
+    
+    // First save a character
+    d2::game::Character originalChar(d2::game::CharacterClass::BARBARIAN);
+    originalChar.setLevel(25);
+    
+    std::string saveFileName = "TestBarb.d2s";
+    ASSERT_TRUE(saveManager.saveCharacter(originalChar, saveFileName));
+    
+    // Now load it back
+    auto loadedChar = saveManager.loadCharacter(saveFileName);
+    ASSERT_NE(loadedChar, nullptr);
+    
+    // Verify loaded character data matches
+    EXPECT_EQ(loadedChar->getCharacterClass(), d2::game::CharacterClass::BARBARIAN);
+    EXPECT_EQ(loadedChar->getLevel(), 25);
+}
+
 } // namespace d2::save

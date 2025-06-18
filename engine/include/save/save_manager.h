@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <memory>
 
 namespace d2::game {
     class Character;
@@ -16,6 +17,7 @@ public:
     
     // Save/load character
     bool saveCharacter(const d2::game::Character& character, const std::string& fileName);
+    std::unique_ptr<d2::game::Character> loadCharacter(const std::string& fileName);
     
 private:
     std::string m_saveDirectory;
