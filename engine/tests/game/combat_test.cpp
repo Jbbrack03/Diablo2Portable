@@ -47,10 +47,8 @@ TEST_F(CombatTest, HitChanceCaps) {
         99      // High level defender
     );
     // D2 guarantees minimum 5% hit chance
-    // TODO: Current implementation doesn't enforce 5% minimum
-    // Expected: ~0.00002 should be clamped to 0.05
-    // EXPECT_GE(lowHitChance, 0.05f);
-    EXPECT_LT(lowHitChance, 0.01f); // Currently gets very low value
+    // Fixed: Implementation now enforces 5% minimum
+    EXPECT_GE(lowHitChance, 0.05f); // Correctly enforced minimum
     
     // Test maximum 95% cap - very high AR vs very low defense
     float highHitChance = combat.calculateHitChance(
@@ -60,10 +58,33 @@ TEST_F(CombatTest, HitChanceCaps) {
         1       // Low level defender
     );
     // D2 caps maximum hit chance at 95%
-    // TODO: Current implementation doesn't enforce 95% maximum
-    // Expected: ~1.0 should be clamped to 0.95
-    // EXPECT_LE(highHitChance, 0.95f);
-    EXPECT_GT(highHitChance, 0.99f); // Currently gets 100%
+    // Fixed: Implementation now enforces 95% maximum
+    EXPECT_LE(highHitChance, 0.95f); // Correctly enforced maximum
+}
+
+// Test for Phase 10, Task 10.5: Hit Chance Min/Max Caps (MUST FAIL FIRST)
+TEST_F(CombatTest, CorrectHitChanceMinMaxCaps) {
+    CombatEngine combat;
+    
+    // Test minimum 5% cap with impossible odds
+    float minHitChance = combat.calculateHitChance(
+        1,       // Extremely low AR
+        100000,  // Extremely high defense
+        1,       // Level 1 attacker  
+        99       // Level 99 defender
+    );
+    // D2 enforces minimum 5% hit chance regardless of odds
+    EXPECT_GE(minHitChance, 0.05f);
+    
+    // Test maximum 95% cap with perfect odds
+    float maxHitChance = combat.calculateHitChance(
+        100000,  // Extremely high AR
+        1,       // Extremely low defense
+        99,      // Level 99 attacker
+        1        // Level 1 defender
+    );
+    // D2 enforces maximum 95% hit chance regardless of odds
+    EXPECT_LE(maxHitChance, 0.95f);
 }
 
 // Test for Phase 4, Task 4.2: Combat System - Basic damage calculation

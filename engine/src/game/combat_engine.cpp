@@ -19,8 +19,8 @@ float CombatEngine::calculateHitChance(int attackRating, int defense,
     
     float hitChance = arFactor * levelFactor;
     
-    // Clamp between 0 and 1 (0% to 100%)
-    return std::clamp(hitChance, 0.0f, 1.0f);
+    // Apply D2 hit chance caps: minimum 5%, maximum 95%
+    return std::clamp(hitChance, 0.05f, 0.95f);
 }
 
 int CombatEngine::calculateDamage(int minDamage, int maxDamage, int elementalDamage) const {
