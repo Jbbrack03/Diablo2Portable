@@ -70,6 +70,7 @@ set(TEST_SOURCES
     ui/test_ui_renderer.cpp
     ui/test_ui_layout.cpp
     save/test_save_manager.cpp
+    android/test_android_structure.cpp
     # Tests will be added as we implement features following TDD
     # core/game_state_test.cpp
     # audio/sound_system_test.cpp
