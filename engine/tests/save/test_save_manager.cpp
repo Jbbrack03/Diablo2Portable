@@ -212,4 +212,34 @@ TEST_F(SaveManagerTest, LoadInventoryItems) {
     EXPECT_EQ(loadedHelm->getDefense(), 8);
 }
 
+// Test 7: Save file backup system
+TEST_F(SaveManagerTest, SaveFileBackup) {
+    SaveManager saveManager(m_testSaveDir.string());
+    
+    // Create and save a character
+    d2::game::Character testChar(d2::game::CharacterClass::DRUID);
+    testChar.setLevel(35);
+    
+    std::string saveFileName = "TestDruid.d2s";
+    ASSERT_TRUE(saveManager.saveCharacter(testChar, saveFileName));
+    
+    // Modify and save again - should create backup
+    testChar.setLevel(36);
+    ASSERT_TRUE(saveManager.saveCharacter(testChar, saveFileName));
+    
+    // Check that backup was created
+    auto backupPath = m_testSaveDir / "backup" / "TestDruid.d2s.bak";
+    EXPECT_TRUE(std::filesystem::exists(backupPath));
+    
+    // Load the backup and verify it has the original data
+    auto backupChar = saveManager.loadCharacterFromBackup(saveFileName);
+    ASSERT_NE(backupChar, nullptr);
+    EXPECT_EQ(backupChar->getLevel(), 35);  // Original level
+    
+    // Current save should have new data
+    auto currentChar = saveManager.loadCharacter(saveFileName);
+    ASSERT_NE(currentChar, nullptr);
+    EXPECT_EQ(currentChar->getLevel(), 36);  // New level
+}
+
 } // namespace d2::save

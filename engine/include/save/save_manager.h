@@ -31,6 +31,9 @@ public:
     
     LoadResult loadCharacterWithInventory(const std::string& fileName);
     
+    // Backup operations
+    std::unique_ptr<d2::game::Character> loadCharacterFromBackup(const std::string& fileName);
+    
 private:
     std::string m_saveDirectory;
 };

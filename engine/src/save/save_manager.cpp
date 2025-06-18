@@ -46,6 +46,20 @@ bool SaveManager::saveCharacter(const d2::game::Character& character, const std:
     // Create full path
     std::filesystem::path savePath = std::filesystem::path(m_saveDirectory) / fileName;
     
+    // Check if file already exists and create backup if it does
+    if (std::filesystem::exists(savePath)) {
+        // Create backup directory if it doesn't exist
+        std::filesystem::path backupDir = std::filesystem::path(m_saveDirectory) / "backup";
+        std::filesystem::create_directories(backupDir);
+        
+        // Create backup file path
+        std::filesystem::path backupPath = backupDir / (fileName + ".bak");
+        
+        // Copy existing file to backup
+        std::filesystem::copy_file(savePath, backupPath, 
+                                   std::filesystem::copy_options::overwrite_existing);
+    }
+    
     // Open file for binary writing
     std::ofstream file(savePath, std::ios::binary);
     if (!file.is_open()) {
@@ -392,6 +406,59 @@ SaveManager::LoadResult SaveManager::loadCharacterWithInventory(const std::strin
     }
     
     return result;
+}
+
+std::unique_ptr<d2::game::Character> SaveManager::loadCharacterFromBackup(const std::string& fileName) {
+    // Create backup file path
+    std::filesystem::path backupPath = std::filesystem::path(m_saveDirectory) / "backup" / (fileName + ".bak");
+    
+    // Check if backup exists
+    if (!std::filesystem::exists(backupPath)) {
+        return nullptr;
+    }
+    
+    // Open backup file for binary reading
+    std::ifstream file(backupPath, std::ios::binary);
+    if (!file.is_open()) {
+        return nullptr;
+    }
+    
+    // Read header
+    std::vector<uint8_t> header(D2S_HEADER_SIZE);
+    file.read(reinterpret_cast<char*>(header.data()), header.size());
+    
+    if (!file.good()) {
+        return nullptr;
+    }
+    
+    // Verify signature
+    uint32_t signature = *reinterpret_cast<uint32_t*>(&header[0]);
+    if (signature != D2S_SIGNATURE) {
+        return nullptr;
+    }
+    
+    // Extract stored checksum before validation
+    uint32_t storedChecksum = *reinterpret_cast<uint32_t*>(&header[12]);
+    
+    // Calculate expected checksum
+    uint32_t calculatedChecksum = calculateChecksum(header);
+    
+    // Validate checksum
+    if (storedChecksum != calculatedChecksum) {
+        return nullptr;  // Invalid checksum - file is corrupted
+    }
+    
+    // Read character class (offset 40)
+    auto charClass = static_cast<d2::game::CharacterClass>(header[40]);
+    
+    // Read level (offset 43)
+    uint8_t level = header[43];
+    
+    // Create character
+    auto character = std::make_unique<d2::game::Character>(charClass);
+    character->setLevel(level);
+    
+    return character;
 }
 
 } // namespace d2::save
