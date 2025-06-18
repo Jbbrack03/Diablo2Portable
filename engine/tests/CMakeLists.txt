@@ -44,6 +44,7 @@ set(TEST_SOURCES
     world/test_entity_collision.cpp
     world/test_collision_response.cpp
     world/test_world_objects.cpp
+    world/interaction_manager_test.cpp
     utils/pkware_test.cpp
     audio/test_audio_engine.cpp
     network/test_network_manager.cpp
