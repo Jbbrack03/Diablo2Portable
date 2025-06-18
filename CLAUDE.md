@@ -904,10 +904,10 @@ Successfully extracted all Diablo II MPQ files from original game ISOs and ran c
 - ✅ SaveManager with directory management
 - ✅ D2S file format save implementation
 - ✅ D2S file format load implementation
-- ⬜ Checksum validation
-- ⬜ Inventory item persistence
-- ⬜ Save file backup system
-- ⬜ Character stats full persistence
+- ✅ Checksum validation (with proper rotating left shift algorithm)
+- ✅ Inventory item persistence (save and load)
+- ✅ Save file backup system (automatic .bak files)
+- ✅ Character stats full persistence (strength, dexterity, vitality, energy)
 - ⬜ Quest and waypoint data
 
 ### 📅 **Upcoming Features:**

@@ -102,6 +102,18 @@ bool SaveManager::saveCharacter(const d2::game::Character& character, const std:
     // Energy at offset 106
     *reinterpret_cast<uint16_t*>(&header[106]) = static_cast<uint16_t>(character.getEnergy());
     
+    // Write quest progress at custom offset (simplified approach)
+    // Quest data starts at offset 200 in our simplified format
+    // We'll store quest completion as a bit field (41 quests = 6 bytes needed)
+    for (int i = 0; i < 41; ++i) {
+        int byteOffset = 200 + (i / 8);
+        int bitPosition = i % 8;
+        
+        if (character.isQuestComplete(i)) {
+            header[byteOffset] |= (1 << bitPosition);
+        }
+    }
+    
     // Calculate checksum using proper D2S algorithm
     uint32_t checksum = calculateChecksum(header);
     
@@ -190,6 +202,16 @@ std::unique_ptr<d2::game::Character> SaveManager::loadCharacter(const std::strin
         character->addStatPoint(d2::game::StatType::ENERGY, energy - baseEne);
     }
     
+    // Read quest progress from custom offset
+    // Quest data starts at offset 200 in our simplified format
+    for (int i = 0; i < 41; ++i) {
+        int byteOffset = 200 + (i / 8);
+        int bitPosition = i % 8;
+        
+        bool questComplete = (header[byteOffset] & (1 << bitPosition)) != 0;
+        character->setQuestComplete(i, questComplete);
+    }
+    
     return character;
 }
 
@@ -243,6 +265,18 @@ bool SaveManager::saveCharacterWithInventory(const d2::game::Character& characte
     *reinterpret_cast<uint16_t*>(&header[104]) = static_cast<uint16_t>(character.getVitality());
     // Energy at offset 106
     *reinterpret_cast<uint16_t*>(&header[106]) = static_cast<uint16_t>(character.getEnergy());
+    
+    // Write quest progress at custom offset (simplified approach)
+    // Quest data starts at offset 200 in our simplified format
+    // We'll store quest completion as a bit field (41 quests = 6 bytes needed)
+    for (int i = 0; i < 41; ++i) {
+        int byteOffset = 200 + (i / 8);
+        int bitPosition = i % 8;
+        
+        if (character.isQuestComplete(i)) {
+            header[byteOffset] |= (1 << bitPosition);
+        }
+    }
     
     // Add header to save data
     saveData.insert(saveData.end(), header.begin(), header.end());
@@ -534,6 +568,16 @@ std::unique_ptr<d2::game::Character> SaveManager::loadCharacterFromBackup(const 
     }
     if (energy > baseEne) {
         character->addStatPoint(d2::game::StatType::ENERGY, energy - baseEne);
+    }
+    
+    // Read quest progress from custom offset
+    // Quest data starts at offset 200 in our simplified format
+    for (int i = 0; i < 41; ++i) {
+        int byteOffset = 200 + (i / 8);
+        int bitPosition = i % 8;
+        
+        bool questComplete = (header[byteOffset] & (1 << bitPosition)) != 0;
+        character->setQuestComplete(i, questComplete);
     }
     
     return character;

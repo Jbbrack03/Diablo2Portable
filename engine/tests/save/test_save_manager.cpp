@@ -272,4 +272,37 @@ TEST_F(SaveManagerTest, CharacterStatsPersistence) {
     EXPECT_EQ(loadedChar->getEnergy(), 15 + 15);  // allocated + base assassin energy (15)
 }
 
+// Test 9: Quest progress persistence
+TEST_F(SaveManagerTest, QuestProgressPersistence) {
+    SaveManager saveManager(m_testSaveDir.string());
+    
+    // Create a character with quest progress
+    d2::game::Character testChar(d2::game::CharacterClass::AMAZON);
+    testChar.setLevel(18);
+    
+    // Set some quest progress (Act 1 quests)
+    testChar.setQuestComplete(0, true);  // Den of Evil complete
+    testChar.setQuestComplete(1, true);  // Sisters' Burial Grounds complete
+    testChar.setQuestComplete(2, false); // Search for Cain not complete
+    testChar.setQuestComplete(3, true);  // The Forgotten Tower complete
+    testChar.setQuestComplete(4, false); // Tools of the Trade not complete
+    testChar.setQuestComplete(5, false); // Sisters to the Slaughter not complete
+    
+    // Save the character
+    std::string saveFileName = "TestAmazonQuests.d2s";
+    ASSERT_TRUE(saveManager.saveCharacter(testChar, saveFileName));
+    
+    // Load it back
+    auto loadedChar = saveManager.loadCharacter(saveFileName);
+    ASSERT_NE(loadedChar, nullptr);
+    
+    // Verify quest progress was persisted
+    EXPECT_TRUE(loadedChar->isQuestComplete(0));   // Den of Evil
+    EXPECT_TRUE(loadedChar->isQuestComplete(1));   // Sisters' Burial Grounds
+    EXPECT_FALSE(loadedChar->isQuestComplete(2));  // Search for Cain
+    EXPECT_TRUE(loadedChar->isQuestComplete(3));   // The Forgotten Tower
+    EXPECT_FALSE(loadedChar->isQuestComplete(4));  // Tools of the Trade
+    EXPECT_FALSE(loadedChar->isQuestComplete(5));  // Sisters to the Slaughter
+}
+
 } // namespace d2::save

@@ -3,7 +3,7 @@
 namespace d2::game {
 
 Character::Character(CharacterClass characterClass) 
-    : m_class(characterClass) {
+    : m_class(characterClass), m_questProgress(MAX_QUESTS, false) {
     initializeBaseStats();
 }
 
@@ -83,6 +83,19 @@ void Character::initializeBaseStats() {
             m_energy = 15;
             break;
     }
+}
+
+void Character::setQuestComplete(int questId, bool complete) {
+    if (questId >= 0 && questId < static_cast<int>(m_questProgress.size())) {
+        m_questProgress[questId] = complete;
+    }
+}
+
+bool Character::isQuestComplete(int questId) const {
+    if (questId >= 0 && questId < static_cast<int>(m_questProgress.size())) {
+        return m_questProgress[questId];
+    }
+    return false;
 }
 
 } // namespace d2::game

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <vector>
 
 namespace d2::game {
 
@@ -48,6 +49,10 @@ public:
     int getVitality() const { return m_vitality; }
     int getEnergy() const { return m_energy; }
     
+    // Quest management
+    void setQuestComplete(int questId, bool complete);
+    bool isQuestComplete(int questId) const;
+    
 private:
     CharacterClass m_class;
     int m_level = 1;
@@ -60,6 +65,12 @@ private:
     int m_dexterity = 0;
     int m_vitality = 0;
     int m_energy = 0;
+    
+    // Quest progress storage
+    // Diablo II has 41 quests total (6 per act in Acts 1-4, 6 in Act 5 expansion)
+    // For simplicity, we'll track quest completion as a bit vector
+    std::vector<bool> m_questProgress;
+    static constexpr int MAX_QUESTS = 41;
     
     // Base stats by class
     void initializeBaseStats();
