@@ -79,4 +79,31 @@ TEST_F(SaveManagerTest, LoadCharacterFromD2S) {
     EXPECT_EQ(loadedChar->getLevel(), 25);
 }
 
+// Test 4: Checksum validation on load
+TEST_F(SaveManagerTest, ChecksumValidation) {
+    SaveManager saveManager(m_testSaveDir.string());
+    
+    // Create and save a character
+    d2::game::Character testChar(d2::game::CharacterClass::NECROMANCER);
+    testChar.setLevel(30);
+    
+    std::string saveFileName = "TestNecro.d2s";
+    ASSERT_TRUE(saveManager.saveCharacter(testChar, saveFileName));
+    
+    // Corrupt the save file by modifying a byte
+    auto savePath = m_testSaveDir / saveFileName;
+    std::fstream file(savePath, std::ios::binary | std::ios::in | std::ios::out);
+    ASSERT_TRUE(file.is_open());
+    
+    // Change the level byte (offset 43) to corrupt the checksum
+    file.seekp(43);
+    uint8_t corruptLevel = 99;
+    file.write(reinterpret_cast<char*>(&corruptLevel), 1);
+    file.close();
+    
+    // Loading should fail due to invalid checksum
+    auto loadedChar = saveManager.loadCharacter(saveFileName);
+    EXPECT_EQ(loadedChar, nullptr);
+}
+
 } // namespace d2::save

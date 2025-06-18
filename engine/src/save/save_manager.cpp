@@ -12,6 +12,26 @@ constexpr uint32_t D2S_SIGNATURE = 0xAA55AA55;
 constexpr uint32_t D2S_VERSION = 0x60;  // Version 96 (1.09)
 constexpr size_t D2S_HEADER_SIZE = 765;
 
+// Calculate D2S checksum using proper rotating left shift algorithm
+uint32_t calculateChecksum(std::vector<uint8_t> data) {
+    // Zero out the checksum field (offset 12-15)
+    std::memset(&data[12], 0, 4);
+    
+    uint32_t sum = 0;
+    for (size_t i = 0; i < data.size(); ++i) {
+        // Check if we need to carry the high bit
+        uint32_t carry = (sum & 0x80000000) ? 1 : 0;
+        
+        // Rotate left by 1 (shift left and add carry to lowest bit)
+        sum = (sum << 1) | carry;
+        
+        // Add the current byte
+        sum += data[i];
+    }
+    
+    return sum;
+}
+
 SaveManager::SaveManager(const std::string& saveDirectory) 
     : m_saveDirectory(saveDirectory) {
     // Create the save directory if it doesn't exist
@@ -53,11 +73,8 @@ bool SaveManager::saveCharacter(const d2::game::Character& character, const std:
     // Write level (offset 43)
     header[43] = static_cast<uint8_t>(character.getLevel());
     
-    // Calculate checksum
-    uint32_t checksum = 0;
-    for (size_t i = 0; i < header.size(); ++i) {
-        checksum = (checksum << 1) + header[i];
-    }
+    // Calculate checksum using proper D2S algorithm
+    uint32_t checksum = calculateChecksum(header);
     
     // Write checksum back to header
     *reinterpret_cast<uint32_t*>(&header[12]) = checksum;
@@ -93,6 +110,17 @@ std::unique_ptr<d2::game::Character> SaveManager::loadCharacter(const std::strin
     uint32_t signature = *reinterpret_cast<uint32_t*>(&header[0]);
     if (signature != D2S_SIGNATURE) {
         return nullptr;
+    }
+    
+    // Extract stored checksum before validation
+    uint32_t storedChecksum = *reinterpret_cast<uint32_t*>(&header[12]);
+    
+    // Calculate expected checksum
+    uint32_t calculatedChecksum = calculateChecksum(header);
+    
+    // Validate checksum
+    if (storedChecksum != calculatedChecksum) {
+        return nullptr;  // Invalid checksum - file is corrupted
     }
     
     // Read character class (offset 40)
