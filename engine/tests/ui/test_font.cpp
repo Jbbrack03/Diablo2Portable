@@ -40,4 +40,26 @@ TEST_F(FontTest, MeasureTextWidth) {
     EXPECT_NEAR(font.getTextWidth("Hello"), 5 * font.getSize() / 2, font.getSize());
 }
 
+TEST_F(FontTest, LoadFontFromAssetData) {
+    Font font("TestFont", 16);
+    
+    // Create mock bitmap font data (simplified example)
+    std::vector<uint8_t> fontAtlasData(256 * 256, 255); // 256x256 white texture
+    
+    // Font should be able to load from asset data
+    EXPECT_TRUE(font.loadFromAtlasData(fontAtlasData, 256, 256));
+    
+    // After loading, font should have valid texture ID
+    EXPECT_GT(font.getTextureId(), 0);
+    
+    // Character metrics should be available
+    auto charInfo = font.getCharacterInfo('A');
+    EXPECT_GT(charInfo.width, 0);
+    EXPECT_GT(charInfo.height, 0);
+    EXPECT_GE(charInfo.u, 0.0f);
+    EXPECT_LE(charInfo.u, 1.0f);
+    EXPECT_GE(charInfo.v, 0.0f);
+    EXPECT_LE(charInfo.v, 1.0f);
+}
+
 } // namespace d2
