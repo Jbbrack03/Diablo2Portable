@@ -30,6 +30,7 @@ set(TEST_SOURCES
     input/input_manager_test.cpp
     input/control_mapper_test.cpp
     game/character_test.cpp
+    game/character_inventory_test.cpp
     game/combat_test.cpp
     game/item_test.cpp
     game/skill_test.cpp
