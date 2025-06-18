@@ -73,6 +73,7 @@ set(TEST_SOURCES
     android/test_android_structure.cpp
     android/test_jni_bridge.cpp
     android/test_android_activity.cpp
+    android/test_android_assets.cpp
     # Tests will be added as we implement features following TDD
     # core/game_state_test.cpp
     # audio/sound_system_test.cpp
