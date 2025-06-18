@@ -53,6 +53,10 @@ public:
     void setQuestComplete(int questId, bool complete);
     bool isQuestComplete(int questId) const;
     
+    // Waypoint management
+    void activateWaypoint(int waypointId);
+    bool isWaypointActive(int waypointId) const;
+    
 private:
     CharacterClass m_class;
     int m_level = 1;
@@ -71,6 +75,12 @@ private:
     // For simplicity, we'll track quest completion as a bit vector
     std::vector<bool> m_questProgress;
     static constexpr int MAX_QUESTS = 41;
+    
+    // Waypoint activation storage
+    // Diablo II has 39 waypoints total across all acts
+    // Act 1: 9, Act 2: 9, Act 3: 9, Act 4: 3, Act 5: 9
+    std::vector<bool> m_waypointProgress;
+    static constexpr int MAX_WAYPOINTS = 39;
     
     // Base stats by class
     void initializeBaseStats();

@@ -3,8 +3,15 @@
 namespace d2::game {
 
 Character::Character(CharacterClass characterClass) 
-    : m_class(characterClass), m_questProgress(MAX_QUESTS, false) {
+    : m_class(characterClass), m_questProgress(MAX_QUESTS, false), m_waypointProgress(MAX_WAYPOINTS, false) {
     initializeBaseStats();
+    
+    // Town waypoints are always active
+    m_waypointProgress[0] = true;   // Act 1: Rogue Encampment
+    m_waypointProgress[9] = true;   // Act 2: Lut Gholein
+    m_waypointProgress[18] = true;  // Act 3: Kurast Docks
+    m_waypointProgress[27] = true;  // Act 4: Pandemonium Fortress
+    m_waypointProgress[30] = true;  // Act 5: Harrogath (if expansion)
 }
 
 void Character::setLevel(int level) {
@@ -94,6 +101,19 @@ void Character::setQuestComplete(int questId, bool complete) {
 bool Character::isQuestComplete(int questId) const {
     if (questId >= 0 && questId < static_cast<int>(m_questProgress.size())) {
         return m_questProgress[questId];
+    }
+    return false;
+}
+
+void Character::activateWaypoint(int waypointId) {
+    if (waypointId >= 0 && waypointId < static_cast<int>(m_waypointProgress.size())) {
+        m_waypointProgress[waypointId] = true;
+    }
+}
+
+bool Character::isWaypointActive(int waypointId) const {
+    if (waypointId >= 0 && waypointId < static_cast<int>(m_waypointProgress.size())) {
+        return m_waypointProgress[waypointId];
     }
     return false;
 }

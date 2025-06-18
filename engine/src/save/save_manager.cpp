@@ -114,6 +114,18 @@ bool SaveManager::saveCharacter(const d2::game::Character& character, const std:
         }
     }
     
+    // Write waypoint activation at custom offset
+    // Waypoint data starts at offset 210 in our simplified format
+    // We'll store waypoint activation as a bit field (39 waypoints = 5 bytes needed)
+    for (int i = 0; i < 39; ++i) {
+        int byteOffset = 210 + (i / 8);
+        int bitPosition = i % 8;
+        
+        if (character.isWaypointActive(i)) {
+            header[byteOffset] |= (1 << bitPosition);
+        }
+    }
+    
     // Calculate checksum using proper D2S algorithm
     uint32_t checksum = calculateChecksum(header);
     
@@ -212,6 +224,18 @@ std::unique_ptr<d2::game::Character> SaveManager::loadCharacter(const std::strin
         character->setQuestComplete(i, questComplete);
     }
     
+    // Read waypoint activation from custom offset
+    // Waypoint data starts at offset 210 in our simplified format
+    for (int i = 0; i < 39; ++i) {
+        int byteOffset = 210 + (i / 8);
+        int bitPosition = i % 8;
+        
+        bool waypointActive = (header[byteOffset] & (1 << bitPosition)) != 0;
+        if (waypointActive) {
+            character->activateWaypoint(i);
+        }
+    }
+    
     return character;
 }
 
@@ -274,6 +298,18 @@ bool SaveManager::saveCharacterWithInventory(const d2::game::Character& characte
         int bitPosition = i % 8;
         
         if (character.isQuestComplete(i)) {
+            header[byteOffset] |= (1 << bitPosition);
+        }
+    }
+    
+    // Write waypoint activation at custom offset
+    // Waypoint data starts at offset 210 in our simplified format
+    // We'll store waypoint activation as a bit field (39 waypoints = 5 bytes needed)
+    for (int i = 0; i < 39; ++i) {
+        int byteOffset = 210 + (i / 8);
+        int bitPosition = i % 8;
+        
+        if (character.isWaypointActive(i)) {
             header[byteOffset] |= (1 << bitPosition);
         }
     }
@@ -578,6 +614,18 @@ std::unique_ptr<d2::game::Character> SaveManager::loadCharacterFromBackup(const 
         
         bool questComplete = (header[byteOffset] & (1 << bitPosition)) != 0;
         character->setQuestComplete(i, questComplete);
+    }
+    
+    // Read waypoint activation from custom offset
+    // Waypoint data starts at offset 210 in our simplified format
+    for (int i = 0; i < 39; ++i) {
+        int byteOffset = 210 + (i / 8);
+        int bitPosition = i % 8;
+        
+        bool waypointActive = (header[byteOffset] & (1 << bitPosition)) != 0;
+        if (waypointActive) {
+            character->activateWaypoint(i);
+        }
     }
     
     return character;

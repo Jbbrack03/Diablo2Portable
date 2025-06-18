@@ -305,4 +305,50 @@ TEST_F(SaveManagerTest, QuestProgressPersistence) {
     EXPECT_FALSE(loadedChar->isQuestComplete(5));  // Sisters to the Slaughter
 }
 
+// Test 10: Waypoint activation persistence
+TEST_F(SaveManagerTest, WaypointPersistence) {
+    SaveManager saveManager(m_testSaveDir.string());
+    
+    // Create a character with waypoint progress
+    d2::game::Character testChar(d2::game::CharacterClass::SORCERESS);
+    testChar.setLevel(24);
+    
+    // Activate some waypoints
+    // Act 1 waypoints
+    testChar.activateWaypoint(0);   // Rogue Encampment (always active)
+    testChar.activateWaypoint(1);   // Cold Plains
+    testChar.activateWaypoint(3);   // Stony Field
+    testChar.activateWaypoint(4);   // Dark Wood
+    testChar.activateWaypoint(5);   // Black Marsh
+    testChar.activateWaypoint(8);   // Catacombs Level 2
+    
+    // Act 2 waypoints
+    testChar.activateWaypoint(9);   // Lut Gholein
+    testChar.activateWaypoint(10);  // Sewers Level 2
+    testChar.activateWaypoint(12);  // Halls of the Dead Level 2
+    
+    // Save the character
+    std::string saveFileName = "TestSorcWaypoints.d2s";
+    ASSERT_TRUE(saveManager.saveCharacter(testChar, saveFileName));
+    
+    // Load it back
+    auto loadedChar = saveManager.loadCharacter(saveFileName);
+    ASSERT_NE(loadedChar, nullptr);
+    
+    // Verify waypoint activation was persisted
+    EXPECT_TRUE(loadedChar->isWaypointActive(0));   // Rogue Encampment
+    EXPECT_TRUE(loadedChar->isWaypointActive(1));   // Cold Plains
+    EXPECT_FALSE(loadedChar->isWaypointActive(2));  // Underground Passage (not activated)
+    EXPECT_TRUE(loadedChar->isWaypointActive(3));   // Stony Field
+    EXPECT_TRUE(loadedChar->isWaypointActive(4));   // Dark Wood
+    EXPECT_TRUE(loadedChar->isWaypointActive(5));   // Black Marsh
+    EXPECT_FALSE(loadedChar->isWaypointActive(6));  // Tamoe Highland (not activated)
+    EXPECT_FALSE(loadedChar->isWaypointActive(7));  // Monastery Gate (not activated)
+    EXPECT_TRUE(loadedChar->isWaypointActive(8));   // Catacombs Level 2
+    EXPECT_TRUE(loadedChar->isWaypointActive(9));   // Lut Gholein
+    EXPECT_TRUE(loadedChar->isWaypointActive(10));  // Sewers Level 2
+    EXPECT_FALSE(loadedChar->isWaypointActive(11)); // Dry Hills (not activated)
+    EXPECT_TRUE(loadedChar->isWaypointActive(12));  // Halls of the Dead Level 2
+}
+
 } // namespace d2::save
