@@ -46,6 +46,7 @@ set(TEST_SOURCES
     world/test_world_objects.cpp
     world/interaction_manager_test.cpp
     utils/pkware_test.cpp
+    utils/huffman_decompress_test.cpp
     audio/test_audio_engine.cpp
     network/test_network_manager.cpp
     network/game_session_test.cpp
