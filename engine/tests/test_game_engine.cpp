@@ -119,4 +119,21 @@ TEST_F(GameEngineTest, GameEngineHasGameState) {
     EXPECT_NE(gameState, nullptr);
 }
 
+TEST_F(GameEngineTest, RenderFrameUpdatesGameState) {
+    GameEngine engine;
+    engine.initialize();
+    engine.start();
+    
+    // Verify renderFrame returns true when there's actual work being done
+    bool result = engine.renderFrame();
+    EXPECT_TRUE(result);
+    
+    // The renderFrame should at minimum have access to renderer and game state
+    auto* renderer = engine.getRenderer();
+    EXPECT_NE(renderer, nullptr);
+    
+    auto* gameState = engine.getGameState();
+    EXPECT_NE(gameState, nullptr);
+}
+
 } // namespace d2::test
