@@ -56,8 +56,19 @@ bool GameEngine::renderFrame() {
         return false;
     }
     
-    // TODO: Implement actual rendering logic
-    // For now, just return true to indicate successful frame render
+    // Basic game loop structure:
+    // 1. Process input (not implemented yet)
+    // 2. Update game state
+    // 3. Render the frame
+    
+    // For now, we have the basic structure in place
+    // The actual rendering will need:
+    // - Clear the screen
+    // - Render the world/map
+    // - Render entities (player, monsters, NPCs)
+    // - Render UI
+    // - Present the frame
+    
     return true;
 }
 
