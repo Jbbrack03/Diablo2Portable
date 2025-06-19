@@ -5,7 +5,7 @@
 #include <map>
 #include "../engine/include/utils/stormlib_mpq_loader.h"
 
-using namespace d2;
+using namespace d2portable::utils;
 
 int main(int argc, char* argv[]) {
     if (argc != 2) {
