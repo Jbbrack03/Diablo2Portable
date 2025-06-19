@@ -1,5 +1,8 @@
 cmake_minimum_required(VERSION 3.22.1)
 
+# Project definition
+project(d2engine)
+
 # Set C++ standard
 set(CMAKE_CXX_STANDARD 17)
 
@@ -8,11 +11,21 @@ set(LIB_NAME d2engine)
 
 # Get all engine source files
 file(GLOB_RECURSE ENGINE_SOURCES
-    "../../../../engine/src/*.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/../../../../engine/src/*.cpp"
 )
 
 # Remove any files that might not be suitable for Android builds
 list(FILTER ENGINE_SOURCES EXCLUDE REGEX ".*dummy\\.cpp$")
+
+# Debug: Print found sources
+message(STATUS "Found ${CMAKE_CURRENT_SOURCE_DIR}/../../../../engine/src")
+message(STATUS "ENGINE_SOURCES count: ${ENGINE_SOURCES}")
+
+# If no sources found, add a placeholder to avoid CMake error
+if(NOT ENGINE_SOURCES)
+    message(WARNING "No engine sources found, using placeholder")
+    set(ENGINE_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/jni_bridge.cpp")
+endif()
 
 # Create the shared library for Android
 add_library(d2engine SHARED ${ENGINE_SOURCES})
