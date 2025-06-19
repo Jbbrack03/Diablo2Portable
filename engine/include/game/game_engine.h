@@ -28,6 +28,9 @@ public:
     bool isInitialized() const { return initialized_; }
     bool isRunning() const { return running_; }
     
+    bool start();
+    void stop();
+    
     d2portable::core::AssetManager* getAssetManager() const { 
         return assetManager_.get(); 
     }

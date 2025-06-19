@@ -71,4 +71,29 @@ TEST_F(GameEngineTest, GetRenderer) {
     EXPECT_NE(renderer, nullptr);
 }
 
+TEST_F(GameEngineTest, StartEngine) {
+    GameEngine engine;
+    
+    // Cannot start without initialization
+    EXPECT_FALSE(engine.start());
+    EXPECT_FALSE(engine.isRunning());
+    
+    // Initialize then start
+    engine.initialize();
+    EXPECT_TRUE(engine.start());
+    EXPECT_TRUE(engine.isRunning());
+}
+
+TEST_F(GameEngineTest, StopEngine) {
+    GameEngine engine;
+    engine.initialize();
+    engine.start();
+    
+    EXPECT_TRUE(engine.isRunning());
+    
+    engine.stop();
+    
+    EXPECT_FALSE(engine.isRunning());
+}
+
 } // namespace d2::test

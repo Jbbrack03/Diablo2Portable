@@ -30,4 +30,21 @@ bool GameEngine::initialize(const std::string& assetPath) {
     return true;
 }
 
+bool GameEngine::start() {
+    if (!initialized_) {
+        return false;
+    }
+    
+    if (running_) {
+        return true;
+    }
+    
+    running_ = true;
+    return true;
+}
+
+void GameEngine::stop() {
+    running_ = false;
+}
+
 } // namespace d2
