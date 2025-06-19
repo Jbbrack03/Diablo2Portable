@@ -16,7 +16,7 @@ FetchContent_MakeAvailable(googletest)
 # Test sources
 set(TEST_SOURCES
     main.cpp
-    mpq/mpq_loader_test.cpp
+    mpq/stormlib_mpq_loader_test.cpp
     mpq/test_file_encryption.cpp
     sprites/dc6_parser_test.cpp
     core/asset_manager_test.cpp

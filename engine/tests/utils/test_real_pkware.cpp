@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include "utils/mpq_loader.h"
+#include "utils/stormlib_mpq_loader.h"
 #include "utils/pkware_explode.h"
 #include <vector>
 
@@ -11,7 +11,7 @@ using namespace d2portable::utils;
  */
 class RealPKWARETest : public ::testing::Test {
 protected:
-    MPQLoader loader;
+    StormLibMPQLoader loader;
     
     void SetUp() override {
         // Try to open the test MPQ file

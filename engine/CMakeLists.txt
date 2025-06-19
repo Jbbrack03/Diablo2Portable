@@ -19,7 +19,6 @@ set(ENGINE_HEADERS
 # Create engine library (currently empty, will be populated)
 add_library(d2engine STATIC 
     src/dummy.cpp
-    src/utils/mpq_loader.cpp
     src/utils/stormlib_mpq_loader.cpp
     src/utils/pkware_explode.cpp
     src/utils/huffman_decompress.cpp

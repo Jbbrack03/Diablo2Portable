@@ -3,7 +3,7 @@
 #include <vector>
 #include <iomanip>
 #include <iostream>
-#include "utils/mpq_loader.h"
+#include "utils/stormlib_mpq_loader.h"
 
 using namespace d2portable::utils;
 
@@ -77,7 +77,7 @@ TEST_F(PKWAREFormatAnalysisTest, AnalyzeRealPKWAREFile) {
         GTEST_SKIP() << "Set TEST_MPQ_PATH to test with real MPQ file";
     }
     
-    MPQLoader loader;
+    StormLibMPQLoader loader;
     ASSERT_TRUE(loader.open(mpq_path));
     
     // Try to extract a known PKWARE compressed file
@@ -142,7 +142,7 @@ TEST_F(PKWAREFormatAnalysisTest, AnalyzeMultiplePKWAREFiles) {
         GTEST_SKIP() << "Set TEST_MPQ_PATH to test with real MPQ file";
     }
     
-    MPQLoader loader;
+    StormLibMPQLoader loader;
     ASSERT_TRUE(loader.open(mpq_path));
     
     // Test various file types known to use PKWARE

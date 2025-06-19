@@ -1,13 +1,13 @@
 #include <gtest/gtest.h>
 #include <vector>
 #include <cstdint>
-#include "utils/mpq_loader.h"
+#include "utils/stormlib_mpq_loader.h"
 
 using namespace d2portable::utils;
 
 class MPQFileEncryptionTest : public ::testing::Test {
 protected:
-    MPQLoader loader;
+    StormLibMPQLoader loader;
 };
 
 // Test that we can detect and handle encrypted files

@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 #include "core/asset_manager.h"
-#include "utils/mpq_loader.h"
+#include "utils/stormlib_mpq_loader.h"
 #include <filesystem>
 #include <iostream>
 
@@ -160,7 +160,7 @@ TEST_F(RealMPQIntegrationTest, ExtractTextFiles) {
 
 // Test 5: Test compression handling
 TEST_F(RealMPQIntegrationTest, TestCompressionTypes) {
-    MPQLoader loader;
+    StormLibMPQLoader loader;
     ASSERT_TRUE(loader.open(d2data_mpq));
     
     auto files = loader.listFiles();
