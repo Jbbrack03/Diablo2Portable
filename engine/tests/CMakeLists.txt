@@ -21,6 +21,7 @@ set(TEST_SOURCES
     sprites/dc6_parser_test.cpp
     core/asset_manager_test.cpp
     core/test_asset_manager_mpq.cpp
+    core/test_asset_manager_mpq_fix.cpp
     rendering/egl_context_test.cpp
     rendering/renderer_test.cpp
     rendering/shader_manager_test.cpp

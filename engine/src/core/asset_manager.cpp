@@ -140,10 +140,14 @@ bool AssetManager::initializeWithMPQs(const std::string& mpq_directory, const st
     
     // Find and open all MPQ files in the directory
     for (const auto& entry : std::filesystem::directory_iterator(mpq_directory)) {
-        if (entry.is_regular_file() && entry.path().extension() == ".mpq") {
-            auto loader = std::make_unique<utils::StormLibMPQLoader>();
-            if (loader->open(entry.path().string())) {
-                pImpl->mpq_loaders.push_back(std::move(loader));
+        if (entry.is_regular_file()) {
+            std::string ext = entry.path().extension().string();
+            std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
+            if (ext == ".mpq") {
+                auto loader = std::make_unique<utils::StormLibMPQLoader>();
+                if (loader->open(entry.path().string())) {
+                    pImpl->mpq_loaders.push_back(std::move(loader));
+                }
             }
         }
     }
