@@ -27,18 +27,18 @@ cmake -B build -DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK/build/cmake/android.toolchain
 cmake --build build
 ./build/engine/tests/d2_unit_tests
 
-# Android builds (Planned for Phase 12)
-# ./gradlew assembleDebug
-# ./gradlew assembleRelease
-# ./gradlew connectedAndroidTest
+# Android builds
+./gradlew assembleDebug
+./gradlew assembleRelease
+./gradlew connectedAndroidTest
 ```
 
 ### Deployment
 ```bash
-# Android deployment (Planned for Phase 12)
-# ./gradlew installDebug
-# ./tools/deploy_to_device.sh
-# ./gradlew assembleRelease -Pkeystore=$HOME/.android/release.keystore
+# Android deployment
+./gradlew installDebug
+./tools/deploy_to_device.sh
+./gradlew assembleRelease -Pkeystore=$HOME/.android/release.keystore
 ```
 
 ## Architecture
@@ -51,10 +51,11 @@ The project follows a native Android implementation approach with these key comp
    - Uses OpenGL ES 3.0 for graphics
    - Custom MPQ loader for asset extraction
 
-2. **Android Framework** (Kotlin/Java) - **PLANNED**
-   - Will be located in `android/app/src/` (Phase 12)
-   - JNI bridge to native engine (to be implemented)
-   - Android-specific UI and lifecycle management (to be implemented)
+2. **Android Framework** (Kotlin/Java)
+   - Located in `android/app/src/`
+   - JNI bridge to native engine
+   - Android-specific UI and lifecycle management
+   - Gamepad integration with controller support
 
 3. **Asset Pipeline**
    - MPQ extraction tools in `tools/mpq_extractor/`
