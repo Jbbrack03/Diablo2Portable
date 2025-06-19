@@ -30,6 +30,10 @@ private:
     static std::function<void(int, bool)> gamepadCallback_;
 };
 
+namespace d2 {
+class GameEngine;
+}
+
 namespace d2::android {
 
 /**
@@ -53,7 +57,7 @@ private:
     bool initialized_;
     int surface_width_;
     int surface_height_;
-    // Future: Add actual engine components here
+    std::unique_ptr<d2::GameEngine> engine_;
 };
 
 // JNI Bridge Functions

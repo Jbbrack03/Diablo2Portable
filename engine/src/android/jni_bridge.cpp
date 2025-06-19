@@ -1,5 +1,6 @@
 #include "android/jni_bridge.h"
 #include "android/gamepad_handler.h"
+#include "game/game_engine.h"
 #include <cassert>
 #include <cstring>
 #include <memory>
@@ -61,10 +62,13 @@ namespace d2::android {
 
 GameEngineWrapper::GameEngineWrapper() 
     : initialized_(false), surface_width_(0), surface_height_(0) {
+    engine_ = std::make_unique<d2::GameEngine>();
 }
 
 GameEngineWrapper::~GameEngineWrapper() {
-    // Cleanup resources
+    if (engine_ && engine_->isRunning()) {
+        engine_->stop();
+    }
 }
 
 bool GameEngineWrapper::initialize() {
@@ -72,8 +76,15 @@ bool GameEngineWrapper::initialize() {
         return true;
     }
     
-    // Initialize engine components
-    // For now, just mark as initialized
+    if (!engine_) {
+        return false;
+    }
+    
+    // Initialize the game engine
+    if (!engine_->initialize()) {
+        return false;
+    }
+    
     initialized_ = true;
     return true;
 }
@@ -87,9 +98,8 @@ bool GameEngineWrapper::loadAssets(const char* asset_path) {
         return false;
     }
     
-    // TODO: Integrate with AssetManager
-    // For now, just validate the path is not empty
-    return strlen(asset_path) > 0;
+    // Re-initialize with asset path
+    return engine_->initialize(asset_path);
 }
 
 void GameEngineWrapper::onTouchEvent(float x, float y, int action) {
@@ -97,7 +107,7 @@ void GameEngineWrapper::onTouchEvent(float x, float y, int action) {
         return;
     }
     
-    // TODO: Process touch input
+    // TODO: Process touch input through input system
     // For now, just store the coordinates (unused but validates parameters)
     (void)x;
     (void)y;
@@ -116,7 +126,10 @@ void GameEngineWrapper::onSurfaceCreated(int width, int height) {
     surface_width_ = width;
     surface_height_ = height;
     
-    // TODO: Initialize renderer with surface dimensions
+    // Start the engine if not already running
+    if (!engine_->isRunning()) {
+        engine_->start();
+    }
 }
 
 void GameEngineWrapper::renderFrame() {
@@ -128,8 +141,9 @@ void GameEngineWrapper::renderFrame() {
         return;
     }
     
-    // TODO: Render game frame
-    // For now, just verify we have valid surface dimensions
+    if (engine_ && engine_->isRunning()) {
+        engine_->renderFrame();
+    }
 }
 
 } // namespace d2::android
