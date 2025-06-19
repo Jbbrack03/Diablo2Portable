@@ -39,7 +39,7 @@ cmake --build build
 ### Testing with Real Game Files
 The project includes real Diablo II MPQ files in `vendor/extracted_mpq/` for integration testing:
 - D2DATA.MPQ, D2CHAR.MPQ, D2MUSIC.MPQ, etc.
-- Run `./run_all_tests.sh` to execute all 410 tests including MPQ integration tests
+- Run `./run_all_tests.sh` to execute all 418 tests including MPQ integration tests
 - All tests should pass without any skipped tests
 
 ### Deployment
@@ -234,9 +234,9 @@ When tests fail, investigate carefully before changing them:
 - **Total Source Files**: 100+ (C++ engine implementation)
 - **Lines of Code**: ~18,000+ (core engine only)
 - **Phases Completed**: 13 of 13 (see notes on actual implementation status)
-- **Project Status**: **Core features complete, text rendering system implemented**
+- **Project Status**: **Core features complete, GameEngine integration implemented**
 - **Asset Extraction**: ✅ 100% success rate on real Diablo II files (StormLib integration)
-- **Test Suite Health**: ✅ All 410 tests passing with real-world validation
+- **Test Suite Health**: ✅ All 418 tests passing with real-world validation
 
 ### ✅ **Completed Features (Production Ready):**
 1. **MPQ Archive System** - Full support for game asset extraction (StormLib integration)
@@ -262,6 +262,7 @@ When tests fail, investigate carefully before changing them:
 21. **UI Framework** - Complete with text rendering, touch/controller input
 22. **Save/Load System** - D2S format, checksum validation, inventory persistence
 23. **D2-Accurate Game Mechanics** - Corrected life calculation, hit chance caps, strength damage bonus
+24. **GameEngine** - Central game system integration, lifecycle management, render loop coordination
 
 ### ✅ **Recently Completed:**
 
