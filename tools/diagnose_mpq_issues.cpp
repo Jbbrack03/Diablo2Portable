@@ -5,7 +5,7 @@
 #include <map>
 #include "../engine/include/utils/stormlib_mpq_loader.h"
 
-using namespace d2;
+using namespace d2portable::utils;
 namespace fs = std::filesystem;
 
 struct MPQExpectation {

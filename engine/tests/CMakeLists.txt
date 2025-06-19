@@ -38,6 +38,7 @@ set(TEST_SOURCES
     game/monster_test.cpp
     game/inventory_test.cpp
     game/loot_system_test.cpp
+    game/player_test.cpp
     test_game_engine.cpp
     map/map_loader_test.cpp
     map/pathfinding_test.cpp
