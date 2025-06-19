@@ -67,6 +67,7 @@ add_library(d2engine STATIC
     src/save/save_manager.cpp
     src/android/jni_bridge.cpp
     src/android/gamepad_handler.cpp
+    src/android/apk_asset_loader.cpp
 )
 
 # Include directories

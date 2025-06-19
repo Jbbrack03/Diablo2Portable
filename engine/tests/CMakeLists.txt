@@ -76,6 +76,7 @@ set(TEST_SOURCES
     android/test_android_assets.cpp
     android/test_android_gamepad.cpp
     android/test_gamepad_jni.cpp
+    android/test_apk_asset_loader.cpp
     # Tests will be added as we implement features following TDD
     # core/game_state_test.cpp
     # audio/sound_system_test.cpp
