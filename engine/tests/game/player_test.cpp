@@ -18,3 +18,13 @@ TEST_F(PlayerTest, CreatePlayerWithCharacter) {
     
     EXPECT_EQ(player.getCharacterClass(), CharacterClass::BARBARIAN);
 }
+
+TEST_F(PlayerTest, PlayerHasPositionInWorld) {
+    Character character(CharacterClass::SORCERESS);
+    Player player(character);
+    
+    // Player should start at origin by default
+    glm::vec2 position = player.getPosition();
+    EXPECT_FLOAT_EQ(position.x, 0.0f);
+    EXPECT_FLOAT_EQ(position.y, 0.0f);
+}
