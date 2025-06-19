@@ -1,5 +1,6 @@
 #include "game/game_engine.h"
 #include "core/asset_manager.h"
+#include "rendering/renderer.h"
 
 namespace d2 {
 
@@ -21,6 +22,9 @@ bool GameEngine::initialize(const std::string& assetPath) {
             return false;
         }
     }
+    
+    // Create renderer
+    renderer_ = std::make_unique<d2::rendering::Renderer>();
     
     initialized_ = true;
     return true;

@@ -10,6 +10,9 @@ class AssetManager;
 }
 
 namespace d2 {
+namespace rendering {
+class Renderer;
+}
 
 class GameEngine {
 public:
@@ -29,10 +32,15 @@ public:
         return assetManager_.get(); 
     }
     
+    d2::rendering::Renderer* getRenderer() const {
+        return renderer_.get();
+    }
+    
 private:
     bool initialized_ = false;
     bool running_ = false;
     std::unique_ptr<d2portable::core::AssetManager> assetManager_;
+    std::unique_ptr<d2::rendering::Renderer> renderer_;
 };
 
 } // namespace d2

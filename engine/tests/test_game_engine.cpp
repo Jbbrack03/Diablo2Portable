@@ -59,4 +59,16 @@ TEST_F(GameEngineTest, InitializeWithInvalidPath) {
     EXPECT_NE(assetManager, nullptr);
 }
 
+TEST_F(GameEngineTest, GetRenderer) {
+    GameEngine engine;
+    
+    // Before initialization, renderer should be null
+    EXPECT_EQ(engine.getRenderer(), nullptr);
+    
+    // After initialization, renderer should be available
+    engine.initialize();
+    auto* renderer = engine.getRenderer();
+    EXPECT_NE(renderer, nullptr);
+}
+
 } // namespace d2::test
