@@ -47,4 +47,14 @@ void GameEngine::stop() {
     running_ = false;
 }
 
+bool GameEngine::renderFrame() {
+    if (!initialized_ || !running_) {
+        return false;
+    }
+    
+    // TODO: Implement actual rendering logic
+    // For now, just return true to indicate successful frame render
+    return true;
+}
+
 } // namespace d2

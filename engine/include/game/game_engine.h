@@ -31,6 +31,8 @@ public:
     bool start();
     void stop();
     
+    bool renderFrame();
+    
     d2portable::core::AssetManager* getAssetManager() const { 
         return assetManager_.get(); 
     }
