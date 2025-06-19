@@ -4,7 +4,7 @@
 #include <iomanip>
 #include "../engine/include/utils/mpq_loader.h"
 
-using namespace d2portable::utils;
+using namespace d2;
 
 void printBytes(const std::vector<uint8_t>& data, size_t count = 32) {
     std::cout << "First " << std::min(count, data.size()) << " bytes:\n";

@@ -4,7 +4,7 @@
 #include <fstream>
 #include "../engine/include/utils/mpq_loader.h"
 
-using namespace d2portable::utils;
+using namespace d2;
 
 // Define MPQ constants we need
 const uint32_t MPQ_FILE_COMPRESSED = 0x00000200;

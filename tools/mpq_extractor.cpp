@@ -6,7 +6,7 @@
 #include <iomanip>
 #include "../engine/include/utils/mpq_loader.h"
 
-using namespace d2portable::utils;
+using namespace d2;
 namespace fs = std::filesystem;
 
 void printUsage(const char* programName) {

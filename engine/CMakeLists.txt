@@ -63,6 +63,7 @@ add_library(d2engine STATIC
     src/ui/pause_screen.cpp
     src/ui/ui_renderer.cpp
     src/ui/ui_layout.cpp
+    src/ui/font.cpp
     src/save/save_manager.cpp
     src/android/jni_bridge.cpp
     src/android/gamepad_handler.cpp

@@ -6,7 +6,7 @@
 #include "../engine/include/sprites/dc6_parser.h"
 #include "../engine/include/core/asset_manager.h"
 
-using namespace d2portable::utils;
+using namespace d2;
 using namespace d2portable::sprites;
 using namespace d2portable::core;
 

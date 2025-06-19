@@ -5,7 +5,7 @@
 #include "../engine/include/utils/mpq_loader.h"
 
 namespace fs = std::filesystem;
-using namespace d2portable::utils;
+using namespace d2;
 
 void printFileInfo(const MPQFileInfo& info) {
     std::cout << "  File: " << info.filename << "\n";

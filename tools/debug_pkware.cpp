@@ -4,7 +4,7 @@
 #include <iomanip>
 #include "../engine/include/utils/pkware_explode.h"
 
-using namespace d2portable::utils;
+using namespace d2;
 
 void printHex(const std::vector<uint8_t>& data, const std::string& label) {
     std::cout << label << " (" << data.size() << " bytes): ";

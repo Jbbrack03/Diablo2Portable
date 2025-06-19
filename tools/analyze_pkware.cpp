@@ -4,7 +4,7 @@
 #include <iomanip>
 #include "utils/mpq_loader.h"
 
-using namespace d2portable::utils;
+using namespace d2;
 
 void analyzePKWAREData(const std::vector<uint8_t>& data) {
     std::cout << "\n=== PKWARE Data Analysis ===" << std::endl;

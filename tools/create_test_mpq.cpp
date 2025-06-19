@@ -4,7 +4,7 @@
 #include <cstring>
 #include "../engine/include/utils/mpq_loader.h"
 
-using namespace d2portable::utils;
+using namespace d2;
 
 // Create a simple test MPQ with known content
 void createTestMPQ(const std::string& filename) {

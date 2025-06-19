@@ -3,7 +3,7 @@
 #include <vector>
 #include "../engine/include/utils/mpq_loader.h"
 
-using namespace d2portable::utils;
+using namespace d2;
 
 int main() {
     // Create the multi-compressed test MPQ

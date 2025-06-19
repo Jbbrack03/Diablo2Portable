@@ -59,6 +59,7 @@ set(TEST_SOURCES
     ui/test_ui_panel.cpp
     ui/test_ui_label.cpp
     ui/test_font.cpp
+    ui/test_font_real_implementation.cpp
     ui/test_font_manager.cpp
     ui/test_text_renderer.cpp
     ui/test_ui_manager.cpp

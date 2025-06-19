@@ -4,7 +4,7 @@
 #include <cstring>
 #include "../engine/include/utils/mpq_loader.h"
 
-using namespace d2portable::utils;
+using namespace d2;
 
 // We need to expose internals to debug
 class MPQDebugLoader : public MPQLoader {

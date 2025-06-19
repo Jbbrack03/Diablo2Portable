@@ -3,7 +3,7 @@
 #include <algorithm>
 #include "utils/mpq_loader.h"
 
-using namespace d2portable::utils;
+using namespace d2;
 
 int main(int argc, char* argv[]) {
     if (argc != 2) {

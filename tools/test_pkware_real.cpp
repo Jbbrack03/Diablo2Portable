@@ -4,7 +4,7 @@
 #include "../engine/include/utils/mpq_loader.h"
 #include "../engine/include/utils/pkware_explode.h"
 
-using namespace d2portable::utils;
+using namespace d2;
 
 int main(int argc, char* argv[]) {
     if (argc != 2) {

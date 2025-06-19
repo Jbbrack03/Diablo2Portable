@@ -7,7 +7,7 @@
 #include <map>
 #include "utils/mpq_loader.h"
 
-using namespace d2portable::utils;
+using namespace d2;
 
 // MPQ compression flags
 const uint32_t MPQ_FILE_IMPLODE     = 0x00000100;

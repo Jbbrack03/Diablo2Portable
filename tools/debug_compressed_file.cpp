@@ -5,7 +5,7 @@
 #include <cstring>
 #include "utils/mpq_loader.h"
 
-using namespace d2portable::utils;
+using namespace d2;
 
 // Helper to show hex dump
 void hexDump(const std::vector<uint8_t>& data, size_t offset, size_t length, const std::string& label) {

@@ -4,7 +4,7 @@
 #include "../engine/include/utils/mpq_loader.h"
 #include "../engine/include/sprites/dc6_parser.h"
 
-using namespace d2portable::utils;
+using namespace d2;
 using namespace d2portable::sprites;
 
 int main(int argc, char* argv[]) {

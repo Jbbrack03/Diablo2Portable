@@ -4,7 +4,7 @@
 #include <fstream>
 #include "../engine/include/utils/mpq_loader.h"
 
-using namespace d2portable::utils;
+using namespace d2;
 
 // MPQ compression flags
 const uint8_t MPQ_COMPRESSION_HUFFMAN = 0x01;

@@ -3,7 +3,7 @@
 #include <iomanip>
 #include "../engine/include/utils/mpq_loader.h"
 
-using namespace d2portable::utils;
+using namespace d2;
 
 // Function to analyze PKWARE distance issues
 void analyzePKWAREDistance() {
