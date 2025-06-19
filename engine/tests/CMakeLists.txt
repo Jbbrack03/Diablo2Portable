@@ -63,6 +63,7 @@ set(TEST_SOURCES
     ui/test_font_manager.cpp
     ui/test_font_manager_real_implementation.cpp
     ui/test_text_renderer.cpp
+    ui/test_text_renderer_opengl.cpp
     ui/test_ui_manager.cpp
     ui/test_inventory_screen.cpp
     ui/test_character_screen.cpp

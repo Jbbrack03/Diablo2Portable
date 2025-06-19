@@ -3,9 +3,16 @@
 #include <glm/glm.hpp>
 #include <string>
 #include <vector>
+#include <unordered_map>
 #include "ui/font.h"
 
 namespace d2 {
+
+enum class TextAlignment {
+    LEFT,
+    CENTER,
+    RIGHT
+};
 
 struct TextVertex {
     glm::vec2 position;
@@ -57,17 +64,23 @@ public:
         return vertices_.empty() ? 0 : 1;  // Return 1 draw call if we have vertices
     }
     
-    virtual void renderText(const std::string& text, const glm::vec2& position, const Font* font) {
-        if (!font || text.empty()) return;
-        
-        // Generate vertices for each character in the text
-        generateTextVertices(text, position, font);
-        
-        if (!batchActive_) {
-            // If not batching, render immediately
-            // In real implementation, this would make a draw call
-        }
-    }
+    virtual void renderText(const std::string& text, const glm::vec2& position, const Font* font);
+    
+    // New methods for OpenGL implementation
+    bool initializeWithShaders();
+    int getUniformLocation(const std::string& name) const;
+    unsigned int getVertexStride() const { return sizeof(TextVertex); }
+    void setProjectionMatrix(const glm::mat4& projection);
+    const glm::mat4& getProjectionMatrix() const { return projectionMatrix_; }
+    void clearVertices() { vertices_.clear(); vertexCount_ = 0; }
+    void generateVerticesForText(const std::string& text, const glm::vec2& position, const Font* font);
+    const std::vector<TextVertex>& getVertices() const { return vertices_; }
+    void renderMultiLineText(const std::string& text, const glm::vec2& position, const Font* font);
+    void setAlignment(TextAlignment align) { alignment_ = align; }
+    unsigned int createRenderTexture(int width, int height);
+    void beginRenderToTexture(unsigned int textureId, int width, int height);
+    void endRenderToTexture();
+    unsigned int getLastRenderTextureId() const { return lastRenderTextureId_; }
     
 private:
     void generateTextVertices(const std::string& text, const glm::vec2& position, const Font* font) {
@@ -127,6 +140,12 @@ private:
     std::vector<TextVertex> vertices_;
     int vertexCount_;
     bool batchActive_;
+    
+    // Additional members for OpenGL implementation
+    glm::mat4 projectionMatrix_{1.0f};
+    TextAlignment alignment_ = TextAlignment::LEFT;
+    unsigned int lastRenderTextureId_ = 0;
+    std::unordered_map<std::string, int> uniformLocations_;
 };
 
 } // namespace d2

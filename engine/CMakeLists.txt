@@ -65,6 +65,7 @@ add_library(d2engine STATIC
     src/ui/ui_layout.cpp
     src/ui/font.cpp
     src/ui/font_manager.cpp
+    src/ui/text_renderer.cpp
     src/save/save_manager.cpp
     src/android/jni_bridge.cpp
     src/android/gamepad_handler.cpp
