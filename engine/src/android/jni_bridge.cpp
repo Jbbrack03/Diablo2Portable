@@ -1,6 +1,61 @@
 #include "android/jni_bridge.h"
+#include "android/gamepad_handler.h"
 #include <cassert>
 #include <cstring>
+#include <memory>
+
+// Static members for JNIBridge
+std::function<void(int, bool)> JNIBridge::gamepadCallback_ = nullptr;
+static std::unique_ptr<GamepadHandler> g_gamepadHandler = std::make_unique<GamepadHandler>();
+
+bool JNIBridge::handleKeyEvent(int keyCode, int action) {
+    bool handled = g_gamepadHandler->handleKeyEvent(keyCode, action);
+    
+    if (handled && gamepadCallback_) {
+        bool pressed = (action == 0); // ACTION_DOWN
+        gamepadCallback_(keyCode, pressed);
+    }
+    
+    return handled;
+}
+
+bool JNIBridge::handleMotionEvent(int axis1, float value1, int axis2, float value2, int source) {
+    return g_gamepadHandler->handleMotionEvent(axis1, value1, axis2, value2, source);
+}
+
+ControllerState JNIBridge::getControllerState() {
+    ControllerState state;
+    
+    // Map gamepad buttons to state array
+    state.buttons[0] = g_gamepadHandler->isButtonPressed(GamepadButton::A);
+    state.buttons[1] = g_gamepadHandler->isButtonPressed(GamepadButton::B);
+    state.buttons[2] = g_gamepadHandler->isButtonPressed(GamepadButton::X);
+    state.buttons[3] = g_gamepadHandler->isButtonPressed(GamepadButton::Y);
+    state.buttons[4] = g_gamepadHandler->isButtonPressed(GamepadButton::LEFT_BUMPER);
+    state.buttons[5] = g_gamepadHandler->isButtonPressed(GamepadButton::RIGHT_BUMPER);
+    state.buttons[6] = g_gamepadHandler->isButtonPressed(GamepadButton::LEFT_TRIGGER);
+    state.buttons[7] = g_gamepadHandler->isButtonPressed(GamepadButton::RIGHT_TRIGGER);
+    state.buttons[8] = g_gamepadHandler->isButtonPressed(GamepadButton::START);
+    state.buttons[9] = g_gamepadHandler->isButtonPressed(GamepadButton::SELECT);
+    state.buttons[10] = g_gamepadHandler->isButtonPressed(GamepadButton::DPAD_UP);
+    state.buttons[11] = g_gamepadHandler->isButtonPressed(GamepadButton::DPAD_DOWN);
+    state.buttons[12] = g_gamepadHandler->isButtonPressed(GamepadButton::DPAD_LEFT);
+    state.buttons[13] = g_gamepadHandler->isButtonPressed(GamepadButton::DPAD_RIGHT);
+    
+    // Map axes
+    state.axes[0] = g_gamepadHandler->getAxisValue(GamepadAxis::LEFT_X);
+    state.axes[1] = g_gamepadHandler->getAxisValue(GamepadAxis::LEFT_Y);
+    state.axes[2] = g_gamepadHandler->getAxisValue(GamepadAxis::RIGHT_X);
+    state.axes[3] = g_gamepadHandler->getAxisValue(GamepadAxis::RIGHT_Y);
+    state.axes[4] = g_gamepadHandler->getAxisValue(GamepadAxis::LEFT_TRIGGER);
+    state.axes[5] = g_gamepadHandler->getAxisValue(GamepadAxis::RIGHT_TRIGGER);
+    
+    return state;
+}
+
+void JNIBridge::registerGamepadCallback(std::function<void(int, bool)> callback) {
+    gamepadCallback_ = callback;
+}
 
 namespace d2::android {
 

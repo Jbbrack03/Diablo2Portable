@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <memory>
+#include <functional>
 
 // Mock JNI types for desktop testing
 using jlong = int64_t;
@@ -11,6 +12,23 @@ using jfloat = float;
 using jstring = void*;
 using JNIEnv = void;
 using jobject = void*;
+
+// Controller state structure for UI queries
+struct ControllerState {
+    bool buttons[16] = {false};
+    float axes[6] = {0.0f};
+};
+
+// Static JNI Bridge interface for gamepad handling
+class JNIBridge {
+public:
+    static bool handleKeyEvent(int keyCode, int action);
+    static bool handleMotionEvent(int axis1, float value1, int axis2, float value2, int source);
+    static ControllerState getControllerState();
+    static void registerGamepadCallback(std::function<void(int, bool)> callback);
+private:
+    static std::function<void(int, bool)> gamepadCallback_;
+};
 
 namespace d2::android {
 
