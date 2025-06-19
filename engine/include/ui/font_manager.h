@@ -4,6 +4,7 @@
 #include <memory>
 #include <unordered_map>
 #include <vector>
+#include <filesystem>
 #include "ui/font.h"
 
 namespace d2 {
@@ -75,8 +76,21 @@ public:
         return true;
     }
     
+    // New methods for real implementation
+    bool loadDefaultFontsFromDirectory(const std::string& directory);
+    bool loadFontFromFile(const std::string& name, const std::string& fontFile);
+    void markFontAsPermanent(const std::string& name);
+    void releaseUnusedFonts();
+    void enableHotReloading(bool enable);
+    void checkAndReloadModifiedFonts();
+    
 private:
     std::unordered_map<std::string, std::shared_ptr<Font>> fonts_;
+    std::unordered_map<std::string, bool> permanentFonts_;
+    std::unordered_map<std::string, std::filesystem::file_time_type> fontFileTimestamps_;
+    std::unordered_map<std::string, std::string> fontFilePaths_;  // Font name to file path
+    std::unordered_map<std::string, unsigned int> textureCache_;  // Path to texture ID
+    bool hotReloadingEnabled_ = false;
 };
 
 } // namespace d2
