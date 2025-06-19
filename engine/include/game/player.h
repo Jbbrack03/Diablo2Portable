@@ -13,6 +13,7 @@ public:
     CharacterClass getCharacterClass() const;
     glm::vec2 getPosition() const;
     void setPosition(const glm::vec2& position);
+    void move(const glm::vec2& delta);
     
 private:
     Character m_character;

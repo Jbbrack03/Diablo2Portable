@@ -40,3 +40,17 @@ TEST_F(PlayerTest, SetPlayerPosition) {
     EXPECT_FLOAT_EQ(position.x, 100.0f);
     EXPECT_FLOAT_EQ(position.y, 200.0f);
 }
+
+TEST_F(PlayerTest, MovePlayer) {
+    Character character(CharacterClass::AMAZON);
+    Player player(character);
+    player.setPosition(glm::vec2(100.0f, 100.0f));
+    
+    // Move player by a delta
+    glm::vec2 movement(10.0f, -5.0f);
+    player.move(movement);
+    
+    glm::vec2 position = player.getPosition();
+    EXPECT_FLOAT_EQ(position.x, 110.0f);
+    EXPECT_FLOAT_EQ(position.y, 95.0f);
+}

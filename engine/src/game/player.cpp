@@ -18,4 +18,8 @@ void Player::setPosition(const glm::vec2& position) {
     m_position = position;
 }
 
+void Player::move(const glm::vec2& delta) {
+    m_position += delta;
+}
+
 } // namespace d2::game
