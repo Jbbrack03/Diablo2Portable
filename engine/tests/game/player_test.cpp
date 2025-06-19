@@ -28,3 +28,15 @@ TEST_F(PlayerTest, PlayerHasPositionInWorld) {
     EXPECT_FLOAT_EQ(position.x, 0.0f);
     EXPECT_FLOAT_EQ(position.y, 0.0f);
 }
+
+TEST_F(PlayerTest, SetPlayerPosition) {
+    Character character(CharacterClass::NECROMANCER);
+    Player player(character);
+    
+    glm::vec2 newPosition(100.0f, 200.0f);
+    player.setPosition(newPosition);
+    
+    glm::vec2 position = player.getPosition();
+    EXPECT_FLOAT_EQ(position.x, 100.0f);
+    EXPECT_FLOAT_EQ(position.y, 200.0f);
+}

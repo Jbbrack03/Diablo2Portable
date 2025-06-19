@@ -14,4 +14,8 @@ glm::vec2 Player::getPosition() const {
     return m_position;
 }
 
+void Player::setPosition(const glm::vec2& position) {
+    m_position = position;
+}
+
 } // namespace d2::game
