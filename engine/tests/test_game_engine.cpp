@@ -111,4 +111,12 @@ TEST_F(GameEngineTest, RenderFrame) {
     EXPECT_TRUE(engine.renderFrame());
 }
 
+TEST_F(GameEngineTest, GameEngineHasGameState) {
+    GameEngine engine;
+    engine.initialize();
+    
+    auto* gameState = engine.getGameState();
+    EXPECT_NE(gameState, nullptr);
+}
+
 } // namespace d2::test

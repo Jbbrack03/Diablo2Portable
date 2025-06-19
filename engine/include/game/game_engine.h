@@ -13,6 +13,9 @@ namespace d2 {
 namespace rendering {
 class Renderer;
 }
+namespace game {
+class GameState;
+}
 
 class GameEngine {
 public:
@@ -41,11 +44,16 @@ public:
         return renderer_.get();
     }
     
+    d2::game::GameState* getGameState() const {
+        return gameState_.get();
+    }
+    
 private:
     bool initialized_ = false;
     bool running_ = false;
     std::unique_ptr<d2portable::core::AssetManager> assetManager_;
     std::unique_ptr<d2::rendering::Renderer> renderer_;
+    std::unique_ptr<d2::game::GameState> gameState_;
 };
 
 } // namespace d2
