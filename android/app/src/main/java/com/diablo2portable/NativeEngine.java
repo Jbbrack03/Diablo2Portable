@@ -61,6 +61,10 @@ public class NativeEngine {
         return initialized;
     }
 
+    public long getEngineHandle() {
+        return nativeHandle;
+    }
+
     // Native method declarations
     public static native long createEngine();
     public static native void destroyEngine(long handle);
