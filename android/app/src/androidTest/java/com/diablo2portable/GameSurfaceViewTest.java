@@ -94,10 +94,9 @@ public class GameSurfaceViewTest {
                 surfaceField.setAccessible(true);
                 GameSurfaceView surfaceView = (GameSurfaceView) surfaceField.get(activity);
                 
-                // Verify render mode is set to when dirty (current implementation)
-                // TODO: This should be changed to RENDERMODE_CONTINUOUSLY for a game
-                assertEquals("Render mode should be when dirty", 
-                            GLSurfaceView.RENDERMODE_WHEN_DIRTY, 
+                // Verify render mode is continuous for game
+                assertEquals("Render mode should be continuous", 
+                            GLSurfaceView.RENDERMODE_CONTINUOUSLY, 
                             surfaceView.getRenderMode());
             } catch (Exception e) {
                 throw new AssertionError("Failed to verify render mode", e);

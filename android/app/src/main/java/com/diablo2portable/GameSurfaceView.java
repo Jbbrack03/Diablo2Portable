@@ -28,8 +28,8 @@ public class GameSurfaceView extends GLSurfaceView {
         gameRenderer = new GameRenderer(nativeEngine);
         setRenderer(gameRenderer);
         
-        // Only render when surface is dirty (for efficiency)
-        setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
+        // Render continuously for smooth game updates
+        setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY);
     }
 
     @Override
@@ -42,8 +42,6 @@ public class GameSurfaceView extends GLSurfaceView {
             // Forward touch events to native engine
             nativeEngine.onTouchEvent(x, y, action);
             
-            // Request a render
-            requestRender();
             return true;
         }
         
