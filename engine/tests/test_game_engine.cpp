@@ -31,4 +31,32 @@ TEST_F(GameEngineTest, InitializeEngine) {
     EXPECT_FALSE(engine.isRunning());
 }
 
+TEST_F(GameEngineTest, InitializeWithAssetPath) {
+    GameEngine engine;
+    
+    // Use current directory which should exist
+    bool result = engine.initialize(".");
+    
+    EXPECT_TRUE(result);
+    EXPECT_TRUE(engine.isInitialized());
+    
+    // Verify asset manager was initialized with the path
+    auto* assetManager = engine.getAssetManager();
+    EXPECT_NE(assetManager, nullptr);
+}
+
+TEST_F(GameEngineTest, InitializeWithInvalidPath) {
+    GameEngine engine;
+    
+    // Use a path that doesn't exist
+    bool result = engine.initialize("/non/existent/path");
+    
+    EXPECT_FALSE(result);
+    EXPECT_FALSE(engine.isInitialized());
+    
+    // Asset manager should still be created but initialization failed
+    auto* assetManager = engine.getAssetManager();
+    EXPECT_NE(assetManager, nullptr);
+}
+
 } // namespace d2::test
