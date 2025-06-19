@@ -265,6 +265,7 @@ When tests fail, investigate carefully before changing them:
 - ✅ Created Espresso UI tests for Android components (12 tests)
 - ✅ Added controller input handling in MainActivity
 - ✅ Created ProGuard rules for release builds
+- ✅ Fixed GameSurfaceView to use continuous rendering for smooth gameplay
 - ✅ **TDD Compliance**: All Android features implemented with strict RED-GREEN cycles
 - 🚧 Need to add app icons for all densities
 - **Tests Added**: 66 new tests for Android systems (31 C++ tests + 12 Espresso tests)
