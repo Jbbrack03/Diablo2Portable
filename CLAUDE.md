@@ -268,6 +268,8 @@ When tests fail, investigate carefully before changing them:
 - ✅ Fixed GameSurfaceView to use continuous rendering for smooth gameplay
 - ✅ Added app icons for all required densities (mdpi through xxxhdpi)
 - ✅ Implemented adaptive icon support for Android 8.0+
+- ✅ Fixed CMake configuration for Android NDK builds
+- ✅ Created JNI bridge placeholder for native engine integration
 - ✅ **TDD Compliance**: All Android features implemented with strict RED-GREEN cycles
 - **Tests Added**: 67 new tests for Android systems (31 C++ tests + 13 Espresso tests)
 
