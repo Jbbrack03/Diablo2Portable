@@ -16,6 +16,9 @@ class Renderer;
 namespace game {
 class GameState;
 }
+namespace input {
+class InputManager;
+}
 
 class GameEngine {
 public:
@@ -48,12 +51,17 @@ public:
         return gameState_.get();
     }
     
+    d2::input::InputManager* getInputManager() const {
+        return inputManager_.get();
+    }
+    
 private:
     bool initialized_ = false;
     bool running_ = false;
     std::unique_ptr<d2portable::core::AssetManager> assetManager_;
     std::unique_ptr<d2::rendering::Renderer> renderer_;
     std::unique_ptr<d2::game::GameState> gameState_;
+    std::unique_ptr<d2::input::InputManager> inputManager_;
 };
 
 } // namespace d2

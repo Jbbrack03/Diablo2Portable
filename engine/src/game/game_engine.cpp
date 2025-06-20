@@ -2,6 +2,7 @@
 #include "core/asset_manager.h"
 #include "rendering/renderer.h"
 #include "game/game_state.h"
+#include "input/input_manager.h"
 
 namespace d2 {
 
@@ -29,6 +30,9 @@ bool GameEngine::initialize(const std::string& assetPath) {
     
     // Create game state
     gameState_ = std::make_unique<d2::game::GameState>();
+    
+    // Create input manager (with nullptr for now - will be properly initialized later)
+    inputManager_ = std::make_unique<d2::input::InputManager>(nullptr);
     
     initialized_ = true;
     return true;
