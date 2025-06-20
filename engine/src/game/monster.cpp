@@ -1,5 +1,6 @@
 #include "game/monster.h"
 #include <cmath>
+#include <glm/glm.hpp>
 
 namespace d2::game {
 
@@ -7,8 +8,6 @@ Monster::Monster(MonsterType type, int level)
     : m_type(type)
     , m_level(level)
     , m_attackRating(0)
-    , m_positionX(0)
-    , m_positionY(0)
     , m_aiState(AIState::IDLE)
     , m_hasTarget(false)
     , m_targetX(0)
@@ -114,8 +113,8 @@ void Monster::clearTarget() {
 }
 
 void Monster::setPosition(int x, int y) {
-    m_positionX = x;
-    m_positionY = y;
+    // Only update Entity's position
+    Entity::setPosition(glm::vec2(static_cast<float>(x), static_cast<float>(y)));
 }
 
 void Monster::takeDamage(int damage) {
@@ -148,8 +147,8 @@ void Monster::updateAI() {
     
     // Priority 2: Attacking when close to target (distance <= 10)
     if (m_hasTarget) {
-        int dx = m_targetX - m_positionX;
-        int dy = m_targetY - m_positionY;
+        int dx = m_targetX - static_cast<int>(position_.x);
+        int dy = m_targetY - static_cast<int>(position_.y);
         int distanceSquared = dx * dx + dy * dy;
         
         if (distanceSquared <= 100) {  // Distance <= 10 (10^2 = 100)
@@ -158,8 +157,8 @@ void Monster::updateAI() {
         } else {
             // Check territory constraints if monster has territory
             if (m_hasTerritory) {
-                int territoryDx = m_territoryCenterX - m_positionX;
-                int territoryDy = m_territoryCenterY - m_positionY;
+                int territoryDx = m_territoryCenterX - static_cast<int>(position_.x);
+                int territoryDy = m_territoryCenterY - static_cast<int>(position_.y);
                 int territoryDistSquared = territoryDx * territoryDx + territoryDy * territoryDy;
                 int maxTerritoryDistSquared = m_territoryRadius * m_territoryRadius;
                 
@@ -204,8 +203,8 @@ void Monster::setEliteType(const std::string& eliteType) {
 
 void Monster::checkPlayerProximity(int playerX, int playerY, float wakeRange) {
     if (m_isSleeping) {
-        int dx = playerX - m_positionX;
-        int dy = playerY - m_positionY;
+        int dx = playerX - static_cast<int>(position_.x);
+        int dy = playerY - static_cast<int>(position_.y);
         float distanceSquared = static_cast<float>(dx * dx + dy * dy);
         float wakeRangeSquared = wakeRange * wakeRange;
         

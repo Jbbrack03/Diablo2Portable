@@ -5,6 +5,7 @@
 #include <unordered_map>
 #include <string>
 #include <vector>
+#include "game/entity.h"
 
 namespace d2::game {
 
@@ -31,7 +32,7 @@ struct SpecialAbility {
     std::string effect;
 };
 
-class Monster {
+class Monster : public Entity {
 public:
     explicit Monster(MonsterType type, int level);
     
@@ -43,8 +44,8 @@ public:
     int getAttackRating() const { return m_attackRating; }
     
     // Position methods
-    int getPositionX() const { return m_positionX; }
-    int getPositionY() const { return m_positionY; }
+    int getPositionX() const { return static_cast<int>(position_.x); }
+    int getPositionY() const { return static_cast<int>(position_.y); }
     void setPosition(int x, int y);
     
     // Combat methods
@@ -83,9 +84,6 @@ private:
     int m_defense;
     int m_attackRating;
     
-    // Position
-    int m_positionX;
-    int m_positionY;
     
     // AI state
     AIState m_aiState;

@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 #include "game/monster.h"
 #include "game/combat_engine.h"
+#include "game/entity.h"
 
 using namespace d2::game;
 
@@ -228,4 +229,21 @@ TEST_F(MonsterTest, SleepAwakeningBehavior) {
     
     EXPECT_FALSE(sleeper.isSleeping());
     EXPECT_EQ(sleeper.getAIState(), AIState::SEEKING);
+}
+
+// Test for Phase 16: Monster inherits from Entity
+TEST_F(MonsterTest, MonsterInheritsFromEntity) {
+    Monster skeleton(MonsterType::SKELETON, 1);
+    
+    // Monster should be an Entity
+    Entity* entity = &skeleton;
+    EXPECT_NE(entity, nullptr);
+    
+    // Should be able to use Entity methods
+    entity->setPosition(glm::vec2(100.0f, 200.0f));
+    EXPECT_EQ(entity->getPosition(), glm::vec2(100.0f, 200.0f));
+    
+    // Monster's own position methods should also work
+    EXPECT_EQ(skeleton.getPositionX(), 100);
+    EXPECT_EQ(skeleton.getPositionY(), 200);
 }
