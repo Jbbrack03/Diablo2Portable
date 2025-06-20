@@ -76,11 +76,10 @@ TEST_F(ItemDropIntegrationTest, GameEngineHasLootSystem) {
 TEST_F(ItemDropIntegrationTest, MonsterDeathGeneratesLoot) {
     // Configure loot system for basic drops
     auto* lootSystem = engine->getLootSystem();
-    std::vector<LootTableEntry> lootTable = {
-        {ItemType::WEAPON, 0.5f},
-        {ItemType::GOLD, 1.0f}  // Always drop gold
-    };
-    lootSystem->setMonsterLootTable(MonsterType::SKELETON, lootTable);
+    // Set gold drop chance to 100%
+    lootSystem->setGoldDropChance(1.0f);
+    // Configure gold range for level 5 monsters
+    lootSystem->setGoldRange(1, 10, 10, 50);
     
     // Add a monster to the game
     auto skeleton = std::make_shared<Monster>(MonsterType::SKELETON, 5);
