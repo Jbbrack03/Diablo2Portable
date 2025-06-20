@@ -41,6 +41,7 @@ set(TEST_SOURCES
     game/player_test.cpp
     game/game_state_test.cpp
     game/game_engine_input_test.cpp
+    game/entity_manager_test.cpp
     test_game_engine.cpp
     map/map_loader_test.cpp
     map/pathfinding_test.cpp

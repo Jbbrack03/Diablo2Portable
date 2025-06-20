@@ -227,8 +227,8 @@ When tests fail, investigate carefully before changing them:
 ## Current Implementation Status (June 2025)
 
 ### 📊 **Overall Project Statistics:**
-- **Total Tests**: 426 (407 C++ unit tests + 19 Android Espresso tests)
-- **Test Success Rate**: 98% (417 passing, 9 skipped)
+- **Total Tests**: 430 (411 C++ unit tests + 19 Android Espresso tests)
+- **Test Success Rate**: 98% (421 passing, 9 skipped)
 - **Test Coverage**: ✅ 95%+ achieved - All implementation files now tested
 - **Integration Testing**: ✅ Real MPQ file validation with Diablo II game assets in vendor/extracted_mpq/
 - **Total Source Files**: 100+ (C++ engine implementation)
@@ -333,10 +333,14 @@ When tests fail, investigate carefully before changing them:
 - ✅ Player entity implementation with position and movement (4 tests)
 - ✅ GameState class for world state management (2 tests)
 - ✅ GameEngine integration with GameState (2 tests)
-- 🚧 Input system integration with Player movement
+- ✅ Input system integration with Player movement (4 tests)
+  - ✅ GameEngine has InputManager
+  - ✅ processInput method moves player
+  - ✅ update method integrates input processing
+  - ✅ Full renderFrame->update->input->player movement pipeline
 - 🚧 Basic world rendering with player
 - 🚧 Entity management system
-- **Tests Added**: 8 new tests for game integration
+- **Tests Added**: 12 new tests for game integration
 
 ### 🎯 **Current Status:**
 - 🚧 **70% project completion** - Core systems done, game integration in progress
@@ -345,7 +349,7 @@ When tests fail, investigate carefully before changing them:
 - ✅ **D2-accurate mechanics** - Life calculation, hit chance caps, strength damage bonus corrected
 - ✅ **95%+ test coverage achieved** - All implementation files comprehensively tested
 - ✅ **Android integration complete** - Full Android app structure with all required components
-- 🎯 **426 total tests** - 417 passing, 9 skipped (MPQ integration tests)
+- 🎯 **430 total tests** - 421 passing, 9 skipped (MPQ integration tests)
 
 ### 📖 **Documentation:**
 - **Development History**: See `Docs/DEVELOPMENT_HISTORY.md` for detailed phase summaries

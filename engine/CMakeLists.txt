@@ -45,6 +45,7 @@ add_library(d2engine STATIC
     src/game/player.cpp
     src/game/game_state.cpp
     src/game/game_engine.cpp
+    src/game/entity_manager.cpp
     src/map/map_loader.cpp
     src/map/pathfinder.cpp
     src/map/ds1_parser.cpp
