@@ -4,6 +4,7 @@
 #include "game/game_state.h"
 #include "game/player.h"
 #include "game/character.h"
+#include "game/monster.h"
 #include "rendering/sprite_renderer.h"
 #include "rendering/renderer.h"
 #include "rendering/texture_manager.h"
@@ -210,4 +211,60 @@ TEST_F(WorldRendererTest, RenderHUD) {
     }
     
     EXPECT_GE(hudElements, 2) << "Should render at least health and mana HUD elements";
+}
+
+// Test 6: WorldRenderer should render monsters
+TEST_F(WorldRendererTest, RenderMonsters) {
+    // Create a player
+    Character character(CharacterClass::BARBARIAN);
+    auto player = std::make_shared<Player>(character);
+    player->setPosition(glm::vec2(50.0f, 50.0f));
+    gameState->setPlayer(player);
+    
+    // Add some monsters to the game state
+    auto skeleton = std::make_shared<Monster>(MonsterType::SKELETON, 5);
+    skeleton->setPosition(100, 100);
+    
+    auto zombie = std::make_shared<Monster>(MonsterType::ZOMBIE, 7);
+    zombie->setPosition(200, 150);
+    
+    auto demon = std::make_shared<Monster>(MonsterType::DEMON, 10);
+    demon->setPosition(300, 200);
+    
+    gameState->addMonster(skeleton);
+    gameState->addMonster(zombie);
+    gameState->addMonster(demon);
+    
+    // Render the world
+    worldRenderer->render(*gameState, *testSpriteRenderer);
+    
+    // Verify sprite renderer was called correctly
+    EXPECT_TRUE(testSpriteRenderer->beginFrameCalled);
+    EXPECT_TRUE(testSpriteRenderer->endFrameCalled);
+    
+    // Should have rendered player + 3 monsters = 4 entities
+    EXPECT_EQ(testSpriteRenderer->drawCalls.size(), 4u);
+    
+    // Verify correct positions (player first, then monsters)
+    if (testSpriteRenderer->drawCalls.size() >= 4) {
+        // Player at (50, 50)
+        EXPECT_FLOAT_EQ(testSpriteRenderer->drawCalls[0].position.x, 50.0f);
+        EXPECT_FLOAT_EQ(testSpriteRenderer->drawCalls[0].position.y, 50.0f);
+        
+        // Check that monsters are rendered (order may vary)
+        bool foundSkeleton = false;
+        bool foundZombie = false;
+        bool foundDemon = false;
+        
+        for (size_t i = 1; i < testSpriteRenderer->drawCalls.size(); ++i) {
+            const auto& pos = testSpriteRenderer->drawCalls[i].position;
+            if (pos.x == 100.0f && pos.y == 100.0f) foundSkeleton = true;
+            if (pos.x == 200.0f && pos.y == 150.0f) foundZombie = true;
+            if (pos.x == 300.0f && pos.y == 200.0f) foundDemon = true;
+        }
+        
+        EXPECT_TRUE(foundSkeleton) << "Skeleton should be rendered at (100, 100)";
+        EXPECT_TRUE(foundZombie) << "Zombie should be rendered at (200, 150)";
+        EXPECT_TRUE(foundDemon) << "Demon should be rendered at (300, 200)";
+    }
 }

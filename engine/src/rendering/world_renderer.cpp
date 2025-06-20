@@ -3,6 +3,7 @@
 #include "rendering/camera.h"
 #include "game/game_state.h"
 #include "game/player.h"
+#include "game/monster.h"
 #include "map/map_loader.h"
 #include "core/asset_manager.h"
 #include <algorithm>
@@ -74,6 +75,43 @@ void WorldRenderer::render(const d2::game::GameState& gameState, SpriteRenderer&
                 playerTextureId,
                 player->getPosition(),
                 PLAYER_SIZE
+            );
+        }
+    }
+    
+    // Render monsters
+    const auto& monsters = gameState.getAllMonsters();
+    for (const auto& [id, monster] : monsters) {
+        if (monster) {
+            // Use texture based on monster type
+            uint32_t monsterTextureId = 3; // Default placeholder
+            if (assetManager_) {
+                // Different texture IDs for different monster types
+                switch (monster->getType()) {
+                    case d2::game::MonsterType::SKELETON:
+                        monsterTextureId = 400;
+                        break;
+                    case d2::game::MonsterType::ZOMBIE:
+                        monsterTextureId = 401;
+                        break;
+                    case d2::game::MonsterType::DEMON:
+                        monsterTextureId = 402;
+                        break;
+                    case d2::game::MonsterType::FALLEN:
+                        monsterTextureId = 403;
+                        break;
+                    case d2::game::MonsterType::GOLEM:
+                        monsterTextureId = 404;
+                        break;
+                }
+            }
+            
+            const glm::vec2 MONSTER_SIZE(48.0f, 48.0f);
+            
+            spriteRenderer.drawSprite(
+                monsterTextureId,
+                monster->getPosition(),
+                MONSTER_SIZE
             );
         }
     }
