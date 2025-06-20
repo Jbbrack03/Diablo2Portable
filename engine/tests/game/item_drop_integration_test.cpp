@@ -7,6 +7,9 @@
 #include "game/entity.h"
 #include "game/dropped_item.h"
 #include "game/loot_system.h"
+#include "game/player.h"
+#include "game/character.h"
+#include "game/inventory.h"
 
 using namespace d2;
 using namespace d2::game;
@@ -107,4 +110,37 @@ TEST_F(ItemDropIntegrationTest, MonsterDeathGeneratesLoot) {
         }
     }
     EXPECT_TRUE(foundGold);
+}
+
+// Test 5: Player should pick up items when walking over them
+TEST_F(ItemDropIntegrationTest, PlayerPicksUpDroppedItems) {
+    // Add a player to the game
+    Character character(CharacterClass::BARBARIAN);
+    auto player = std::make_shared<Player>(character);
+    player->setPosition(glm::vec2(50.0f, 50.0f));
+    gameState->setPlayer(player);
+    
+    // Create and drop an item at a specific location
+    auto potion = std::make_shared<Item>("Health Potion", ItemType::CONSUMABLE);
+    potion->setSize(1, 1);  // Small item
+    auto droppedItem = std::make_shared<DroppedItem>(potion, glm::vec2(60.0f, 60.0f));
+    EntityId droppedId = gameState->addDroppedItem(droppedItem);
+    
+    // Verify item is in the world
+    EXPECT_EQ(gameState->getAllDroppedItems().size(), 1);
+    
+    // Move player to the item location
+    player->setPosition(glm::vec2(60.0f, 60.0f));
+    
+    // Process item pickup
+    engine->processItemPickup();
+    
+    // Item should be removed from world
+    EXPECT_EQ(gameState->getAllDroppedItems().size(), 0);
+    EXPECT_EQ(gameState->getDroppedItem(droppedId), nullptr);
+    
+    // For now, we'll just verify the item was removed from the world
+    // In a full implementation, we'd add a method to Player to check inventory
+    // or expose the character's inventory
+    // TODO: Add inventory checking once Player interface is extended
 }

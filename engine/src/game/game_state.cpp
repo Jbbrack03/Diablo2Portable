@@ -74,4 +74,8 @@ const std::unordered_map<EntityId, std::shared_ptr<DroppedItem>>& GameState::get
     return m_droppedItems;
 }
 
+void GameState::removeDroppedItem(EntityId id) {
+    m_droppedItems.erase(id);
+}
+
 } // namespace d2::game

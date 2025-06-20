@@ -37,6 +37,7 @@ public:
     EntityId addDroppedItem(std::shared_ptr<DroppedItem> item);
     std::shared_ptr<DroppedItem> getDroppedItem(EntityId id) const;
     const std::unordered_map<EntityId, std::shared_ptr<DroppedItem>>& getAllDroppedItems() const;
+    void removeDroppedItem(EntityId id);
 
 private:
     std::shared_ptr<Player> m_player;

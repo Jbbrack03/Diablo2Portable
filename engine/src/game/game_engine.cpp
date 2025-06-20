@@ -15,6 +15,7 @@
 #include <glm/glm.hpp>
 #include <glm/geometric.hpp>
 #include <cstdlib>
+#include <vector>
 
 namespace d2 {
 
@@ -218,6 +219,50 @@ void GameEngine::processMonsterDeath(game::EntityId monsterId) {
         
         // Add it to the game state
         gameState_->addDroppedItem(droppedItem);
+    }
+}
+
+void GameEngine::processItemPickup() {
+    if (!initialized_ || !gameState_) {
+        return;
+    }
+    
+    // Get the player
+    auto player = gameState_->getPlayer();
+    if (!player) {
+        return;
+    }
+    
+    // Get player position
+    glm::vec2 playerPos = player->getPosition();
+    
+    // Define pickup radius
+    const float PICKUP_RADIUS = 20.0f;
+    
+    // Check all dropped items
+    const auto& droppedItems = gameState_->getAllDroppedItems();
+    std::vector<game::EntityId> itemsToPickup;
+    
+    for (const auto& [id, droppedItem] : droppedItems) {
+        // Calculate distance to item
+        glm::vec2 itemPos = droppedItem->getPosition();
+        float distance = glm::length(itemPos - playerPos);
+        
+        // If within pickup range, mark for pickup
+        if (distance <= PICKUP_RADIUS) {
+            itemsToPickup.push_back(id);
+        }
+    }
+    
+    // Remove picked up items from the world
+    for (game::EntityId id : itemsToPickup) {
+        // In a full implementation, we would:
+        // 1. Get the item from the dropped item
+        // 2. Add it to the player's inventory
+        // 3. Only remove from world if successfully added to inventory
+        
+        // For now, just remove from world
+        gameState_->removeDroppedItem(id);
     }
 }
 

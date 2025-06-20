@@ -50,6 +50,7 @@ public:
     void processInput(const glm::vec2& movement);
     void processCombat(float deltaTime);
     void processMonsterDeath(game::EntityId monsterId);
+    void processItemPickup();
     
     d2portable::core::AssetManager* getAssetManager() const { 
         return assetManager_.get(); 
