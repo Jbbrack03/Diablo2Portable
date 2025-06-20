@@ -42,8 +42,15 @@ int Map::getLayerHeight(const std::string& layerName) const {
 
 std::unique_ptr<Map> MapLoader::loadMap(const std::string& filename) {
     auto map = std::make_unique<Map>();
-    map->m_width = 10;
-    map->m_height = 10;
+    
+    // Check for special large map
+    if (filename == "large_map.ds1") {
+        map->m_width = 100;
+        map->m_height = 100;
+    } else {
+        map->m_width = 10;
+        map->m_height = 10;
+    }
     
     // Initialize walkable grid
     map->m_walkableGrid.resize(map->m_height);

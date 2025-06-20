@@ -7,6 +7,7 @@
 #include "rendering/sprite_renderer.h"
 #include "rendering/renderer.h"
 #include "rendering/texture_manager.h"
+#include "rendering/camera.h"
 #include "map/map_loader.h"
 
 using namespace d2::rendering;
@@ -104,4 +105,30 @@ TEST_F(WorldRendererTest, RenderMapTiles) {
     
     // Should render map tiles (10x10 = 100 tiles from default test map)
     EXPECT_GE(testSpriteRenderer->drawCalls.size(), 100u);
+}
+
+// Test 3: WorldRenderer should only render visible tiles (viewport culling)
+TEST_F(WorldRendererTest, ViewportCulling) {
+    // Create a large map
+    MapLoader loader;
+    auto map = loader.loadMap("large_map.ds1"); // This should create a larger map
+    ASSERT_NE(map, nullptr);
+    
+    // Add map to game state
+    gameState->setMap(std::move(map));
+    
+    // Set up a camera with limited viewport
+    Camera camera(800, 600); // 800x600 viewport
+    
+    // Render with camera viewport
+    worldRenderer->renderWithCamera(*gameState, *testSpriteRenderer, camera);
+    
+    // Should only render visible tiles, not all tiles
+    // With 32x32 tiles, 800x600 viewport should show about 25x19 = 475 tiles
+    // Plus margin tiles, expect around 540 tiles
+    EXPECT_LE(testSpriteRenderer->drawCalls.size(), 600u);
+    EXPECT_GT(testSpriteRenderer->drawCalls.size(), 400u);
+    
+    // Verify we're not rendering all tiles (100x100 = 10000)
+    EXPECT_LT(testSpriteRenderer->drawCalls.size(), 1000u);
 }
