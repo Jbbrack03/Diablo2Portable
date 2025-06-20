@@ -1,5 +1,6 @@
 #include "game/game_state.h"
 #include "game/player.h"
+#include "game/monster.h"
 #include "map/map_loader.h"
 
 namespace d2::game {
@@ -30,6 +31,24 @@ void GameState::setMap(std::unique_ptr<d2::map::Map> map) {
 
 const d2::map::Map* GameState::getMap() const {
     return m_map.get();
+}
+
+EntityId GameState::addMonster(std::shared_ptr<Monster> monster) {
+    EntityId id = m_entityManager.addEntity(monster);
+    m_monsters[id] = monster;
+    return id;
+}
+
+std::shared_ptr<Monster> GameState::getMonster(EntityId id) const {
+    auto it = m_monsters.find(id);
+    if (it != m_monsters.end()) {
+        return it->second;
+    }
+    return nullptr;
+}
+
+size_t GameState::getMonsterCount() const {
+    return m_monsters.size();
 }
 
 } // namespace d2::game

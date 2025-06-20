@@ -3,6 +3,8 @@
 #include "game/game_state.h"
 #include "game/player.h"
 #include "game/character.h"
+#include "game/monster.h"
+#include "game/entity_manager.h"
 
 using namespace d2::game;
 
@@ -30,4 +32,32 @@ TEST_F(GameStateTest, AddPlayerToGameState) {
     
     EXPECT_TRUE(gameState.hasPlayer());
     EXPECT_EQ(gameState.getPlayer(), player);
+}
+
+// Test for Phase 16: Add monsters to GameState
+TEST_F(GameStateTest, AddMonstersToGameState) {
+    GameState gameState;
+    
+    // Should be able to add monsters to the game state
+    auto skeleton = std::make_shared<Monster>(MonsterType::SKELETON, 5);
+    skeleton->setPosition(100, 200);
+    
+    auto zombie = std::make_shared<Monster>(MonsterType::ZOMBIE, 7);
+    zombie->setPosition(300, 400);
+    
+    EntityId skeletonId = gameState.addMonster(skeleton);
+    EntityId zombieId = gameState.addMonster(zombie);
+    
+    // Should have valid IDs
+    EXPECT_NE(skeletonId, INVALID_ENTITY_ID);
+    EXPECT_NE(zombieId, INVALID_ENTITY_ID);
+    EXPECT_NE(skeletonId, zombieId);
+    
+    // Should be able to retrieve monsters
+    EXPECT_EQ(gameState.getMonsterCount(), 2);
+    
+    auto retrievedSkeleton = gameState.getMonster(skeletonId);
+    EXPECT_NE(retrievedSkeleton, nullptr);
+    EXPECT_EQ(retrievedSkeleton->getType(), MonsterType::SKELETON);
+    EXPECT_EQ(retrievedSkeleton->getLevel(), 5);
 }
