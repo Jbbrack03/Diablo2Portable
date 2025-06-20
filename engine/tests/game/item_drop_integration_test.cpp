@@ -6,6 +6,7 @@
 #include "game/item.h"
 #include "game/entity.h"
 #include "game/dropped_item.h"
+#include "game/loot_system.h"
 
 using namespace d2;
 using namespace d2::game;
@@ -59,4 +60,11 @@ TEST_F(ItemDropIntegrationTest, GameStateManagesDroppedItems) {
     const auto& allDropped = gameState->getAllDroppedItems();
     EXPECT_EQ(allDropped.size(), 1);
     EXPECT_EQ(allDropped.at(id), droppedItem);
+}
+
+// Test 3: GameEngine should integrate LootSystem
+TEST_F(ItemDropIntegrationTest, GameEngineHasLootSystem) {
+    // GameEngine should have a getter for LootSystem
+    auto* lootSystem = engine->getLootSystem();
+    EXPECT_NE(lootSystem, nullptr);
 }

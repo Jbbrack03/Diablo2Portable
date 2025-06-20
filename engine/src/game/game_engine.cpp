@@ -9,6 +9,7 @@
 #include "game/player.h"
 #include "game/monster.h"
 #include "game/combat_engine.h"
+#include "game/loot_system.h"
 #include "input/input_manager.h"
 #include <glm/glm.hpp>
 #include <glm/geometric.hpp>
@@ -57,6 +58,9 @@ bool GameEngine::initialize(const std::string& assetPath) {
     
     // Create combat engine
     combatEngine_ = std::make_unique<d2::game::CombatEngine>();
+    
+    // Create loot system
+    lootSystem_ = std::make_unique<d2::game::LootSystem>();
     
     initialized_ = true;
     return true;

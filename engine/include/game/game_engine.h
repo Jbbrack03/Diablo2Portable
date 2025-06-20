@@ -20,6 +20,7 @@ class SpriteRenderer;
 namespace game {
 class GameState;
 class CombatEngine;
+class LootSystem;
 }
 namespace input {
 class InputManager;
@@ -64,6 +65,10 @@ public:
         return inputManager_.get();
     }
     
+    d2::game::LootSystem* getLootSystem() const {
+        return lootSystem_.get();
+    }
+    
 private:
     bool initialized_ = false;
     bool running_ = false;
@@ -75,6 +80,7 @@ private:
     std::unique_ptr<d2::game::GameState> gameState_;
     std::unique_ptr<d2::input::InputManager> inputManager_;
     std::unique_ptr<d2::game::CombatEngine> combatEngine_;
+    std::unique_ptr<d2::game::LootSystem> lootSystem_;
 };
 
 } // namespace d2
