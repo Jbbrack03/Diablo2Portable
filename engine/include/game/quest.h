@@ -2,6 +2,8 @@
 
 #include <string>
 #include <memory>
+#include <unordered_map>
+#include "game/monster.h"
 
 namespace d2 {
 
@@ -38,6 +40,12 @@ public:
     void setComplete(bool complete) { isComplete_ = complete; }
     void setActive(bool active) { isActive_ = active; }
     
+    // Kill tracking for quest objectives
+    void setKillRequirement(game::MonsterType monsterType, int count);
+    int getRequiredKills(game::MonsterType monsterType) const;
+    int getCurrentKills(game::MonsterType monsterType) const;
+    void recordKill(game::MonsterType monsterType);
+    
 private:
     QuestId id_;
     std::string name_;
@@ -45,6 +53,12 @@ private:
     QuestType type_;
     bool isComplete_ = false;
     bool isActive_ = true;
+    
+    // Kill tracking
+    std::unordered_map<game::MonsterType, int> requiredKills_;
+    std::unordered_map<game::MonsterType, int> currentKills_;
+    
+    void checkCompletion();
 };
 
 } // namespace d2

@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 #include "game/quest.h"
 #include "game/quest_manager.h"
+#include "game/monster.h"
 
 namespace d2 {
 
@@ -30,6 +31,38 @@ TEST_F(QuestSystemTest, CreateBasicQuest) {
     EXPECT_EQ(quest->getType(), QuestType::KILL_MONSTERS);
     EXPECT_FALSE(quest->isComplete());
     EXPECT_TRUE(quest->isActive());
+}
+
+// Test 2: Quest objectives tracking
+TEST_F(QuestSystemTest, TrackKillObjectives) {
+    auto quest = questManager->createQuest(
+        QuestId::DEN_OF_EVIL,
+        "Den of Evil", 
+        "Clear the Den of Evil",
+        QuestType::KILL_MONSTERS
+    );
+    
+    // Set kill requirement
+    quest->setKillRequirement(game::MonsterType::FALLEN, 5);
+    
+    EXPECT_EQ(quest->getRequiredKills(game::MonsterType::FALLEN), 5);
+    EXPECT_EQ(quest->getCurrentKills(game::MonsterType::FALLEN), 0);
+    EXPECT_FALSE(quest->isComplete());
+    
+    // Track kills
+    quest->recordKill(game::MonsterType::FALLEN);
+    quest->recordKill(game::MonsterType::FALLEN);
+    
+    EXPECT_EQ(quest->getCurrentKills(game::MonsterType::FALLEN), 2);
+    EXPECT_FALSE(quest->isComplete());
+    
+    // Complete the requirement
+    quest->recordKill(game::MonsterType::FALLEN);
+    quest->recordKill(game::MonsterType::FALLEN);
+    quest->recordKill(game::MonsterType::FALLEN);
+    
+    EXPECT_EQ(quest->getCurrentKills(game::MonsterType::FALLEN), 5);
+    EXPECT_TRUE(quest->isComplete());
 }
 
 } // namespace d2
