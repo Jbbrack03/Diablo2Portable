@@ -227,12 +227,12 @@ When tests fail, investigate carefully before changing them:
 ## Current Implementation Status (June 2025)
 
 ### 📊 **Overall Project Statistics:**
-- **Total Tests**: 430 (411 C++ unit tests + 19 Android Espresso tests)
-- **Test Success Rate**: 98% (421 passing, 9 skipped)
+- **Total Tests**: 431 (412 C++ unit tests + 19 Android Espresso tests)
+- **Test Success Rate**: 98% (422 passing, 9 skipped)
 - **Test Coverage**: ✅ 95%+ achieved - All implementation files now tested
 - **Integration Testing**: ✅ Real MPQ file validation with Diablo II game assets in vendor/extracted_mpq/
 - **Total Source Files**: 100+ (C++ engine implementation)
-- **Lines of Code**: ~18,500+ (core engine only)
+- **Lines of Code**: ~19,000+ (core engine only)
 - **Phases Completed**: 14 of 20 (Phases 0-13 complete, 14 in progress)
 - **Project Status**: **Core systems implemented, game integration in progress**
 - **Asset Extraction**: ✅ 100% success rate on real Diablo II files (StormLib integration)
@@ -295,7 +295,7 @@ When tests fail, investigate carefully before changing them:
 - ✅ Enabled all MPQ integration tests using real game files from vendor folder
 - **Tests Added**: 16 new tests for text rendering system
 
-**GameEngine Implementation** (Current Session) - ✅ **COMPLETED**
+**GameEngine Implementation** (Previous Session) - ✅ **COMPLETED**
 - ✅ Created GameEngine class to integrate all game systems
 - ✅ Implemented initialization with asset manager and renderer support
 - ✅ Added start/stop functionality for game lifecycle management
@@ -303,6 +303,16 @@ When tests fail, investigate carefully before changing them:
 - ✅ Updated JNI bridge to use GameEngine instead of placeholder
 - ✅ **TDD Compliance**: All features implemented with strict RED-GREEN cycles
 - **Tests Added**: 8 new tests for GameEngine functionality
+
+**Input-Player Integration** (Current Session) - ✅ **COMPLETED**
+- ✅ Added InputManager to GameEngine for input handling
+- ✅ Implemented processInput method for direct player movement
+- ✅ Created update method that integrates input processing into game loop
+- ✅ Connected renderFrame->update->input->player movement pipeline
+- ✅ Created EntityManager for managing game entities
+- ✅ Refactored Player to inherit from Entity base class
+- ✅ **TDD Compliance**: All features implemented with strict RED-GREEN cycles
+- **Tests Added**: 5 new tests (4 for input integration, 1 for entity manager)
 
 **Phase 11: Test Coverage Completion** (Week 27) - ✅ **COMPLETED**
 - ✅ Added comprehensive tests for character_inventory.cpp (16 tests)
@@ -338,9 +348,12 @@ When tests fail, investigate carefully before changing them:
   - ✅ processInput method moves player
   - ✅ update method integrates input processing
   - ✅ Full renderFrame->update->input->player movement pipeline
+- ✅ Entity management system (1 test)
+  - ✅ EntityManager can add entities
+  - ✅ Entity base class for Player and Monster
+  - ✅ Player refactored to inherit from Entity
 - 🚧 Basic world rendering with player
-- 🚧 Entity management system
-- **Tests Added**: 12 new tests for game integration
+- **Tests Added**: 13 new tests for game integration
 
 ### 🎯 **Current Status:**
 - 🚧 **70% project completion** - Core systems done, game integration in progress
@@ -349,7 +362,7 @@ When tests fail, investigate carefully before changing them:
 - ✅ **D2-accurate mechanics** - Life calculation, hit chance caps, strength damage bonus corrected
 - ✅ **95%+ test coverage achieved** - All implementation files comprehensively tested
 - ✅ **Android integration complete** - Full Android app structure with all required components
-- 🎯 **430 total tests** - 421 passing, 9 skipped (MPQ integration tests)
+- 🎯 **431 total tests** - 422 passing, 9 skipped (MPQ integration tests)
 
 ### 📖 **Documentation:**
 - **Development History**: See `Docs/DEVELOPMENT_HISTORY.md` for detailed phase summaries
