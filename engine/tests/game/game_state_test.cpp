@@ -61,3 +61,40 @@ TEST_F(GameStateTest, AddMonstersToGameState) {
     EXPECT_EQ(retrievedSkeleton->getType(), MonsterType::SKELETON);
     EXPECT_EQ(retrievedSkeleton->getLevel(), 5);
 }
+
+// Test for Phase 16: Get all monsters from GameState
+TEST_F(GameStateTest, GetAllMonsters) {
+    GameState gameState;
+    
+    // Add multiple monsters
+    auto skeleton1 = std::make_shared<Monster>(MonsterType::SKELETON, 5);
+    auto skeleton2 = std::make_shared<Monster>(MonsterType::SKELETON, 6);
+    auto zombie = std::make_shared<Monster>(MonsterType::ZOMBIE, 7);
+    
+    gameState.addMonster(skeleton1);
+    gameState.addMonster(skeleton2);
+    gameState.addMonster(zombie);
+    
+    // Get all monsters
+    auto allMonsters = gameState.getAllMonsters();
+    
+    EXPECT_EQ(allMonsters.size(), 3);
+    
+    // Check that all monsters are in the list
+    int skeletonCount = 0;
+    int zombieCount = 0;
+    
+    for (const auto& [id, monster] : allMonsters) {
+        EXPECT_NE(id, INVALID_ENTITY_ID);
+        EXPECT_NE(monster, nullptr);
+        
+        if (monster->getType() == MonsterType::SKELETON) {
+            skeletonCount++;
+        } else if (monster->getType() == MonsterType::ZOMBIE) {
+            zombieCount++;
+        }
+    }
+    
+    EXPECT_EQ(skeletonCount, 2);
+    EXPECT_EQ(zombieCount, 1);
+}

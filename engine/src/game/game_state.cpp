@@ -51,4 +51,8 @@ size_t GameState::getMonsterCount() const {
     return m_monsters.size();
 }
 
+const std::unordered_map<EntityId, std::shared_ptr<Monster>>& GameState::getAllMonsters() const {
+    return m_monsters;
+}
+
 } // namespace d2::game

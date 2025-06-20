@@ -30,6 +30,7 @@ public:
     EntityId addMonster(std::shared_ptr<Monster> monster);
     std::shared_ptr<Monster> getMonster(EntityId id) const;
     size_t getMonsterCount() const;
+    const std::unordered_map<EntityId, std::shared_ptr<Monster>>& getAllMonsters() const;
 
 private:
     std::shared_ptr<Player> m_player;
