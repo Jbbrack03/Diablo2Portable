@@ -40,6 +40,7 @@ public:
     
     bool renderFrame();
     
+    void update(float deltaTime);
     void processInput(const glm::vec2& movement);
     
     d2portable::core::AssetManager* getAssetManager() const { 

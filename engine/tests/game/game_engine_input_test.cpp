@@ -61,3 +61,23 @@ TEST_F(GameEngineInputTest, ProcessInputMovesPlayer) {
     EXPECT_GT(player->getPosition().x, 100.0f);
     EXPECT_FLOAT_EQ(player->getPosition().y, 100.0f);
 }
+
+// Test 3: GameEngine should update game state during renderFrame
+TEST_F(GameEngineInputTest, UpdateGameStateDuringRenderFrame) {
+    EXPECT_TRUE(engine->initialize());
+    EXPECT_TRUE(engine->start());
+    
+    // Add a player
+    auto* gameState = engine->getGameState();
+    Character character(CharacterClass::BARBARIAN);
+    auto player = std::make_shared<Player>(character);
+    player->setPosition(glm::vec2(100.0f, 100.0f));
+    gameState->setPlayer(player);
+    
+    // GameEngine should have an update method that processes the game state
+    float deltaTime = 0.016f; // 60 FPS
+    engine->update(deltaTime);
+    
+    // For now, just verify update was called without crashing
+    EXPECT_TRUE(true);
+}

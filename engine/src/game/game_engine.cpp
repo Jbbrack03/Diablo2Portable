@@ -62,12 +62,14 @@ bool GameEngine::renderFrame() {
     }
     
     // Basic game loop structure:
-    // 1. Process input (not implemented yet)
-    // 2. Update game state
-    // 3. Render the frame
+    // 1. Calculate delta time (for now using fixed timestep)
+    float deltaTime = 0.016f; // 60 FPS
     
-    // For now, we have the basic structure in place
-    // The actual rendering will need:
+    // 2. Update game state (includes input processing)
+    update(deltaTime);
+    
+    // 3. Render the frame
+    // TODO: Implement actual rendering
     // - Clear the screen
     // - Render the world/map
     // - Render entities (player, monsters, NPCs)
@@ -75,6 +77,26 @@ bool GameEngine::renderFrame() {
     // - Present the frame
     
     return true;
+}
+
+void GameEngine::update(float deltaTime) {
+    if (!initialized_ || !running_) {
+        return;
+    }
+    
+    // Update input manager
+    if (inputManager_) {
+        inputManager_->update();
+        
+        // Process player movement from input
+        if (gameState_ && gameState_->hasPlayer()) {
+            glm::vec2 movement = inputManager_->getMovement();
+            processInput(movement);
+        }
+    }
+    
+    // Update game state (physics, AI, animations, etc.)
+    // TODO: Add more game state updates
 }
 
 void GameEngine::processInput(const glm::vec2& movement) {
