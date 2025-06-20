@@ -2,6 +2,7 @@
 #include "core/asset_manager.h"
 #include "rendering/renderer.h"
 #include "game/game_state.h"
+#include "game/player.h"
 #include "input/input_manager.h"
 
 namespace d2 {
@@ -74,6 +75,22 @@ bool GameEngine::renderFrame() {
     // - Present the frame
     
     return true;
+}
+
+void GameEngine::processInput(const glm::vec2& movement) {
+    if (!initialized_ || !running_) {
+        return;
+    }
+    
+    // Move the player based on input
+    if (gameState_ && gameState_->hasPlayer()) {
+        auto player = gameState_->getPlayer();
+        if (player) {
+            // Simple movement - scale by a fixed speed for now
+            const float PLAYER_SPEED = 5.0f;
+            player->move(movement * PLAYER_SPEED);
+        }
+    }
 }
 
 } // namespace d2

@@ -2,6 +2,7 @@
 
 #include <memory>
 #include <string>
+#include <glm/glm.hpp>
 
 namespace d2portable {
 namespace core {
@@ -38,6 +39,8 @@ public:
     void stop();
     
     bool renderFrame();
+    
+    void processInput(const glm::vec2& movement);
     
     d2portable::core::AssetManager* getAssetManager() const { 
         return assetManager_.get(); 

@@ -40,3 +40,24 @@ TEST_F(GameEngineInputTest, GameEngineHasInputManager) {
     auto* inputManager = engine->getInputManager();
     EXPECT_NE(inputManager, nullptr);
 }
+
+// Test 2: GameEngine should process input and update player position
+TEST_F(GameEngineInputTest, ProcessInputMovesPlayer) {
+    EXPECT_TRUE(engine->initialize());
+    EXPECT_TRUE(engine->start());
+    
+    // Add a player to the game state
+    auto* gameState = engine->getGameState();
+    Character character(CharacterClass::BARBARIAN);
+    auto player = std::make_shared<Player>(character);
+    player->setPosition(glm::vec2(100.0f, 100.0f));
+    gameState->setPlayer(player);
+    
+    // GameEngine should have a method to process input that moves the player
+    glm::vec2 movement(1.0f, 0.0f); // Move right
+    engine->processInput(movement);
+    
+    // Player should have moved
+    EXPECT_GT(player->getPosition().x, 100.0f);
+    EXPECT_FLOAT_EQ(player->getPosition().y, 100.0f);
+}
