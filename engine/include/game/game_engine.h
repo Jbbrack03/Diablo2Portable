@@ -23,6 +23,7 @@ class GameState;
 class CombatEngine;
 class LootSystem;
 }
+class QuestManager;
 namespace input {
 class InputManager;
 }
@@ -72,6 +73,10 @@ public:
         return lootSystem_.get();
     }
     
+    QuestManager* getQuestManager() const {
+        return questManager_.get();
+    }
+    
 private:
     bool initialized_ = false;
     bool running_ = false;
@@ -84,6 +89,7 @@ private:
     std::unique_ptr<d2::input::InputManager> inputManager_;
     std::unique_ptr<d2::game::CombatEngine> combatEngine_;
     std::unique_ptr<d2::game::LootSystem> lootSystem_;
+    std::unique_ptr<QuestManager> questManager_;
 };
 
 } // namespace d2

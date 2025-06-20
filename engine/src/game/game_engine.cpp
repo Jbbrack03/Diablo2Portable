@@ -11,6 +11,7 @@
 #include "game/combat_engine.h"
 #include "game/loot_system.h"
 #include "game/dropped_item.h"
+#include "game/quest_manager.h"
 #include "input/input_manager.h"
 #include <glm/glm.hpp>
 #include <glm/geometric.hpp>
@@ -64,6 +65,9 @@ bool GameEngine::initialize(const std::string& assetPath) {
     
     // Create loot system
     lootSystem_ = std::make_unique<d2::game::LootSystem>();
+    
+    // Create quest manager
+    questManager_ = std::make_unique<d2::QuestManager>();
     
     initialized_ = true;
     return true;

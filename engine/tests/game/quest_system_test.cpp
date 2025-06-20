@@ -2,6 +2,7 @@
 #include "game/quest.h"
 #include "game/quest_manager.h"
 #include "game/monster.h"
+#include "game/game_engine.h"
 
 namespace d2 {
 
@@ -89,6 +90,28 @@ TEST_F(QuestSystemTest, IntegrateWithGameEngine) {
     
     EXPECT_TRUE(quest->isComplete());
     EXPECT_TRUE(questManager->isQuestComplete(QuestId::DEN_OF_EVIL));
+}
+
+// Test 4: GameEngine quest integration
+TEST_F(QuestSystemTest, GameEngineQuestTracking) {
+    // This test will verify that GameEngine has QuestManager
+    // For now, we'll just test that we can get the quest manager from game engine
+    GameEngine gameEngine;
+    gameEngine.initialize();
+    
+    auto* engineQuestManager = gameEngine.getQuestManager();
+    EXPECT_NE(engineQuestManager, nullptr);
+    
+    // Create a quest through the engine's quest manager
+    auto quest = engineQuestManager->createQuest(
+        QuestId::BLOOD_RAVEN,
+        "Blood Raven",
+        "Defeat Blood Raven",
+        QuestType::KILL_BOSS
+    );
+    
+    EXPECT_NE(quest, nullptr);
+    EXPECT_EQ(quest->getName(), "Blood Raven");
 }
 
 } // namespace d2
