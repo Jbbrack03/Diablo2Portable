@@ -178,3 +178,36 @@ TEST_F(WorldRendererTest, UseActualSprites) {
     EXPECT_TRUE(foundPlayerSprite) << "Player should use real sprite texture";
     EXPECT_TRUE(foundTileSprite) << "Tiles should use real sprite textures";
 }
+
+// Test 5: WorldRenderer should render HUD elements
+TEST_F(WorldRendererTest, RenderHUD) {
+    // Create player with specific stats
+    Character character(CharacterClass::SORCERESS);
+    character.setLevel(10);
+    character.setStat(StatType::VITALITY, 50); // Will affect life
+    character.setStat(StatType::ENERGY, 40);   // Will affect mana
+    
+    auto player = std::make_shared<Player>(character);
+    gameState->setPlayer(player);
+    
+    // Enable HUD rendering
+    worldRenderer->setHUDEnabled(true);
+    
+    // Render the world
+    worldRenderer->render(*gameState, *testSpriteRenderer);
+    
+    // Should have rendered HUD elements in addition to player
+    // Expect at least 2 draw calls for health/mana orbs or bars
+    EXPECT_GE(testSpriteRenderer->drawCalls.size(), 3u); // Player + at least 2 HUD elements
+    
+    // Check for HUD-specific draw calls (different sizes/positions)
+    int hudElements = 0;
+    for (const auto& drawCall : testSpriteRenderer->drawCalls) {
+        // HUD elements are typically at fixed screen positions
+        if (drawCall.position.y >= 500.0f) { // Bottom of screen
+            hudElements++;
+        }
+    }
+    
+    EXPECT_GE(hudElements, 2) << "Should render at least health and mana HUD elements";
+}

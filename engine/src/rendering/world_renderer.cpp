@@ -13,6 +13,14 @@ void WorldRenderer::initialize(const d2portable::core::AssetManager& assetManage
     assetManager_ = &assetManager;
 }
 
+void WorldRenderer::setHUDEnabled(bool enabled) {
+    hudEnabled_ = enabled;
+}
+
+bool WorldRenderer::isHUDEnabled() const {
+    return hudEnabled_;
+}
+
 void WorldRenderer::render(const d2::game::GameState& gameState, SpriteRenderer& spriteRenderer) {
     // Begin rendering frame
     spriteRenderer.beginFrame();
@@ -66,6 +74,36 @@ void WorldRenderer::render(const d2::game::GameState& gameState, SpriteRenderer&
                 playerTextureId,
                 player->getPosition(),
                 PLAYER_SIZE
+            );
+        }
+    }
+    
+    // Render HUD if enabled and player exists
+    if (hudEnabled_ && gameState.hasPlayer()) {
+        auto player = gameState.getPlayer();
+        if (player) {
+            // For now, just render the HUD elements without actual stats
+            // In a real implementation, we'd get health/mana values from the character
+            
+            // Health orb/bar (bottom left)
+            const uint32_t HEALTH_HUD_TEXTURE = 300;
+            const glm::vec2 HEALTH_POS(50.0f, 550.0f); // Bottom left
+            const glm::vec2 HUD_SIZE(100.0f, 30.0f);
+            
+            spriteRenderer.drawSprite(
+                HEALTH_HUD_TEXTURE,
+                HEALTH_POS,
+                HUD_SIZE
+            );
+            
+            // Mana orb/bar (bottom right) 
+            const uint32_t MANA_HUD_TEXTURE = 301;
+            const glm::vec2 MANA_POS(650.0f, 550.0f); // Bottom right
+            
+            spriteRenderer.drawSprite(
+                MANA_HUD_TEXTURE,
+                MANA_POS,
+                HUD_SIZE
             );
         }
     }
