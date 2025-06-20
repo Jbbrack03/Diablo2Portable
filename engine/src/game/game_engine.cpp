@@ -7,7 +7,11 @@
 #include "rendering/texture_manager.h"
 #include "game/game_state.h"
 #include "game/player.h"
+#include "game/monster.h"
+#include "game/combat_engine.h"
 #include "input/input_manager.h"
+#include <glm/glm.hpp>
+#include <glm/geometric.hpp>
 
 namespace d2 {
 
@@ -50,6 +54,9 @@ bool GameEngine::initialize(const std::string& assetPath) {
     
     // Create input manager (with nullptr for now - will be properly initialized later)
     inputManager_ = std::make_unique<d2::input::InputManager>(nullptr);
+    
+    // Create combat engine
+    combatEngine_ = std::make_unique<d2::game::CombatEngine>();
     
     initialized_ = true;
     return true;
@@ -132,6 +139,46 @@ void GameEngine::processInput(const glm::vec2& movement) {
             // Simple movement - scale by a fixed speed for now
             const float PLAYER_SPEED = 5.0f;
             player->move(movement * PLAYER_SPEED);
+        }
+    }
+}
+
+void GameEngine::processCombat(float deltaTime) {
+    if (!initialized_ || !running_ || !gameState_ || !combatEngine_) {
+        return;
+    }
+    
+    // Only process combat if we have a player
+    if (!gameState_->hasPlayer()) {
+        return;
+    }
+    
+    auto player = gameState_->getPlayer();
+    if (!player) {
+        return;
+    }
+    
+    // Check combat between player and all monsters
+    const auto& monsters = gameState_->getAllMonsters();
+    for (const auto& [id, monster] : monsters) {
+        if (!monster || monster->getCurrentLife() <= 0) {
+            continue;
+        }
+        
+        // Calculate distance between player and monster
+        glm::vec2 playerPos = player->getPosition();
+        glm::vec2 monsterPos = monster->getPosition();
+        float distance = glm::length(monsterPos - playerPos);
+        
+        // If within melee range, process combat
+        const float MELEE_RANGE = 50.0f;
+        if (distance <= MELEE_RANGE) {
+            // For now, simple combat processing
+            // In a full implementation, we'd get player stats from character
+            // and use CombatEngine to calculate hit chance and damage
+            
+            // Placeholder combat - just do a fixed damage
+            monster->takeDamage(10);
         }
     }
 }

@@ -19,6 +19,7 @@ class SpriteRenderer;
 }
 namespace game {
 class GameState;
+class CombatEngine;
 }
 namespace input {
 class InputManager;
@@ -45,6 +46,7 @@ public:
     
     void update(float deltaTime);
     void processInput(const glm::vec2& movement);
+    void processCombat(float deltaTime);
     
     d2portable::core::AssetManager* getAssetManager() const { 
         return assetManager_.get(); 
@@ -72,6 +74,7 @@ private:
     std::unique_ptr<d2::rendering::SpriteRenderer> spriteRenderer_;
     std::unique_ptr<d2::game::GameState> gameState_;
     std::unique_ptr<d2::input::InputManager> inputManager_;
+    std::unique_ptr<d2::game::CombatEngine> combatEngine_;
 };
 
 } // namespace d2
