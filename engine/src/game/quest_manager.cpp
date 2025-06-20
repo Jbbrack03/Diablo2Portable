@@ -1,4 +1,5 @@
 #include "game/quest_manager.h"
+#include <algorithm>
 
 namespace d2 {
 
@@ -15,6 +16,25 @@ std::shared_ptr<Quest> QuestManager::getQuest(QuestId id) const {
         return it->second;
     }
     return nullptr;
+}
+
+void QuestManager::startTracking(std::shared_ptr<Quest> quest) {
+    if (quest && quest->isActive()) {
+        activeQuests_.push_back(quest);
+    }
+}
+
+void QuestManager::onMonsterKilled(game::MonsterType monsterType) {
+    for (auto& quest : activeQuests_) {
+        if (quest->isActive() && !quest->isComplete()) {
+            quest->recordKill(monsterType);
+        }
+    }
+}
+
+bool QuestManager::isQuestComplete(QuestId id) const {
+    auto quest = getQuest(id);
+    return quest && quest->isComplete();
 }
 
 } // namespace d2

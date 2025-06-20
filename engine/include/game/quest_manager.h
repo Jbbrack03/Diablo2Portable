@@ -17,8 +17,14 @@ public:
     
     std::shared_ptr<Quest> getQuest(QuestId id) const;
     
+    // Quest tracking
+    void startTracking(std::shared_ptr<Quest> quest);
+    void onMonsterKilled(game::MonsterType monsterType);
+    bool isQuestComplete(QuestId id) const;
+    
 private:
     std::unordered_map<QuestId, std::shared_ptr<Quest>> quests_;
+    std::vector<std::shared_ptr<Quest>> activeQuests_;
 };
 
 } // namespace d2

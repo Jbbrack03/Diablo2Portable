@@ -65,4 +65,30 @@ TEST_F(QuestSystemTest, TrackKillObjectives) {
     EXPECT_TRUE(quest->isComplete());
 }
 
+// Test 3: Quest system integration with GameEngine
+TEST_F(QuestSystemTest, IntegrateWithGameEngine) {
+    // Create a quest
+    auto quest = questManager->createQuest(
+        QuestId::DEN_OF_EVIL,
+        "Den of Evil", 
+        "Clear the Den of Evil",
+        QuestType::KILL_MONSTERS
+    );
+    quest->setKillRequirement(game::MonsterType::FALLEN, 3);
+    
+    // Integrate quest manager with game events
+    questManager->startTracking(quest);
+    
+    // Simulate monster kills
+    questManager->onMonsterKilled(game::MonsterType::FALLEN);
+    questManager->onMonsterKilled(game::MonsterType::FALLEN);
+    
+    EXPECT_FALSE(quest->isComplete());
+    
+    questManager->onMonsterKilled(game::MonsterType::FALLEN);
+    
+    EXPECT_TRUE(quest->isComplete());
+    EXPECT_TRUE(questManager->isQuestComplete(QuestId::DEN_OF_EVIL));
+}
+
 } // namespace d2
