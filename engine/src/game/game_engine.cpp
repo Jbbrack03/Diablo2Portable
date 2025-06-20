@@ -1,6 +1,10 @@
 #include "game/game_engine.h"
 #include "core/asset_manager.h"
 #include "rendering/renderer.h"
+#include "rendering/world_renderer.h"
+#include "rendering/camera.h"
+#include "rendering/sprite_renderer.h"
+#include "rendering/texture_manager.h"
 #include "game/game_state.h"
 #include "game/player.h"
 #include "input/input_manager.h"
@@ -28,6 +32,18 @@ bool GameEngine::initialize(const std::string& assetPath) {
     
     // Create renderer
     renderer_ = std::make_unique<d2::rendering::Renderer>();
+    
+    // Create sprite renderer
+    spriteRenderer_ = std::make_unique<d2::rendering::SpriteRenderer>();
+    // Initialize sprite renderer (simplified for now)
+    d2::rendering::TextureManager textureManager;
+    spriteRenderer_->initialize(*renderer_, textureManager);
+    
+    // Create world renderer
+    worldRenderer_ = std::make_unique<d2::rendering::WorldRenderer>();
+    
+    // Create camera (default 800x600 for now)
+    camera_ = std::make_unique<d2::rendering::Camera>(800, 600);
     
     // Create game state
     gameState_ = std::make_unique<d2::game::GameState>();
@@ -68,13 +84,18 @@ bool GameEngine::renderFrame() {
     // 2. Update game state (includes input processing)
     update(deltaTime);
     
-    // 3. Render the frame
-    // TODO: Implement actual rendering
-    // - Clear the screen
-    // - Render the world/map
-    // - Render entities (player, monsters, NPCs)
-    // - Render UI
-    // - Present the frame
+    // 3. Update camera to follow player
+    if (camera_ && gameState_ && gameState_->hasPlayer()) {
+        auto player = gameState_->getPlayer();
+        camera_->followTarget(player.get());
+        camera_->update();
+    }
+    
+    // 4. Render the frame
+    if (worldRenderer_ && spriteRenderer_ && gameState_) {
+        // Render the world using the world renderer
+        worldRenderer_->render(*gameState_, *spriteRenderer_);
+    }
     
     return true;
 }

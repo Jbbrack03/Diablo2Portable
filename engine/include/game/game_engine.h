@@ -13,6 +13,9 @@ class AssetManager;
 namespace d2 {
 namespace rendering {
 class Renderer;
+class WorldRenderer;
+class Camera;
+class SpriteRenderer;
 }
 namespace game {
 class GameState;
@@ -64,6 +67,9 @@ private:
     bool running_ = false;
     std::unique_ptr<d2portable::core::AssetManager> assetManager_;
     std::unique_ptr<d2::rendering::Renderer> renderer_;
+    std::unique_ptr<d2::rendering::WorldRenderer> worldRenderer_;
+    std::unique_ptr<d2::rendering::Camera> camera_;
+    std::unique_ptr<d2::rendering::SpriteRenderer> spriteRenderer_;
     std::unique_ptr<d2::game::GameState> gameState_;
     std::unique_ptr<d2::input::InputManager> inputManager_;
 };
