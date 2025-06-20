@@ -227,8 +227,8 @@ When tests fail, investigate carefully before changing them:
 ## Current Implementation Status (June 2025)
 
 ### 📊 **Overall Project Statistics:**
-- **Total Tests**: 431 (412 C++ unit tests + 19 Android Espresso tests)
-- **Test Success Rate**: 98% (422 passing, 9 skipped)
+- **Total Tests**: 434 (415 C++ unit tests + 19 Android Espresso tests)
+- **Test Success Rate**: 98% (425 passing, 9 skipped)
 - **Test Coverage**: ✅ 95%+ achieved - All implementation files now tested
 - **Integration Testing**: ✅ Real MPQ file validation with Diablo II game assets in vendor/extracted_mpq/
 - **Total Source Files**: 100+ (C++ engine implementation)
@@ -352,8 +352,11 @@ When tests fail, investigate carefully before changing them:
   - ✅ EntityManager can add entities
   - ✅ Entity base class for Player and Monster
   - ✅ Player refactored to inherit from Entity
-- 🚧 Basic world rendering with player
-- **Tests Added**: 13 new tests for game integration
+- ✅ Basic world rendering with player (3 tests)
+  - ✅ WorldRenderer renders player from GameState
+  - ✅ Camera follows player position
+  - ✅ GameEngine integrates rendering pipeline
+- **Tests Added**: 16 new tests for game integration
 
 ### 🎯 **Current Status:**
 - 🚧 **70% project completion** - Core systems done, game integration in progress
@@ -362,7 +365,7 @@ When tests fail, investigate carefully before changing them:
 - ✅ **D2-accurate mechanics** - Life calculation, hit chance caps, strength damage bonus corrected
 - ✅ **95%+ test coverage achieved** - All implementation files comprehensively tested
 - ✅ **Android integration complete** - Full Android app structure with all required components
-- 🎯 **431 total tests** - 422 passing, 9 skipped (MPQ integration tests)
+- 🎯 **434 total tests** - 425 passing, 9 skipped (MPQ integration tests)
 
 ### 📖 **Documentation:**
 - **Development History**: See `Docs/DEVELOPMENT_HISTORY.md` for detailed phase summaries
