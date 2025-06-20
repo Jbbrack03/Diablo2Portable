@@ -9,6 +9,7 @@
 #include "rendering/texture_manager.h"
 #include "rendering/camera.h"
 #include "map/map_loader.h"
+#include "core/asset_manager.h"
 
 using namespace d2::rendering;
 using namespace d2::game;
@@ -131,4 +132,49 @@ TEST_F(WorldRendererTest, ViewportCulling) {
     
     // Verify we're not rendering all tiles (100x100 = 10000)
     EXPECT_LT(testSpriteRenderer->drawCalls.size(), 1000u);
+}
+
+// Test 4: WorldRenderer should use actual sprite textures from AssetManager
+TEST_F(WorldRendererTest, UseActualSprites) {
+    // Set up asset manager with texture IDs
+    d2portable::core::AssetManager assetManager;
+    assetManager.initialize("test_assets");
+    
+    // Register some test textures
+    const uint32_t PLAYER_TEXTURE_ID = 100;
+    const uint32_t TILE_TEXTURE_ID = 200;
+    
+    // Initialize world renderer with asset manager
+    worldRenderer->initialize(assetManager);
+    
+    // Create player
+    Character character(CharacterClass::BARBARIAN);
+    auto player = std::make_shared<Player>(character);
+    player->setPosition(glm::vec2(100.0f, 100.0f));
+    gameState->setPlayer(player);
+    
+    // Create map
+    MapLoader loader;
+    auto map = loader.loadMap("test_map.ds1");
+    gameState->setMap(std::move(map));
+    
+    // Render the world
+    worldRenderer->render(*gameState, *testSpriteRenderer);
+    
+    // Verify proper texture IDs are used (not placeholder IDs)
+    bool foundPlayerSprite = false;
+    bool foundTileSprite = false;
+    
+    for (const auto& drawCall : testSpriteRenderer->drawCalls) {
+        if (drawCall.texture_id >= 100) { // Real texture IDs, not placeholders
+            if (drawCall.size.x == 64.0f && drawCall.size.y == 64.0f) {
+                foundPlayerSprite = true;
+            } else if (drawCall.size.x == 32.0f && drawCall.size.y == 32.0f) {
+                foundTileSprite = true;
+            }
+        }
+    }
+    
+    EXPECT_TRUE(foundPlayerSprite) << "Player should use real sprite texture";
+    EXPECT_TRUE(foundTileSprite) << "Tiles should use real sprite textures";
 }

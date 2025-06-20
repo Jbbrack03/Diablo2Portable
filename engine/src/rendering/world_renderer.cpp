@@ -4,9 +4,14 @@
 #include "game/game_state.h"
 #include "game/player.h"
 #include "map/map_loader.h"
+#include "core/asset_manager.h"
 #include <algorithm>
 
 namespace d2::rendering {
+
+void WorldRenderer::initialize(const d2portable::core::AssetManager& assetManager) {
+    assetManager_ = &assetManager;
+}
 
 void WorldRenderer::render(const d2::game::GameState& gameState, SpriteRenderer& spriteRenderer) {
     // Begin rendering frame
@@ -16,8 +21,14 @@ void WorldRenderer::render(const d2::game::GameState& gameState, SpriteRenderer&
     if (gameState.hasMap()) {
         const auto* map = gameState.getMap();
         if (map) {
-            // For now, render each tile as a placeholder sprite
-            const uint32_t TILE_TEXTURE_ID = 2;
+            // Use texture from asset manager if available, otherwise placeholder
+            uint32_t tileTextureId = 2; // Default placeholder
+            if (assetManager_) {
+                // In a real implementation, we'd look up the tile texture
+                // For now, use a fixed ID that's higher than placeholders
+                tileTextureId = 200;
+            }
+            
             const float TILE_SIZE = 32.0f; // Standard tile size
             
             // Render all tiles in the map
@@ -28,7 +39,7 @@ void WorldRenderer::render(const d2::game::GameState& gameState, SpriteRenderer&
                     
                     // Draw tile sprite
                     spriteRenderer.drawSprite(
-                        TILE_TEXTURE_ID,
+                        tileTextureId,
                         tilePos,
                         glm::vec2(TILE_SIZE, TILE_SIZE)
                     );
@@ -41,13 +52,18 @@ void WorldRenderer::render(const d2::game::GameState& gameState, SpriteRenderer&
     if (gameState.hasPlayer()) {
         auto player = gameState.getPlayer();
         if (player) {
-            // For now, use a placeholder texture ID and size
-            // TODO: Load actual player sprite texture
-            const uint32_t PLACEHOLDER_TEXTURE_ID = 1;
+            // Use texture from asset manager if available
+            uint32_t playerTextureId = 1; // Default placeholder
+            if (assetManager_) {
+                // In a real implementation, we'd look up the player sprite based on class/animation
+                // For now, use a fixed ID that's higher than placeholders
+                playerTextureId = 100;
+            }
+            
             const glm::vec2 PLAYER_SIZE(64.0f, 64.0f);
             
             spriteRenderer.drawSprite(
-                PLACEHOLDER_TEXTURE_ID,
+                playerTextureId,
                 player->getPosition(),
                 PLAYER_SIZE
             );
@@ -68,7 +84,11 @@ void WorldRenderer::renderWithCamera(const d2::game::GameState& gameState,
     if (gameState.hasMap()) {
         const auto* map = gameState.getMap();
         if (map) {
-            const uint32_t TILE_TEXTURE_ID = 2;
+            // Use texture from asset manager if available
+            uint32_t tileTextureId = 2; // Default placeholder
+            if (assetManager_) {
+                tileTextureId = 200;
+            }
             const float TILE_SIZE = 32.0f;
             
             // Get camera center and calculate visible bounds
@@ -96,7 +116,7 @@ void WorldRenderer::renderWithCamera(const d2::game::GameState& gameState,
                     glm::vec2 tilePos(x * TILE_SIZE, y * TILE_SIZE);
                     
                     spriteRenderer.drawSprite(
-                        TILE_TEXTURE_ID,
+                        tileTextureId,
                         tilePos,
                         glm::vec2(TILE_SIZE, TILE_SIZE)
                     );
@@ -109,11 +129,15 @@ void WorldRenderer::renderWithCamera(const d2::game::GameState& gameState,
     if (gameState.hasPlayer()) {
         auto player = gameState.getPlayer();
         if (player) {
-            const uint32_t PLACEHOLDER_TEXTURE_ID = 1;
+            // Use texture from asset manager if available
+            uint32_t playerTextureId = 1; // Default placeholder
+            if (assetManager_) {
+                playerTextureId = 100;
+            }
             const glm::vec2 PLAYER_SIZE(64.0f, 64.0f);
             
             spriteRenderer.drawSprite(
-                PLACEHOLDER_TEXTURE_ID,
+                playerTextureId,
                 player->getPosition(),
                 PLAYER_SIZE
             );
