@@ -15,9 +15,9 @@ public:
     ~SpriteRenderer() = default;
 
     bool initialize(const Renderer& renderer, const TextureManager& texture_manager);
-    void beginFrame();
-    void drawSprite(uint32_t texture_id, const glm::vec2& position, const glm::vec2& size);
-    void endFrame();
+    virtual void beginFrame();
+    virtual void drawSprite(uint32_t texture_id, const glm::vec2& position, const glm::vec2& size);
+    virtual void endFrame();
     
     uint32_t getDrawCallCount() const;
     uint32_t getSpriteCount() const;
