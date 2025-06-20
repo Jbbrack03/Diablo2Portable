@@ -1,6 +1,7 @@
 #include "game/game_state.h"
 #include "game/player.h"
 #include "game/monster.h"
+#include "game/dropped_item.h"
 #include "map/map_loader.h"
 
 namespace d2::game {
@@ -53,6 +54,24 @@ size_t GameState::getMonsterCount() const {
 
 const std::unordered_map<EntityId, std::shared_ptr<Monster>>& GameState::getAllMonsters() const {
     return m_monsters;
+}
+
+EntityId GameState::addDroppedItem(std::shared_ptr<DroppedItem> item) {
+    EntityId id = m_entityManager.addEntity(item);
+    m_droppedItems[id] = item;
+    return id;
+}
+
+std::shared_ptr<DroppedItem> GameState::getDroppedItem(EntityId id) const {
+    auto it = m_droppedItems.find(id);
+    if (it != m_droppedItems.end()) {
+        return it->second;
+    }
+    return nullptr;
+}
+
+const std::unordered_map<EntityId, std::shared_ptr<DroppedItem>>& GameState::getAllDroppedItems() const {
+    return m_droppedItems;
 }
 
 } // namespace d2::game

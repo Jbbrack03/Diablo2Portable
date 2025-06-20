@@ -12,6 +12,7 @@ namespace d2::game {
 
 class Player;
 class Monster;
+class DroppedItem;
 
 class GameState {
 public:
@@ -31,11 +32,17 @@ public:
     std::shared_ptr<Monster> getMonster(EntityId id) const;
     size_t getMonsterCount() const;
     const std::unordered_map<EntityId, std::shared_ptr<Monster>>& getAllMonsters() const;
+    
+    // Dropped item management
+    EntityId addDroppedItem(std::shared_ptr<DroppedItem> item);
+    std::shared_ptr<DroppedItem> getDroppedItem(EntityId id) const;
+    const std::unordered_map<EntityId, std::shared_ptr<DroppedItem>>& getAllDroppedItems() const;
 
 private:
     std::shared_ptr<Player> m_player;
     std::unique_ptr<d2::map::Map> m_map;
     std::unordered_map<EntityId, std::shared_ptr<Monster>> m_monsters;
+    std::unordered_map<EntityId, std::shared_ptr<DroppedItem>> m_droppedItems;
     EntityManager m_entityManager;
 };
 
