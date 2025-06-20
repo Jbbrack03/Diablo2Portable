@@ -270,7 +270,15 @@ When tests fail, investigate carefully before changing them:
 
 ### ✅ **Recently Completed:**
 
-**Phase 15: World Rendering Integration** (Current Session) - ✅ **COMPLETED**
+**Phase 16: Gameplay Implementation** (Current Session) - **IN PROGRESS**
+- ✅ Refactored Monster class to inherit from Entity base class
+- ✅ Added monster management to GameState (add, get, getAll methods)
+- ✅ Implemented monster rendering in WorldRenderer with type-specific textures
+- ✅ Integrated CombatEngine into GameEngine with processCombat method
+- ✅ **TDD Compliance**: All features implemented with strict RED-GREEN cycles
+- **Tests Added**: 5 new tests (MonsterInheritsFromEntity, AddMonstersToGameState, GetAllMonsters, RenderMonsters, ProcessCombat)
+
+**Phase 15: World Rendering Integration** (Previous Session) - ✅ **COMPLETED**
 - ✅ Map rendering support - GameState now manages maps, WorldRenderer renders all tiles
 - ✅ Viewport culling - renderWithCamera method only renders visible tiles (540/10000 for 100x100 map)
 - ✅ DC6 sprite integration - AssetManager provides texture IDs for sprites and tiles
@@ -378,20 +386,20 @@ When tests fail, investigate carefully before changing them:
 - **Tests Added**: 5 new tests for world rendering features
 - **TDD Compliance**: All features implemented with strict RED-GREEN cycles
 
-### 🚀 **Phase 16: Gameplay Implementation** (Week 32) - **READY TO START**
-- 🔲 Implement combat mechanics integration
-- 🔲 Add monsters to world
+### 🚀 **Phase 16: Gameplay Implementation** (Week 32) - **IN PROGRESS**
+- ✅ Implement combat mechanics integration - CombatEngine integrated into GameEngine
+- ✅ Add monsters to world - GameState manages monsters, WorldRenderer displays them
 - 🔲 Create item drops and loot system
 - 🔲 Basic quest/objective system
 
 ### 🎯 **Current Status:**
-- 🚧 **80% project completion** - Core systems done, world rendering complete
+- 🚧 **85% project completion** - Core systems done, gameplay integration in progress
 - ✅ **Production-ready systems** - All individual systems fully tested
 - ✅ **99.99% asset extraction** - Can load all Diablo II game files
 - ✅ **D2-accurate mechanics** - Life calculation, hit chance caps, strength damage bonus corrected
 - ✅ **95%+ test coverage achieved** - All implementation files comprehensively tested
 - ✅ **Android integration complete** - Full Android app structure with all required components
-- 🎯 **439 total tests** - 430 passing, 9 skipped (MPQ integration tests)
+- 🎯 **443 total tests** - 434 passing, 9 skipped (MPQ integration tests)
 
 ### 📖 **Documentation:**
 - **Development History**: See `Docs/DEVELOPMENT_HISTORY.md` for detailed phase summaries
