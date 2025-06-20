@@ -7,9 +7,11 @@
 #include "rendering/sprite_renderer.h"
 #include "rendering/renderer.h"
 #include "rendering/texture_manager.h"
+#include "map/map_loader.h"
 
 using namespace d2::rendering;
 using namespace d2::game;
+using namespace d2::map;
 
 // Test sprite renderer that tracks calls
 class TestSpriteRenderer : public SpriteRenderer {
@@ -81,4 +83,25 @@ TEST_F(WorldRendererTest, RenderPlayerInWorld) {
         EXPECT_FLOAT_EQ(drawCall.position.x, 100.0f);
         EXPECT_FLOAT_EQ(drawCall.position.y, 100.0f);
     }
+}
+
+// Test 2: WorldRenderer should render map tiles
+TEST_F(WorldRendererTest, RenderMapTiles) {
+    // Create a simple map using MapLoader
+    MapLoader loader;
+    auto map = loader.loadMap("test_map.ds1");
+    ASSERT_NE(map, nullptr);
+    
+    // Add map to game state
+    gameState->setMap(std::move(map));
+    
+    // Render the world
+    worldRenderer->render(*gameState, *testSpriteRenderer);
+    
+    // Verify sprite renderer was called correctly
+    EXPECT_TRUE(testSpriteRenderer->beginFrameCalled);
+    EXPECT_TRUE(testSpriteRenderer->endFrameCalled);
+    
+    // Should render map tiles (10x10 = 100 tiles from default test map)
+    EXPECT_GE(testSpriteRenderer->drawCalls.size(), 100u);
 }
