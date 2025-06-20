@@ -28,6 +28,7 @@ set(TEST_SOURCES
     rendering/texture_manager_test.cpp
     rendering/sprite_renderer_test.cpp
     rendering/world_renderer_test.cpp
+    rendering/camera_test.cpp
     input/gamepad_manager_test.cpp
     input/input_manager_test.cpp
     input/control_mapper_test.cpp
