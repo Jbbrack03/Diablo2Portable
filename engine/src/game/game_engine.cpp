@@ -10,9 +10,11 @@
 #include "game/monster.h"
 #include "game/combat_engine.h"
 #include "game/loot_system.h"
+#include "game/dropped_item.h"
 #include "input/input_manager.h"
 #include <glm/glm.hpp>
 #include <glm/geometric.hpp>
+#include <cstdlib>
 
 namespace d2 {
 
@@ -184,6 +186,38 @@ void GameEngine::processCombat(float deltaTime) {
             // Placeholder combat - just do a fixed damage
             monster->takeDamage(10);
         }
+    }
+}
+
+void GameEngine::processMonsterDeath(game::EntityId monsterId) {
+    if (!initialized_ || !gameState_ || !lootSystem_) {
+        return;
+    }
+    
+    // Get the monster
+    auto monster = gameState_->getMonster(monsterId);
+    if (!monster) {
+        return;
+    }
+    
+    // Generate loot using the loot system
+    auto lootItems = lootSystem_->generateLoot(monster);
+    
+    // Add each dropped item to the game world
+    for (const auto& item : lootItems) {
+        // Calculate drop position near the monster
+        glm::vec2 monsterPos = monster->getPosition();
+        
+        // Add some random offset so items don't all stack on top of each other
+        float offsetX = (rand() % 40) - 20;  // -20 to +20
+        float offsetY = (rand() % 40) - 20;  // -20 to +20
+        glm::vec2 dropPos = monsterPos + glm::vec2(offsetX, offsetY);
+        
+        // Create a dropped item entity
+        auto droppedItem = std::make_shared<game::DroppedItem>(item, dropPos);
+        
+        // Add it to the game state
+        gameState_->addDroppedItem(droppedItem);
     }
 }
 

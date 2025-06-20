@@ -3,6 +3,7 @@
 #include <memory>
 #include <string>
 #include <glm/glm.hpp>
+#include "game/entity_manager.h"
 
 namespace d2portable {
 namespace core {
@@ -48,6 +49,7 @@ public:
     void update(float deltaTime);
     void processInput(const glm::vec2& movement);
     void processCombat(float deltaTime);
+    void processMonsterDeath(game::EntityId monsterId);
     
     d2portable::core::AssetManager* getAssetManager() const { 
         return assetManager_.get(); 

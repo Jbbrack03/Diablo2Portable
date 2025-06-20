@@ -68,3 +68,43 @@ TEST_F(ItemDropIntegrationTest, GameEngineHasLootSystem) {
     auto* lootSystem = engine->getLootSystem();
     EXPECT_NE(lootSystem, nullptr);
 }
+
+// Test 4: When monster dies, loot should be generated and added to world
+TEST_F(ItemDropIntegrationTest, MonsterDeathGeneratesLoot) {
+    // Configure loot system for basic drops
+    auto* lootSystem = engine->getLootSystem();
+    std::vector<LootTableEntry> lootTable = {
+        {ItemType::WEAPON, 0.5f},
+        {ItemType::GOLD, 1.0f}  // Always drop gold
+    };
+    lootSystem->setMonsterLootTable(MonsterType::SKELETON, lootTable);
+    
+    // Add a monster to the game
+    auto skeleton = std::make_shared<Monster>(MonsterType::SKELETON, 5);
+    skeleton->setPosition(100, 100);
+    EntityId monsterId = gameState->addMonster(skeleton);
+    
+    // Simulate monster death
+    skeleton->takeDamage(skeleton->getLife() + 1);  // Deal enough damage to kill
+    EXPECT_LE(skeleton->getCurrentLife(), 0);
+    
+    // Process monster death in game engine
+    engine->processMonsterDeath(monsterId);
+    
+    // Check that loot was generated and added to the world
+    const auto& droppedItems = gameState->getAllDroppedItems();
+    EXPECT_GT(droppedItems.size(), 0);
+    
+    // Verify at least one gold drop
+    bool foundGold = false;
+    for (const auto& [id, droppedItem] : droppedItems) {
+        if (droppedItem->getItem()->getType() == ItemType::GOLD) {
+            foundGold = true;
+            // Items should be dropped near the monster's position
+            auto pos = droppedItem->getPosition();
+            EXPECT_NEAR(pos.x, 100.0f, 50.0f);  // Within 50 units
+            EXPECT_NEAR(pos.y, 100.0f, 50.0f);
+        }
+    }
+    EXPECT_TRUE(foundGold);
+}
