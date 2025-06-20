@@ -1750,19 +1750,530 @@ TEST(MPQTest, ConsistentImplementation) {
 9. **Full controller support**
 10. **Save compatibility maintained**
 
-## Revised Timeline
+---
 
-- **Original Plan**: 24 weeks (Phases 0-8)
-- **Gap Analysis**: Week 25 (Current session)
-- **Corrective Phases**: Weeks 25-29 (Phases 9-13)
-- **Total Revised Plan**: 29 weeks
+## Phase 14: Core Game Integration (Week 30) - **IN PROGRESS**
 
-## Next Steps
+### Objectives
+- Integrate all systems into a playable game
+- Create Player entity and game world
+- Implement basic game loop
+- Connect input to player actions
 
-1. **Prioritize Phase 9** (Text Rendering) - Critical for UI functionality
-2. **Execute Phase 10** (Game Mechanics) - Ensure D2 accuracy
-3. **Complete Phase 11** (Test Coverage) - Achieve quality targets
-4. **Evaluate Phase 12** (Android) - Based on deployment timeline
-5. **Finalize Phase 13** (Documentation) - Accurate project status
+### Tasks
 
-This expanded plan addresses all identified gaps while maintaining the rigorous TDD methodology and ensuring project completion with accurate documentation and full functionality.
+#### Task 14.1: Player Entity Implementation ✅ COMPLETED
+**Tests Written:**
+- CreatePlayerWithCharacter - Player holds character data
+- PlayerHasPositionInWorld - Player has world position
+- SetPlayerPosition - Can update player position
+- MovePlayer - Can move player by delta
+
+**Implementation:**
+- Player class with Character association
+- Position tracking (vec2)
+- Movement methods
+
+#### Task 14.2: GameState Management ✅ COMPLETED
+**Tests Written:**
+- CreateGameState - Empty state management
+- AddPlayerToGameState - Player ownership
+
+**Implementation:**
+- GameState class with player management
+- Integration with GameEngine
+
+#### Task 14.3: Input-Player Integration (IN PROGRESS)
+**Tests First:**
+```cpp
+TEST(InputIntegrationTest, GamepadMovesPlayer) {
+    GameState gameState;
+    auto player = std::make_shared<Player>(Character(CharacterClass::BARBARIAN));
+    gameState.setPlayer(player);
+    
+    InputManager input;
+    input.setGamepadAxis(AXIS_LEFT_X, 1.0f); // Full right
+    
+    // Process input through game update
+    gameState.processInput(input);
+    
+    // Player should have moved right
+    EXPECT_GT(player->getPosition().x, 0.0f);
+}
+```
+
+#### Task 14.4: Entity Management System
+**Tests First:**
+```cpp
+TEST(EntityManagerTest, AddAndRetrieveEntities) {
+    EntityManager manager;
+    
+    auto player = std::make_shared<Player>(Character(CharacterClass::SORCERESS));
+    auto monster = std::make_shared<Monster>(MonsterId::SKELETON);
+    
+    auto playerId = manager.addEntity(player);
+    auto monsterId = manager.addEntity(monster);
+    
+    EXPECT_EQ(manager.getEntity(playerId), player);
+    EXPECT_EQ(manager.getEntity(monsterId), monster);
+    EXPECT_EQ(manager.getEntityCount(), 2);
+}
+```
+
+**Deliverables:**
+- Player entity fully integrated
+- GameState managing world
+- Input system connected
+- Basic entity management
+
+---
+
+## Phase 15: World Rendering Integration (Week 31)
+
+### Objectives
+- Render game world with player
+- Implement camera system
+- Display game assets
+- Basic HUD implementation
+
+### Tasks
+
+#### Task 15.1: World Renderer
+**Tests First:**
+```cpp
+TEST(WorldRendererTest, RenderPlayerInWorld) {
+    WorldRenderer renderer;
+    GameState gameState;
+    
+    auto player = std::make_shared<Player>(Character(CharacterClass::PALADIN));
+    player->setPosition(glm::vec2(100, 100));
+    gameState.setPlayer(player);
+    
+    RenderContext context;
+    renderer.render(gameState, context);
+    
+    // Verify player sprite was submitted for rendering
+    EXPECT_EQ(context.getSpriteCount(), 1);
+    EXPECT_EQ(context.getSprite(0).position, glm::vec2(100, 100));
+}
+```
+
+#### Task 15.2: Camera System
+**Tests First:**
+```cpp
+TEST(CameraTest, FollowPlayer) {
+    Camera camera(800, 600); // Screen size
+    
+    Player player(Character(CharacterClass::AMAZON));
+    player.setPosition(glm::vec2(1000, 1000));
+    
+    camera.followTarget(&player);
+    camera.update();
+    
+    // Camera should center on player
+    glm::vec2 center = camera.getCenter();
+    EXPECT_FLOAT_EQ(center.x, 1000.0f);
+    EXPECT_FLOAT_EQ(center.y, 1000.0f);
+}
+```
+
+#### Task 15.3: Asset Loading
+**Tests First:**
+```cpp
+TEST(GameAssetsTest, LoadPlayerSprites) {
+    GameAssets assets;
+    assets.initialize("path/to/d2/files");
+    
+    auto barbarianWalk = assets.getPlayerSprite(
+        CharacterClass::BARBARIAN,
+        AnimationType::WALK
+    );
+    
+    EXPECT_NE(barbarianWalk, nullptr);
+    EXPECT_GT(barbarianWalk->getFrameCount(), 0);
+}
+```
+
+#### Task 15.4: HUD Implementation
+**Tests First:**
+```cpp
+TEST(HUDTest, DisplayPlayerStats) {
+    HUD hud;
+    Character character(CharacterClass::NECROMANCER);
+    character.setLevel(10);
+    character.setLife(250);
+    
+    hud.setCharacter(&character);
+    
+    auto lifeDisplay = hud.getElement("life");
+    EXPECT_EQ(lifeDisplay->getText(), "250/250");
+    
+    auto levelDisplay = hud.getElement("level");
+    EXPECT_EQ(levelDisplay->getText(), "10");
+}
+```
+
+**Deliverables:**
+- World rendering with player
+- Camera following player
+- Game assets loading
+- Basic HUD showing stats
+
+---
+
+## Phase 16: Gameplay Implementation (Week 32)
+
+### Objectives
+- Implement combat mechanics
+- Add monsters to world
+- Create item drops
+- Basic quest system
+
+### Tasks
+
+#### Task 16.1: Combat Integration
+**Tests First:**
+```cpp
+TEST(GameplayTest, PlayerAttackMonster) {
+    GameWorld world;
+    
+    auto player = world.spawnPlayer(CharacterClass::BARBARIAN);
+    auto monster = world.spawnMonster(MonsterId::FALLEN, glm::vec2(50, 0));
+    
+    player->setPosition(glm::vec2(0, 0));
+    player->attack(glm::vec2(1, 0)); // Attack right
+    
+    world.update(0.016f); // One frame
+    
+    // Monster should take damage
+    EXPECT_LT(monster->getLife(), monster->getMaxLife());
+}
+```
+
+#### Task 16.2: Monster Spawning
+**Tests First:**
+```cpp
+TEST(MonsterSpawnerTest, SpawnMonsterGroups) {
+    MonsterSpawner spawner;
+    GameWorld world;
+    
+    spawner.spawnGroup(
+        MonsterId::ZOMBIE,
+        glm::vec2(100, 100),
+        5, // count
+        world
+    );
+    
+    auto monsters = world.getMonstersInArea(
+        glm::vec2(100, 100),
+        50.0f // radius
+    );
+    
+    EXPECT_EQ(monsters.size(), 5);
+}
+```
+
+#### Task 16.3: Loot Integration
+**Tests First:**
+```cpp
+TEST(LootIntegrationTest, MonsterDropsItems) {
+    GameWorld world;
+    
+    auto monster = world.spawnMonster(MonsterId::SKELETON, glm::vec2(0, 0));
+    monster->setLife(0); // Kill it
+    
+    world.update(0.016f);
+    
+    auto items = world.getItemsInArea(glm::vec2(0, 0), 20.0f);
+    EXPECT_GT(items.size(), 0); // Should drop something
+}
+```
+
+#### Task 16.4: Quest Objectives
+**Tests First:**
+```cpp
+TEST(QuestTest, CompleteKillQuest) {
+    QuestManager quests;
+    GameWorld world;
+    
+    auto quest = quests.startQuest(QuestId::DEN_OF_EVIL);
+    EXPECT_FALSE(quest->isComplete());
+    
+    // Kill required monsters
+    for (int i = 0; i < quest->getRequiredKills(); i++) {
+        world.killMonster(MonsterId::FALLEN);
+    }
+    
+    quests.update(world);
+    EXPECT_TRUE(quest->isComplete());
+}
+```
+
+**Deliverables:**
+- Combat fully integrated
+- Monsters spawning and fighting
+- Loot dropping from monsters
+- Basic quest tracking
+
+---
+
+## Phase 17: Multiplayer Integration (Week 33)
+
+### Objectives
+- Integrate networking with gameplay
+- Synchronize player states
+- Handle multiplayer combat
+- Test LAN compatibility
+
+### Tasks
+
+#### Task 17.1: Network Game State
+**Tests First:**
+```cpp
+TEST(NetworkGameTest, SynchronizePlayers) {
+    NetworkGame host;
+    NetworkGame client;
+    
+    host.startHost(8999);
+    client.connect("localhost", 8999);
+    
+    // Host moves player
+    host.getPlayer()->move(glm::vec2(10, 0));
+    host.sendUpdate();
+    
+    // Client receives update
+    client.receiveUpdate();
+    auto remotePlayer = client.getRemotePlayer(0);
+    
+    EXPECT_FLOAT_EQ(remotePlayer->getPosition().x, 10.0f);
+}
+```
+
+#### Task 17.2: Combat Synchronization
+**Tests First:**
+```cpp
+TEST(NetworkCombatTest, SynchronizeDamage) {
+    NetworkGame host;
+    NetworkGame client;
+    
+    // Setup connection...
+    
+    auto monster = host.spawnMonster(MonsterId::ZOMBIE, glm::vec2(0, 0));
+    int initialLife = monster->getLife();
+    
+    // Client attacks monster
+    client.sendAttack(monster->getId(), 50); // 50 damage
+    
+    host.receiveUpdate();
+    EXPECT_EQ(monster->getLife(), initialLife - 50);
+}
+```
+
+**Deliverables:**
+- Multiplayer gameplay working
+- State synchronization
+- LAN compatibility verified
+
+---
+
+## Phase 18: Polish and Optimization (Week 34)
+
+### Objectives
+- Optimize performance
+- Polish UI/UX
+- Add missing features
+- Prepare for release
+
+### Tasks
+
+#### Task 18.1: Performance Optimization
+**Tests First:**
+```cpp
+TEST(PerformanceTest, Maintain60FPSWithManyEntities) {
+    GameWorld world;
+    
+    // Spawn many entities
+    for (int i = 0; i < 100; i++) {
+        world.spawnMonster(MonsterId::FALLEN, 
+            glm::vec2(rand() % 1000, rand() % 1000));
+    }
+    
+    auto startTime = getCurrentTime();
+    for (int frame = 0; frame < 60; frame++) {
+        world.update(0.016f);
+        world.render();
+    }
+    auto endTime = getCurrentTime();
+    
+    float fps = 60.0f / (endTime - startTime);
+    EXPECT_GE(fps, 60.0f);
+}
+```
+
+#### Task 18.2: Memory Management
+**Tests First:**
+```cpp
+TEST(MemoryTest, StayWithinBudget) {
+    GameEngine engine;
+    engine.initialize();
+    engine.start();
+    
+    // Play for simulated 10 minutes
+    for (int i = 0; i < 36000; i++) { // 60fps * 60s * 10min
+        engine.renderFrame();
+    }
+    
+    size_t memoryUsed = getProcessMemoryUsage();
+    EXPECT_LE(memoryUsed, 1500 * 1024 * 1024); // 1.5GB limit
+}
+```
+
+**Deliverables:**
+- 60 FPS achieved
+- Memory usage optimized
+- UI polished
+- Ready for release
+
+---
+
+## Phase 19: Asset Pipeline (Week 35)
+
+### Objectives
+- Create asset extraction tools
+- Optimize assets for mobile
+- Package game data
+- Create installer
+
+### Tasks
+
+#### Task 19.1: Asset Extraction Tool
+**Tests First:**
+```cpp
+TEST(AssetToolTest, ExtractAllGameAssets) {
+    AssetExtractor extractor;
+    
+    bool result = extractor.extractFromD2(
+        "/path/to/d2",
+        "/path/to/output"
+    );
+    
+    EXPECT_TRUE(result);
+    EXPECT_TRUE(fs::exists("/path/to/output/sprites"));
+    EXPECT_TRUE(fs::exists("/path/to/output/sounds"));
+    EXPECT_TRUE(fs::exists("/path/to/output/data"));
+}
+```
+
+#### Task 19.2: Asset Optimization
+**Tests First:**
+```cpp
+TEST(AssetOptimizerTest, CompressSprites) {
+    AssetOptimizer optimizer;
+    
+    size_t originalSize = getFileSize("sprite.dc6");
+    optimizer.optimizeSprite("sprite.dc6", "sprite.pvr");
+    size_t optimizedSize = getFileSize("sprite.pvr");
+    
+    EXPECT_LT(optimizedSize, originalSize * 0.5f); // 50% compression
+}
+```
+
+**Deliverables:**
+- Asset extraction working
+- Assets optimized for mobile
+- APK packaging complete
+- Installation process smooth
+
+---
+
+## Phase 20: Final Testing and Release (Week 36)
+
+### Objectives
+- Complete system testing
+- Device compatibility testing
+- Performance validation
+- Release preparation
+
+### Tasks
+
+#### Task 20.1: Integration Testing
+**Tests First:**
+```cpp
+TEST(IntegrationTest, CompleteGameplayLoop) {
+    GameEngine engine;
+    engine.initialize("/path/to/game/assets");
+    engine.start();
+    
+    // Simulate full gameplay session
+    auto testSession = createTestSession();
+    testSession.createCharacter(CharacterClass::SORCERESS);
+    testSession.enterGame();
+    testSession.completeQuest(QuestId::DEN_OF_EVIL);
+    testSession.saveAndExit();
+    
+    // Verify save file
+    EXPECT_TRUE(fs::exists(testSession.getSavePath()));
+    
+    // Load and verify
+    testSession.loadGame();
+    EXPECT_TRUE(testSession.isQuestComplete(QuestId::DEN_OF_EVIL));
+}
+```
+
+#### Task 20.2: Device Testing
+- Test on Retroid Pocket Flip 2
+- Test on various Android devices
+- Verify controller compatibility
+- Check battery life
+
+**Deliverables:**
+- All tests passing
+- Device compatibility confirmed
+- Performance targets met
+- Ready for distribution
+
+---
+
+## Updated Success Criteria
+
+1. **Complete Game Implementation** (500+ tests)
+2. **Playable Game Experience** 
+3. **60 FPS Performance**
+4. **LAN Multiplayer Functional**
+5. **Full Controller Support**
+6. **Save System Working**
+7. **Android APK Deployable**
+8. **1.5GB Memory Limit**
+9. **4+ Hour Battery Life**
+10. **Diablo II Compatibility**
+
+## Final Timeline
+
+- **Phases 0-13**: Weeks 1-29 (COMPLETED)
+- **Phase 14**: Week 30 (IN PROGRESS) - Core Game Integration
+- **Phase 15**: Week 31 - World Rendering
+- **Phase 16**: Week 32 - Gameplay Implementation
+- **Phase 17**: Week 33 - Multiplayer Integration
+- **Phase 18**: Week 34 - Polish and Optimization
+- **Phase 19**: Week 35 - Asset Pipeline
+- **Phase 20**: Week 36 - Final Testing and Release
+- **Total Project Duration**: 36 weeks
+
+## Risk Mitigation
+
+1. **Performance Issues**
+   - Early profiling in each phase
+   - Optimization buffer in Phase 18
+   - Fallback graphics options
+
+2. **Asset Compatibility**
+   - Early validation with real D2 files
+   - Alternative asset formats ready
+   - Clear user instructions
+
+3. **Device Compatibility**
+   - Testing on multiple devices
+   - Configurable graphics settings
+   - Controller mapping options
+
+This comprehensive plan takes the project from its current state (individual systems complete) to a fully playable game, maintaining TDD discipline throughout.

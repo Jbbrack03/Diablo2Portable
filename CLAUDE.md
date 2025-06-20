@@ -227,16 +227,16 @@ When tests fail, investigate carefully before changing them:
 ## Current Implementation Status (June 2025)
 
 ### 📊 **Overall Project Statistics:**
-- **Total Tests**: 418 (399 C++ unit tests + 19 Android Espresso tests)
-- **Test Success Rate**: 100% (all tests passing)
+- **Total Tests**: 426 (407 C++ unit tests + 19 Android Espresso tests)
+- **Test Success Rate**: 98% (417 passing, 9 skipped)
 - **Test Coverage**: ✅ 95%+ achieved - All implementation files now tested
 - **Integration Testing**: ✅ Real MPQ file validation with Diablo II game assets in vendor/extracted_mpq/
 - **Total Source Files**: 100+ (C++ engine implementation)
-- **Lines of Code**: ~18,000+ (core engine only)
-- **Phases Completed**: 13 of 13 (see notes on actual implementation status)
-- **Project Status**: **Core features complete, GameEngine integration implemented**
+- **Lines of Code**: ~18,500+ (core engine only)
+- **Phases Completed**: 14 of 20 (Phases 0-13 complete, 14 in progress)
+- **Project Status**: **Core systems implemented, game integration in progress**
 - **Asset Extraction**: ✅ 100% success rate on real Diablo II files (StormLib integration)
-- **Test Suite Health**: ✅ All 418 tests passing with real-world validation
+- **Test Suite Health**: ✅ All core tests passing with real-world validation
 
 ### ✅ **Completed Features (Production Ready):**
 1. **MPQ Archive System** - Full support for game asset extraction (StormLib integration)
@@ -263,6 +263,8 @@ When tests fail, investigate carefully before changing them:
 22. **Save/Load System** - D2S format, checksum validation, inventory persistence
 23. **D2-Accurate Game Mechanics** - Corrected life calculation, hit chance caps, strength damage bonus
 24. **GameEngine** - Central game system integration, lifecycle management, render loop coordination
+25. **Player Entity** - Position tracking, movement, character association
+26. **GameState Management** - Player management, world state tracking
 
 ### ✅ **Recently Completed:**
 
@@ -327,14 +329,23 @@ When tests fail, investigate carefully before changing them:
 - ✅ **Cleanup Results**: Removed ~2500 lines of obsolete code
 - ✅ **Performance Validated**: All critical paths meet target metrics
 
+### 🚧 **Phase 14: Core Game Integration** (Week 30) - **IN PROGRESS**
+- ✅ Player entity implementation with position and movement (4 tests)
+- ✅ GameState class for world state management (2 tests)
+- ✅ GameEngine integration with GameState (2 tests)
+- 🚧 Input system integration with Player movement
+- 🚧 Basic world rendering with player
+- 🚧 Entity management system
+- **Tests Added**: 8 new tests for game integration
+
 ### 🎯 **Current Status:**
-- ✅ **100% project completion** - All phases complete, documentation finalized
-- ✅ **Production-ready engine** - Full game logic, rendering, input, and save systems
+- 🚧 **70% project completion** - Core systems done, game integration in progress
+- ✅ **Production-ready systems** - All individual systems fully tested
 - ✅ **99.99% asset extraction** - Can load all Diablo II game files
 - ✅ **D2-accurate mechanics** - Life calculation, hit chance caps, strength damage bonus corrected
 - ✅ **95%+ test coverage achieved** - All implementation files comprehensively tested
 - ✅ **Android integration complete** - Full Android app structure with all required components
-- 🎯 **418 total tests** - All tests passing including MPQ integration tests with real game files
+- 🎯 **426 total tests** - 417 passing, 9 skipped (MPQ integration tests)
 
 ### 📖 **Documentation:**
 - **Development History**: See `Docs/DEVELOPMENT_HISTORY.md` for detailed phase summaries
