@@ -47,6 +47,7 @@ add_library(d2engine STATIC
     src/game/player.cpp
     src/game/game_state.cpp
     src/game/game_engine.cpp
+    src/game/entity.cpp
     src/game/entity_manager.cpp
     src/game/quest.cpp
     src/game/quest_manager.cpp

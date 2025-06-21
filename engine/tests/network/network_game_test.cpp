@@ -33,3 +33,22 @@ TEST_F(NetworkGameTest, SynchronizePlayers) {
     
     EXPECT_FLOAT_EQ(remotePlayer->getPosition().x, 10.0f);
 }
+
+// STEP 2: Write next failing test for combat synchronization
+TEST_F(NetworkGameTest, SynchronizeDamage) {
+    NetworkGame host;
+    NetworkGame client;
+    
+    // Setup connection
+    host.startHost(8999);
+    client.connect("localhost", 8999);
+    
+    auto monster = host.spawnMonster(MonsterType::ZOMBIE, glm::vec2(0, 0));
+    int initialLife = monster->getCurrentLife();
+    
+    // Client attacks monster
+    client.sendAttack(monster->getId(), 20); // 20 damage
+    
+    host.receiveUpdate();
+    EXPECT_EQ(monster->getCurrentLife(), initialLife - 20);
+}
