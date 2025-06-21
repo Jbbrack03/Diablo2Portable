@@ -52,3 +52,34 @@ TEST_F(NetworkGameTest, SynchronizeDamage) {
     host.receiveUpdate();
     EXPECT_EQ(monster->getCurrentLife(), initialLife - 20);
 }
+
+// STEP 3: Write test for multi-player state synchronization
+TEST_F(NetworkGameTest, SynchronizeMultipleClients) {
+    NetworkGame host;
+    NetworkGame client1;
+    NetworkGame client2;
+    
+    // Setup connections
+    host.startHost(8999);
+    client1.connect("localhost", 8999);
+    client2.connect("localhost", 8999);
+    
+    // Host spawns a monster
+    auto monster = host.spawnMonster(MonsterType::SKELETON, glm::vec2(100, 100));
+    host.broadcastState();
+    
+    // Both clients should receive the monster state
+    client1.receiveState();
+    client2.receiveState();
+    
+    auto client1Monster = client1.getMonster(monster->getId());
+    auto client2Monster = client2.getMonster(monster->getId());
+    
+    ASSERT_NE(client1Monster, nullptr);
+    ASSERT_NE(client2Monster, nullptr);
+    
+    EXPECT_EQ(client1Monster->getType(), MonsterType::SKELETON);
+    EXPECT_EQ(client2Monster->getType(), MonsterType::SKELETON);
+    EXPECT_FLOAT_EQ(client1Monster->getPosition().x, 100.0f);
+    EXPECT_FLOAT_EQ(client2Monster->getPosition().y, 100.0f);
+}

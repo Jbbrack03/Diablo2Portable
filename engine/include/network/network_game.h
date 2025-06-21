@@ -3,6 +3,7 @@
 #include <memory>
 #include <vector>
 #include <string>
+#include <unordered_map>
 #include <glm/glm.hpp>
 
 namespace d2::game {
@@ -31,11 +32,17 @@ public:
     // Monster management
     std::shared_ptr<d2::game::Monster> spawnMonster(d2::game::MonsterType type, const glm::vec2& position);
     void sendAttack(d2::game::EntityId targetId, int damage);
+    std::shared_ptr<d2::game::Monster> getMonster(d2::game::EntityId id) const;
+    
+    // State synchronization
+    void broadcastState();
+    void receiveState();
     
 private:
     std::shared_ptr<d2::game::Player> m_localPlayer;
     std::vector<std::shared_ptr<d2::game::Player>> m_remotePlayers;
     std::vector<std::shared_ptr<d2::game::Monster>> m_monsters;
+    std::unordered_map<d2::game::EntityId, std::shared_ptr<d2::game::Monster>> m_monsterMap;
     bool m_isHost = false;
     bool m_connected = false;
     int m_lastDamage = 0;

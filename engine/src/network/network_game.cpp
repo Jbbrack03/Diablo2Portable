@@ -12,6 +12,13 @@ struct NetworkPacket {
 };
 static NetworkPacket s_pendingPacket;
 
+// Simulated game state for testing multi-client sync
+struct GameStatePacket {
+    std::vector<std::pair<d2::game::EntityId, d2::game::MonsterType>> monsters;
+    std::vector<std::pair<d2::game::EntityId, glm::vec2>> positions;
+};
+static GameStatePacket s_gameState;
+
 NetworkGame::NetworkGame() {
     // Create a local player for testing
     d2::game::Character character(d2::game::CharacterClass::BARBARIAN);
@@ -78,6 +85,7 @@ std::shared_ptr<d2::game::Monster> NetworkGame::spawnMonster(d2::game::MonsterTy
     auto monster = std::make_shared<d2::game::Monster>(type, 1); // Level 1 for testing
     monster->setPosition(position.x, position.y);
     m_monsters.push_back(monster);
+    m_monsterMap[monster->getId()] = monster;
     return monster;
 }
 
@@ -88,6 +96,52 @@ void NetworkGame::sendAttack(d2::game::EntityId targetId, int damage) {
         // Client sends attack to host
         s_pendingPacket.targetId = targetId;
         s_pendingPacket.damage = damage;
+    }
+}
+
+std::shared_ptr<d2::game::Monster> NetworkGame::getMonster(d2::game::EntityId id) const {
+    auto it = m_monsterMap.find(id);
+    if (it != m_monsterMap.end()) {
+        return it->second;
+    }
+    return nullptr;
+}
+
+void NetworkGame::broadcastState() {
+    // In a real implementation, this would send state to all clients
+    // For testing, we store the state in a static variable
+    if (m_isHost) {
+        s_gameState.monsters.clear();
+        s_gameState.positions.clear();
+        
+        for (const auto& monster : m_monsters) {
+            s_gameState.monsters.push_back({monster->getId(), monster->getType()});
+            s_gameState.positions.push_back({monster->getId(), monster->getPosition()});
+        }
+    }
+}
+
+void NetworkGame::receiveState() {
+    // In a real implementation, this would receive state from network
+    // For testing, we read from the static game state
+    if (!m_isHost) {
+        // Clear existing monsters
+        m_monsters.clear();
+        m_monsterMap.clear();
+        
+        // Recreate monsters from received state
+        for (size_t i = 0; i < s_gameState.monsters.size(); ++i) {
+            auto [id, type] = s_gameState.monsters[i];
+            auto [posId, pos] = s_gameState.positions[i];
+            
+            auto monster = std::make_shared<d2::game::Monster>(type, 1);
+            monster->setPosition(pos.x, pos.y);
+            
+            // Store with the original ID for testing purposes
+            // In a real implementation, we'd need to handle ID mapping properly
+            m_monsters.push_back(monster);
+            m_monsterMap[id] = monster; // Use the original ID from host
+        }
     }
 }
 
