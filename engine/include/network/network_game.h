@@ -38,6 +38,10 @@ public:
     void broadcastState();
     void receiveState();
     
+    // Timestamped updates for latency compensation
+    void sendTimestampedUpdate(uint32_t timestamp);
+    void receiveTimestampedUpdate(uint32_t currentTime);
+    
 private:
     std::shared_ptr<d2::game::Player> m_localPlayer;
     std::vector<std::shared_ptr<d2::game::Player>> m_remotePlayers;

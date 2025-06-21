@@ -83,3 +83,31 @@ TEST_F(NetworkGameTest, SynchronizeMultipleClients) {
     EXPECT_FLOAT_EQ(client1Monster->getPosition().x, 100.0f);
     EXPECT_FLOAT_EQ(client2Monster->getPosition().y, 100.0f);
 }
+
+// STEP 4: Write test for latency compensation with timestamps
+TEST_F(NetworkGameTest, TimestampedMovementSynchronization) {
+    NetworkGame host;
+    NetworkGame client;
+    
+    host.startHost(8999);
+    client.connect("localhost", 8999);
+    
+    // Client moves with timestamp (simulating 100ms latency)
+    uint32_t timestamp = 1000; // milliseconds
+    client.getPlayer()->move(glm::vec2(50, 0));
+    client.sendTimestampedUpdate(timestamp);
+    
+    // Host receives update at timestamp 1100 (100ms later)
+    host.receiveTimestampedUpdate(1100);
+    
+    // Host should extrapolate the position based on velocity
+    auto remotePlayer = host.getRemotePlayer(0);
+    
+    // Check that remote player exists
+    ASSERT_NE(remotePlayer, nullptr);
+    
+    // With 100ms latency and movement speed, position should be extrapolated
+    // For simplicity, let's assume the player continues moving at same velocity
+    // Original position (50,0) + extrapolation for 100ms
+    EXPECT_GT(remotePlayer->getPosition().x, 50.0f); // Should be extrapolated beyond 50
+}

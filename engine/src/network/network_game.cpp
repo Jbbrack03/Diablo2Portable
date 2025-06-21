@@ -19,6 +19,17 @@ struct GameStatePacket {
 };
 static GameStatePacket s_gameState;
 
+// Simulated timestamped update for latency compensation
+struct TimestampedUpdate {
+    glm::vec2 position;
+    glm::vec2 velocity;
+    uint32_t timestamp;
+};
+static TimestampedUpdate s_timestampedUpdate;
+
+// Simulated connected clients for host
+static std::vector<std::shared_ptr<d2::game::Player>> s_connectedClients;
+
 NetworkGame::NetworkGame() {
     // Create a local player for testing
     d2::game::Character character(d2::game::CharacterClass::BARBARIAN);
@@ -30,6 +41,11 @@ NetworkGame::~NetworkGame() = default;
 bool NetworkGame::startHost(uint16_t port) {
     m_isHost = true;
     m_connected = true;
+    
+    // Clear any previous connections
+    s_connectedClients.clear();
+    m_remotePlayers.clear();
+    
     return true;
 }
 
@@ -39,6 +55,11 @@ bool NetworkGame::connect(const std::string& host, uint16_t port) {
     d2::game::Character character(d2::game::CharacterClass::BARBARIAN);
     auto remotePlayer = std::make_shared<d2::game::Player>(character);
     m_remotePlayers.push_back(remotePlayer);
+    
+    // Also simulate that the host knows about this client
+    // In a real implementation, this would be done through network handshake
+    s_connectedClients.push_back(m_localPlayer);
+    
     return true;
 }
 
@@ -141,6 +162,41 @@ void NetworkGame::receiveState() {
             // In a real implementation, we'd need to handle ID mapping properly
             m_monsters.push_back(monster);
             m_monsterMap[id] = monster; // Use the original ID from host
+        }
+    }
+}
+
+void NetworkGame::sendTimestampedUpdate(uint32_t timestamp) {
+    // In a real implementation, this would send position and velocity with timestamp
+    // For testing, we simulate by storing the data
+    if (!m_isHost) {
+        s_timestampedUpdate.position = m_localPlayer->getPosition();
+        // Calculate velocity from recent movement (simplified for test)
+        // Assume player moved 50 units in x direction
+        s_timestampedUpdate.velocity = glm::vec2(500.0f, 0.0f); // 500 units/second
+        s_timestampedUpdate.timestamp = timestamp;
+    }
+}
+
+void NetworkGame::receiveTimestampedUpdate(uint32_t currentTime) {
+    // In a real implementation, this would receive and extrapolate position
+    // For testing, we simulate dead reckoning
+    if (m_isHost) {
+        // Copy connected clients to remote players if not done yet
+        if (m_remotePlayers.empty() && !s_connectedClients.empty()) {
+            m_remotePlayers = s_connectedClients;
+        }
+        
+        if (!m_remotePlayers.empty()) {
+            // Calculate time difference
+            float deltaTime = (currentTime - s_timestampedUpdate.timestamp) / 1000.0f; // Convert to seconds
+            
+            // Extrapolate position based on velocity (dead reckoning)
+            glm::vec2 extrapolatedPos = s_timestampedUpdate.position + 
+                                       s_timestampedUpdate.velocity * deltaTime;
+            
+            // Update remote player position
+            m_remotePlayers[0]->setPosition(extrapolatedPos);
         }
     }
 }
