@@ -60,6 +60,7 @@ add_library(d2engine STATIC
     src/audio/audio_engine.cpp
     src/network/network_manager.cpp
     src/network/game_session.cpp
+    src/network/network_game.cpp
     src/ui/ui_element.cpp
     src/ui/ui_button.cpp
     src/ui/ui_panel.cpp

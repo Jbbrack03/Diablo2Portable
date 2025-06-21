@@ -62,6 +62,7 @@ set(TEST_SOURCES
     audio/test_audio_engine.cpp
     network/test_network_manager.cpp
     network/game_session_test.cpp
+    network/network_game_test.cpp
     utils/bzip2_test.cpp
     integration/test_real_mpq_files.cpp
     test_pkware_real_format.cpp
