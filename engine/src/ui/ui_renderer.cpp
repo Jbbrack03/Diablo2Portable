@@ -77,6 +77,11 @@ void UIRenderer::renderElement(UIElement* element) {
         if (text_renderer_ && default_font_ && !label->getText().empty()) {
             text_renderer_->renderText(label->getText(), label->getPosition(), default_font_);
         }
+    } else {
+        // For non-label elements without styling, render a default sprite
+        if (bgColor.a == 0.0f && bgSprite == 0 && borderWidth == 0.0f) {
+            sprite_renderer_->drawSprite(0, pos, size);
+        }
     }
 }
 
