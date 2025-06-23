@@ -29,6 +29,7 @@ class InputManager;
 }
 namespace performance {
 class PerformanceMonitor;
+class OptimizedUpdateSystem;
 }
 
 class GameEngine {
@@ -84,6 +85,13 @@ public:
         return performanceMonitor_.get();
     }
     
+    d2::performance::OptimizedUpdateSystem* getOptimizedUpdateSystem() const {
+        return optimizedUpdateSystem_.get();
+    }
+    
+    // Enable/disable optimizations
+    void setOptimizationsEnabled(bool enabled);
+    
 private:
     bool initialized_ = false;
     bool running_ = false;
@@ -98,6 +106,7 @@ private:
     std::unique_ptr<d2::game::LootSystem> lootSystem_;
     std::unique_ptr<QuestManager> questManager_;
     std::unique_ptr<d2::performance::PerformanceMonitor> performanceMonitor_;
+    std::unique_ptr<d2::performance::OptimizedUpdateSystem> optimizedUpdateSystem_;
 };
 
 } // namespace d2

@@ -2,6 +2,7 @@
 #include "core/asset_manager.h"
 #include "rendering/renderer.h"
 #include "rendering/world_renderer.h"
+#include "rendering/optimized_world_renderer.h"
 #include "rendering/camera.h"
 #include "rendering/sprite_renderer.h"
 #include "rendering/texture_manager.h"
@@ -14,6 +15,7 @@
 #include "game/quest_manager.h"
 #include "input/input_manager.h"
 #include "performance/performance_monitor.h"
+#include "performance/optimized_update_system.h"
 #include <glm/glm.hpp>
 #include <glm/geometric.hpp>
 #include <cstdlib>
@@ -49,8 +51,8 @@ bool GameEngine::initialize(const std::string& assetPath) {
     d2::rendering::TextureManager textureManager;
     spriteRenderer_->initialize(*renderer_, textureManager);
     
-    // Create world renderer
-    worldRenderer_ = std::make_unique<d2::rendering::WorldRenderer>();
+    // Create optimized world renderer
+    worldRenderer_ = std::make_unique<d2::rendering::OptimizedWorldRenderer>();
     
     // Create camera (default 800x600 for now)
     camera_ = std::make_unique<d2::rendering::Camera>(800, 600);
@@ -72,6 +74,9 @@ bool GameEngine::initialize(const std::string& assetPath) {
     
     // Create performance monitor
     performanceMonitor_ = std::make_unique<d2::performance::PerformanceMonitor>();
+    
+    // Create optimized update system
+    optimizedUpdateSystem_ = std::make_unique<d2::performance::OptimizedUpdateSystem>();
     
     initialized_ = true;
     return true;
@@ -149,7 +154,10 @@ void GameEngine::update(float deltaTime) {
     }
     
     // Update game state (physics, AI, animations, etc.)
-    // TODO: Add more game state updates
+    if (optimizedUpdateSystem_ && gameState_) {
+        // Use optimized update system for entities
+        optimizedUpdateSystem_->updateEntities(*gameState_, deltaTime);
+    }
 }
 
 void GameEngine::processInput(const glm::vec2& movement) {
@@ -281,6 +289,20 @@ void GameEngine::processItemPickup() {
         
         // For now, just remove from world
         gameState_->removeDroppedItem(id);
+    }
+}
+
+void GameEngine::setOptimizationsEnabled(bool enabled) {
+    // Enable/disable optimizations in all systems
+    if (worldRenderer_) {
+        auto* optimizedRenderer = dynamic_cast<d2::rendering::OptimizedWorldRenderer*>(worldRenderer_.get());
+        if (optimizedRenderer) {
+            optimizedRenderer->setOptimizationsEnabled(enabled);
+        }
+    }
+    
+    if (optimizedUpdateSystem_) {
+        optimizedUpdateSystem_->setOptimizationsEnabled(enabled);
     }
 }
 

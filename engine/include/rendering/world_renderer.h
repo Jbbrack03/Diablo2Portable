@@ -23,16 +23,16 @@ class Camera;
 class WorldRenderer {
 public:
     WorldRenderer() = default;
-    ~WorldRenderer() = default;
+    virtual ~WorldRenderer() = default;
     
-    void initialize(const d2portable::core::AssetManager& assetManager);
-    void render(const d2::game::GameState& gameState, SpriteRenderer& spriteRenderer);
-    void renderWithCamera(const d2::game::GameState& gameState, SpriteRenderer& spriteRenderer, const Camera& camera);
+    virtual void initialize(const d2portable::core::AssetManager& assetManager);
+    virtual void render(const d2::game::GameState& gameState, SpriteRenderer& spriteRenderer);
+    virtual void renderWithCamera(const d2::game::GameState& gameState, SpriteRenderer& spriteRenderer, const Camera& camera);
     
     void setHUDEnabled(bool enabled);
     bool isHUDEnabled() const;
 
-private:
+protected:
     const d2portable::core::AssetManager* assetManager_ = nullptr;
     bool hudEnabled_ = false;
 };

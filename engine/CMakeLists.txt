@@ -32,6 +32,7 @@ add_library(d2engine STATIC
     src/rendering/texture_manager.cpp
     src/rendering/sprite_renderer.cpp
     src/rendering/world_renderer.cpp
+    src/rendering/optimized_world_renderer.cpp
     src/rendering/camera.cpp
     src/input/gamepad_manager.cpp
     src/input/input_manager.cpp
@@ -81,6 +82,7 @@ add_library(d2engine STATIC
     src/android/gamepad_handler.cpp
     src/android/apk_asset_loader.cpp
     src/performance/performance_monitor.cpp
+    src/performance/optimized_update_system.cpp
 )
 
 # Include directories
