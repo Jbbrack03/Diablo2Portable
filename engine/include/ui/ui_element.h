@@ -25,12 +25,17 @@ public:
     // Touch input
     virtual bool handleTouchInput(float x, float y, TouchEventType type);
     
+    // Visual styling
+    glm::vec4 getBackgroundColor() const { return background_color_; }
+    void setBackgroundColor(const glm::vec4& color) { background_color_ = color; }
+    
 private:
     glm::vec2 position_{0.0f, 0.0f};
     glm::vec2 size_{0.0f, 0.0f};
     bool visible_{true};
     bool enabled_{true};
     bool focused_{false};
+    glm::vec4 background_color_{0.0f, 0.0f, 0.0f, 0.0f}; // Default transparent
 };
 
 } // namespace d2

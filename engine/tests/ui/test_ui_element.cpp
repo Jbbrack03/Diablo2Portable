@@ -74,4 +74,21 @@ TEST_F(UIElementTest, HandleTouchInput) {
     EXPECT_FALSE(handled);
 }
 
+TEST_F(UIElementTest, BackgroundColorStyling) {
+    UIElement element;
+    
+    // Default should have no background color (transparent)
+    EXPECT_EQ(element.getBackgroundColor(), glm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
+    
+    // Should be able to set background color
+    glm::vec4 redColor(1.0f, 0.0f, 0.0f, 1.0f);
+    element.setBackgroundColor(redColor);
+    EXPECT_EQ(element.getBackgroundColor(), redColor);
+    
+    // Should be able to set semi-transparent color
+    glm::vec4 semiTransparent(0.0f, 0.0f, 1.0f, 0.5f);
+    element.setBackgroundColor(semiTransparent);
+    EXPECT_EQ(element.getBackgroundColor(), semiTransparent);
+}
+
 } // namespace d2
