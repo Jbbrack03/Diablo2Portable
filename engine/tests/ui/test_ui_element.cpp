@@ -106,4 +106,23 @@ TEST_F(UIElementTest, BackgroundSpriteStyling) {
     EXPECT_EQ(element.getBackgroundSprite(), 0u);
 }
 
+TEST_F(UIElementTest, BorderStyling) {
+    UIElement element;
+    
+    // Default should have no border
+    EXPECT_EQ(element.getBorderWidth(), 0.0f);
+    EXPECT_EQ(element.getBorderColor(), glm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
+    
+    // Should be able to set border width and color
+    element.setBorderWidth(2.0f);
+    element.setBorderColor(glm::vec4(1.0f, 1.0f, 1.0f, 1.0f)); // White border
+    
+    EXPECT_EQ(element.getBorderWidth(), 2.0f);
+    EXPECT_EQ(element.getBorderColor(), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+    
+    // Should be able to disable border by setting width to 0
+    element.setBorderWidth(0.0f);
+    EXPECT_EQ(element.getBorderWidth(), 0.0f);
+}
+
 } // namespace d2

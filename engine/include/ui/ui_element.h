@@ -33,6 +33,12 @@ public:
     uint32_t getBackgroundSprite() const { return background_sprite_; }
     void setBackgroundSprite(uint32_t textureId) { background_sprite_ = textureId; }
     
+    float getBorderWidth() const { return border_width_; }
+    void setBorderWidth(float width) { border_width_ = width; }
+    
+    glm::vec4 getBorderColor() const { return border_color_; }
+    void setBorderColor(const glm::vec4& color) { border_color_ = color; }
+    
 private:
     glm::vec2 position_{0.0f, 0.0f};
     glm::vec2 size_{0.0f, 0.0f};
@@ -41,6 +47,8 @@ private:
     bool focused_{false};
     glm::vec4 background_color_{0.0f, 0.0f, 0.0f, 0.0f}; // Default transparent
     uint32_t background_sprite_{0}; // 0 = no sprite
+    float border_width_{0.0f}; // 0 = no border
+    glm::vec4 border_color_{0.0f, 0.0f, 0.0f, 0.0f}; // Default transparent
 };
 
 } // namespace d2
