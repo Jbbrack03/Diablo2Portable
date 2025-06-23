@@ -5,7 +5,7 @@ namespace d2 {
 
 class MemoryMonitor::Impl {
 public:
-    Impl() : total_memory_usage(0) {}
+    Impl() : total_memory_usage(0), memory_budget(1536 * 1024 * 1024) {} // Default 1.5GB
     
     size_t getCurrentMemoryUsage() const {
         return total_memory_usage;
@@ -31,9 +31,30 @@ public:
         }
     }
     
+    void setMemoryBudget(size_t budget) {
+        memory_budget = budget;
+    }
+    
+    size_t getMemoryBudget() const {
+        return memory_budget;
+    }
+    
+    bool isWithinBudget() const {
+        return total_memory_usage <= memory_budget;
+    }
+    
+    bool tryRecordAllocation(const std::string& identifier, size_t size) {
+        if (total_memory_usage + size > memory_budget) {
+            return false; // Would exceed budget
+        }
+        recordAllocation(identifier, size);
+        return true;
+    }
+    
 private:
     std::unordered_map<std::string, size_t> allocations;
     size_t total_memory_usage;
+    size_t memory_budget;
 };
 
 MemoryMonitor::MemoryMonitor() : pImpl(std::make_unique<Impl>()) {
@@ -51,6 +72,22 @@ void MemoryMonitor::recordAllocation(const std::string& identifier, size_t size)
 
 void MemoryMonitor::recordDeallocation(const std::string& identifier, size_t size) {
     pImpl->recordDeallocation(identifier, size);
+}
+
+void MemoryMonitor::setMemoryBudget(size_t budget) {
+    pImpl->setMemoryBudget(budget);
+}
+
+size_t MemoryMonitor::getMemoryBudget() const {
+    return pImpl->getMemoryBudget();
+}
+
+bool MemoryMonitor::isWithinBudget() const {
+    return pImpl->isWithinBudget();
+}
+
+bool MemoryMonitor::tryRecordAllocation(const std::string& identifier, size_t size) {
+    return pImpl->tryRecordAllocation(identifier, size);
 }
 
 } // namespace d2

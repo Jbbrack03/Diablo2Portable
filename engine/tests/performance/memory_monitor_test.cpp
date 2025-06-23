@@ -42,3 +42,24 @@ TEST_F(MemoryMonitorTest, TrackMemoryDeallocation) {
     size_t after_dealloc = monitor->getCurrentMemoryUsage();
     EXPECT_EQ(after_dealloc, 0);
 }
+
+TEST_F(MemoryMonitorTest, EnforceMemoryBudget) {
+    // Test that we can enforce a memory budget (1.5GB for mobile)
+    const size_t budget = 1536 * 1024 * 1024; // 1.5GB
+    monitor->setMemoryBudget(budget);
+    
+    // Check initial budget
+    EXPECT_EQ(monitor->getMemoryBudget(), budget);
+    EXPECT_TRUE(monitor->isWithinBudget());
+    
+    // Allocate within budget
+    const size_t small_alloc = 512 * 1024 * 1024; // 512MB
+    monitor->recordAllocation("small_alloc", small_alloc);
+    EXPECT_TRUE(monitor->isWithinBudget());
+    
+    // Try to allocate beyond budget
+    const size_t large_alloc = 1200 * 1024 * 1024; // 1.2GB
+    bool result = monitor->tryRecordAllocation("large_alloc", large_alloc);
+    EXPECT_FALSE(result); // Should fail as it would exceed budget
+    EXPECT_EQ(monitor->getCurrentMemoryUsage(), small_alloc); // Usage unchanged
+}
