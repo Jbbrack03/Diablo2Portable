@@ -83,6 +83,7 @@ add_library(d2engine STATIC
     src/android/apk_asset_loader.cpp
     src/performance/performance_monitor.cpp
     src/performance/optimized_update_system.cpp
+    src/performance/memory_monitor.cpp
 )
 
 # Include directories

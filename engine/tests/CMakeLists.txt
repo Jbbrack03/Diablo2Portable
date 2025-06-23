@@ -94,6 +94,7 @@ set(TEST_SOURCES
     android/test_apk_asset_loader.cpp
     performance/test_performance_metrics.cpp
     performance/test_game_performance.cpp
+    performance/memory_monitor_test.cpp
     # Tests will be added as we implement features following TDD
     # core/game_state_test.cpp
     # audio/sound_system_test.cpp
