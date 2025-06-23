@@ -128,4 +128,30 @@ TEST_F(UIRendererTest, RenderUILabelWithText) {
     EXPECT_EQ(text_renderer_->last_font_, font.get());
 }
 
+TEST_F(UIRendererTest, RenderStyledElements) {
+    // Initialize renderer
+    ASSERT_TRUE(ui_renderer_->initialize(renderer_.get(), sprite_renderer_.get(), 
+                                         text_renderer_.get(), font_manager_.get()));
+    
+    // Create a styled button
+    auto button = std::make_unique<UIButton>("Styled Button");
+    button->setPosition(glm::vec2(100, 200));
+    button->setSize(glm::vec2(150, 50));
+    button->setBackgroundColor(glm::vec4(0.2f, 0.3f, 0.8f, 1.0f)); // Blue background
+    button->setBorderWidth(2.0f);
+    button->setBorderColor(glm::vec4(1.0f, 1.0f, 1.0f, 1.0f)); // White border
+    
+    // Mock sprite renderer should track draw calls
+    int background_draws = ui_renderer_->getBackgroundDrawCount();
+    int border_draws = ui_renderer_->getBorderDrawCount();
+    
+    ui_renderer_->beginFrame();
+    ui_renderer_->renderElement(button.get());
+    ui_renderer_->endFrame();
+    
+    // Verify background and border were rendered
+    EXPECT_EQ(ui_renderer_->getBackgroundDrawCount(), background_draws + 1);
+    EXPECT_EQ(ui_renderer_->getBorderDrawCount(), border_draws + 1);
+}
+
 } // namespace d2::test

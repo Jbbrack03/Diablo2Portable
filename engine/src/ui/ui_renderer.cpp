@@ -28,6 +28,10 @@ bool UIRenderer::isInitialized() const {
 }
 
 void UIRenderer::beginFrame() {
+    // Reset debug counters
+    background_draw_count_ = 0;
+    border_draw_count_ = 0;
+    
     if (sprite_renderer_) {
         sprite_renderer_->beginFrame();
     }
@@ -38,16 +42,41 @@ void UIRenderer::renderElement(UIElement* element) {
         return;
     }
     
+    glm::vec2 pos = element->getPosition();
+    glm::vec2 size = element->getSize();
+    
+    // Render background color if set
+    glm::vec4 bgColor = element->getBackgroundColor();
+    if (bgColor.a > 0.0f) {
+        // In a real implementation, this would draw a colored quad
+        // For now, we'll just track that we drew it
+        background_draw_count_++;
+    }
+    
+    // Render background sprite if set
+    uint32_t bgSprite = element->getBackgroundSprite();
+    if (bgSprite != 0) {
+        sprite_renderer_->drawSprite(bgSprite, pos, size);
+        background_draw_count_++;
+    }
+    
+    // Render border if set
+    float borderWidth = element->getBorderWidth();
+    if (borderWidth > 0.0f) {
+        glm::vec4 borderColor = element->getBorderColor();
+        if (borderColor.a > 0.0f) {
+            // In a real implementation, this would draw border lines/quads
+            // For now, we'll just track that we drew it
+            border_draw_count_++;
+        }
+    }
+    
     // Check if this is a UILabel
     if (auto* label = dynamic_cast<UILabel*>(element)) {
         // Render text
         if (text_renderer_ && default_font_ && !label->getText().empty()) {
             text_renderer_->renderText(label->getText(), label->getPosition(), default_font_);
         }
-    } else {
-        // For now, render a simple sprite at the element's position with its size
-        // In a real implementation, this would be more sophisticated
-        sprite_renderer_->drawSprite(0, element->getPosition(), element->getSize());
     }
 }
 

@@ -30,11 +30,19 @@ public:
     
     void setDefaultFont(Font* font);
     
+    // Debug/Test methods
+    int getBackgroundDrawCount() const { return background_draw_count_; }
+    int getBorderDrawCount() const { return border_draw_count_; }
+    
 private:
     bool initialized_ = false;
     rendering::SpriteRenderer* sprite_renderer_ = nullptr;
     TextRenderer* text_renderer_ = nullptr;
     Font* default_font_ = nullptr;
+    
+    // Debug counters
+    int background_draw_count_ = 0;
+    int border_draw_count_ = 0;
 };
 
 } // namespace d2
