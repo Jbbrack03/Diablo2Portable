@@ -76,6 +76,12 @@ public:
             }
             
             current_size -= oldest->second.memory_size;
+            
+            // Report deallocation to memory monitor if set
+            if (memory_monitor && oldest->second.sprite) {
+                memory_monitor->recordDeallocation("sprite:" + oldest->first, oldest->second.memory_size);
+            }
+            
             cache.erase(oldest);
         }
     }
@@ -285,6 +291,11 @@ std::shared_ptr<sprites::DC6Sprite> AssetManager::loadSprite(const std::string& 
     pImpl->cache[relative_path] = entry;
     pImpl->enforceCacheLimit();
     
+    // Report memory usage to memory monitor if set
+    if (pImpl->memory_monitor) {
+        pImpl->memory_monitor->recordAllocation("sprite:" + relative_path, entry.memory_size);
+    }
+    
     return shared_sprite;
 }
 
@@ -400,6 +411,16 @@ size_t AssetManager::getCacheMemoryUsage() const {
 
 void AssetManager::clearCache() {
     std::lock_guard<std::mutex> lock(pImpl->cache_mutex);
+    
+    // Report all deallocations to memory monitor if set
+    if (pImpl->memory_monitor) {
+        for (const auto& entry : pImpl->cache) {
+            if (entry.second.sprite) {
+                pImpl->memory_monitor->recordDeallocation("sprite:" + entry.first, entry.second.memory_size);
+            }
+        }
+    }
+    
     pImpl->cache.clear();
 }
 

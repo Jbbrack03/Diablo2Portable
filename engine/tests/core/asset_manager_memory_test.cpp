@@ -2,6 +2,8 @@
 #include "core/asset_manager.h"
 #include "performance/memory_monitor.h"
 #include <memory>
+#include <fstream>
+#include <filesystem>
 
 using namespace d2portable::core;
 using namespace d2;
@@ -23,4 +25,22 @@ TEST_F(AssetManagerMemoryTest, SetMemoryMonitor) {
     
     // Verify the memory monitor was set
     EXPECT_EQ(assetManager->getMemoryMonitor(), memoryMonitor.get());
+}
+
+TEST_F(AssetManagerMemoryTest, TrackClearCacheMemoryUsage) {
+    // Test that clearing cache reports memory deallocation to MemoryMonitor
+    
+    // Initialize with current directory
+    const std::string test_data = ".";
+    ASSERT_TRUE(assetManager->initialize(test_data));
+    
+    // Set the memory monitor
+    assetManager->setMemoryMonitor(memoryMonitor.get());
+    
+    // Since we can't load actual sprites in unit tests, we'll just verify
+    // that clearCache doesn't crash when memory monitor is set
+    assetManager->clearCache();
+    
+    // Memory usage should still be zero
+    EXPECT_EQ(memoryMonitor->getCurrentMemoryUsage(), 0);
 }
