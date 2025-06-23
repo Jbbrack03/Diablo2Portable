@@ -91,4 +91,19 @@ TEST_F(UIElementTest, BackgroundColorStyling) {
     EXPECT_EQ(element.getBackgroundColor(), semiTransparent);
 }
 
+TEST_F(UIElementTest, BackgroundSpriteStyling) {
+    UIElement element;
+    
+    // Default should have no background sprite (0 = no texture)
+    EXPECT_EQ(element.getBackgroundSprite(), 0u);
+    
+    // Should be able to set background sprite ID
+    element.setBackgroundSprite(12345); // texture ID
+    EXPECT_EQ(element.getBackgroundSprite(), 12345u);
+    
+    // Should be able to clear background sprite
+    element.setBackgroundSprite(0);
+    EXPECT_EQ(element.getBackgroundSprite(), 0u);
+}
+
 } // namespace d2
