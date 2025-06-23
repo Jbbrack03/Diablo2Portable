@@ -80,6 +80,7 @@ add_library(d2engine STATIC
     src/android/jni_bridge.cpp
     src/android/gamepad_handler.cpp
     src/android/apk_asset_loader.cpp
+    src/performance/performance_monitor.cpp
 )
 
 # Include directories

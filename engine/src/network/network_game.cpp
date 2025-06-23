@@ -103,7 +103,8 @@ std::shared_ptr<d2::game::Player> NetworkGame::getRemotePlayer(size_t index) con
 }
 
 std::shared_ptr<d2::game::Monster> NetworkGame::spawnMonster(d2::game::MonsterType type, const glm::vec2& position) {
-    auto monster = std::make_shared<d2::game::Monster>(type, 1); // Level 1 for testing
+    // Spawn level 5 monsters so they have enough health for combat tests
+    auto monster = std::make_shared<d2::game::Monster>(type, 5);
     monster->setPosition(position.x, position.y);
     m_monsters.push_back(monster);
     m_monsterMap[monster->getId()] = monster;
@@ -155,7 +156,7 @@ void NetworkGame::receiveState() {
             auto [id, type] = s_gameState.monsters[i];
             auto [posId, pos] = s_gameState.positions[i];
             
-            auto monster = std::make_shared<d2::game::Monster>(type, 1);
+            auto monster = std::make_shared<d2::game::Monster>(type, 5);
             monster->setPosition(pos.x, pos.y);
             
             // Store with the original ID for testing purposes

@@ -13,6 +13,7 @@
 #include "game/dropped_item.h"
 #include "game/quest_manager.h"
 #include "input/input_manager.h"
+#include "performance/performance_monitor.h"
 #include <glm/glm.hpp>
 #include <glm/geometric.hpp>
 #include <cstdlib>
@@ -69,6 +70,9 @@ bool GameEngine::initialize(const std::string& assetPath) {
     // Create quest manager
     questManager_ = std::make_unique<d2::QuestManager>();
     
+    // Create performance monitor
+    performanceMonitor_ = std::make_unique<d2::performance::PerformanceMonitor>();
+    
     initialized_ = true;
     return true;
 }
@@ -95,6 +99,11 @@ bool GameEngine::renderFrame() {
         return false;
     }
     
+    // Start performance timing
+    if (performanceMonitor_) {
+        performanceMonitor_->startFrame();
+    }
+    
     // Basic game loop structure:
     // 1. Calculate delta time (for now using fixed timestep)
     float deltaTime = 0.016f; // 60 FPS
@@ -113,6 +122,11 @@ bool GameEngine::renderFrame() {
     if (worldRenderer_ && spriteRenderer_ && gameState_) {
         // Render the world using the world renderer
         worldRenderer_->render(*gameState_, *spriteRenderer_);
+    }
+    
+    // End performance timing
+    if (performanceMonitor_) {
+        performanceMonitor_->endFrame();
     }
     
     return true;

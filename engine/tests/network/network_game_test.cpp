@@ -47,10 +47,10 @@ TEST_F(NetworkGameTest, SynchronizeDamage) {
     int initialLife = monster->getCurrentLife();
     
     // Client attacks monster
-    client.sendAttack(monster->getId(), 20); // 20 damage
+    client.sendAttack(monster->getId(), 50); // 50 damage
     
     host.receiveUpdate();
-    EXPECT_EQ(monster->getCurrentLife(), initialLife - 20);
+    EXPECT_EQ(monster->getCurrentLife(), initialLife - 50);
 }
 
 // STEP 3: Write test for multi-player state synchronization

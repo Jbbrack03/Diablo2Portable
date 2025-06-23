@@ -27,6 +27,9 @@ class QuestManager;
 namespace input {
 class InputManager;
 }
+namespace performance {
+class PerformanceMonitor;
+}
 
 class GameEngine {
 public:
@@ -77,6 +80,10 @@ public:
         return questManager_.get();
     }
     
+    d2::performance::PerformanceMonitor* getPerformanceMonitor() const {
+        return performanceMonitor_.get();
+    }
+    
 private:
     bool initialized_ = false;
     bool running_ = false;
@@ -90,6 +97,7 @@ private:
     std::unique_ptr<d2::game::CombatEngine> combatEngine_;
     std::unique_ptr<d2::game::LootSystem> lootSystem_;
     std::unique_ptr<QuestManager> questManager_;
+    std::unique_ptr<d2::performance::PerformanceMonitor> performanceMonitor_;
 };
 
 } // namespace d2

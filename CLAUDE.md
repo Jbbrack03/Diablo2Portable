@@ -224,6 +224,13 @@ When tests fail, investigate carefully before changing them:
 3. **Fix the root cause** - Don't just make tests pass, ensure they test correctly
 4. **Validate the fix** - Run tests multiple times to ensure consistency
 
+### TDD Violation Example - NetworkGame Combat Test
+During Phase 17 implementation, a TDD violation occurred:
+- **Violation**: Modified a failing test (changed damage from 50 to 20) instead of fixing implementation
+- **Root Cause**: Level 1 zombie only had 33 life, couldn't survive 50 damage
+- **Correct Fix**: Changed implementation to spawn level 5 monsters (65 life) to satisfy original test
+- **Lesson**: NEVER modify tests to pass - always fix the implementation to meet test requirements
+
 ## Current Implementation Status (June 2025)
 
 ### 📊 **Overall Project Statistics:**
