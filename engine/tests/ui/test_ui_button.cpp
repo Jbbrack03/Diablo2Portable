@@ -92,4 +92,39 @@ TEST_F(UIButtonTest, HandleTouchInput) {
     EXPECT_FALSE(button.isHovered());
 }
 
+TEST_F(UIButtonTest, VisualStateSprites) {
+    UIButton button("Visual Button");
+    
+    // Default should have no state sprites
+    EXPECT_EQ(button.getNormalSprite(), 0u);
+    EXPECT_EQ(button.getHoverSprite(), 0u);
+    EXPECT_EQ(button.getPressedSprite(), 0u);
+    EXPECT_EQ(button.getDisabledSprite(), 0u);
+    
+    // Should be able to set state sprites
+    button.setNormalSprite(100);
+    button.setHoverSprite(101);
+    button.setPressedSprite(102);
+    button.setDisabledSprite(103);
+    
+    EXPECT_EQ(button.getNormalSprite(), 100u);
+    EXPECT_EQ(button.getHoverSprite(), 101u);
+    EXPECT_EQ(button.getPressedSprite(), 102u);
+    EXPECT_EQ(button.getDisabledSprite(), 103u);
+    
+    // Should return correct sprite based on state
+    EXPECT_EQ(button.getCurrentSprite(), 100u); // Normal state
+    
+    // Hover state
+    button.handleTouchInput(150.0f, 125.0f, TouchEventType::TOUCH_MOVE);
+    button.setPosition(glm::vec2(100.0f, 100.0f));
+    button.setSize(glm::vec2(200.0f, 50.0f));
+    button.handleTouchInput(150.0f, 125.0f, TouchEventType::TOUCH_MOVE);
+    EXPECT_EQ(button.getCurrentSprite(), 101u); // Hover sprite
+    
+    // Pressed state
+    button.handleTouchInput(150.0f, 125.0f, TouchEventType::TOUCH_DOWN);
+    EXPECT_EQ(button.getCurrentSprite(), 102u); // Pressed sprite
+}
+
 } // namespace d2

@@ -41,6 +41,33 @@ public:
         pressed_ = false;
     }
     
+    // Visual state sprites
+    uint32_t getNormalSprite() const { return normal_sprite_; }
+    void setNormalSprite(uint32_t sprite) { normal_sprite_ = sprite; }
+    
+    uint32_t getHoverSprite() const { return hover_sprite_; }
+    void setHoverSprite(uint32_t sprite) { hover_sprite_ = sprite; }
+    
+    uint32_t getPressedSprite() const { return pressed_sprite_; }
+    void setPressedSprite(uint32_t sprite) { pressed_sprite_ = sprite; }
+    
+    uint32_t getDisabledSprite() const { return disabled_sprite_; }
+    void setDisabledSprite(uint32_t sprite) { disabled_sprite_ = sprite; }
+    
+    // Get current sprite based on button state
+    uint32_t getCurrentSprite() const {
+        if (!isEnabled() && disabled_sprite_ != 0) {
+            return disabled_sprite_;
+        }
+        if (pressed_ && pressed_sprite_ != 0) {
+            return pressed_sprite_;
+        }
+        if (hovered_ && hover_sprite_ != 0) {
+            return hover_sprite_;
+        }
+        return normal_sprite_;
+    }
+    
 private:
     bool containsPoint(const glm::vec2& point) const {
         glm::vec2 pos = getPosition();
@@ -53,6 +80,12 @@ private:
     bool pressed_{false};
     bool hovered_{false};
     ClickCallback onClick_;
+    
+    // Visual state sprites
+    uint32_t normal_sprite_{0};
+    uint32_t hover_sprite_{0};
+    uint32_t pressed_sprite_{0};
+    uint32_t disabled_sprite_{0};
 };
 
 } // namespace d2
