@@ -31,6 +31,13 @@ public:
      */
     void recordAllocation(const std::string& identifier, size_t size);
     
+    /**
+     * @brief Record a memory deallocation
+     * @param identifier Name/identifier for the deallocation
+     * @param size Size of the deallocation in bytes
+     */
+    void recordDeallocation(const std::string& identifier, size_t size);
+    
 private:
     class Impl;
     std::unique_ptr<Impl> pImpl;
