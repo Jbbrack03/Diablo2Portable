@@ -9,6 +9,11 @@
 #include <chrono>
 #include "sprites/dc6_parser.h"
 
+// Forward declaration
+namespace d2 {
+    class MemoryMonitor;
+}
+
 namespace d2portable {
 namespace core {
 
@@ -135,6 +140,18 @@ public:
      * @return Error message string
      */
     std::string getLastError() const;
+    
+    /**
+     * Set a memory monitor for tracking allocations
+     * @param monitor Pointer to MemoryMonitor (can be nullptr to disable)
+     */
+    void setMemoryMonitor(d2::MemoryMonitor* monitor);
+    
+    /**
+     * Get the current memory monitor
+     * @return Pointer to MemoryMonitor or nullptr if not set
+     */
+    d2::MemoryMonitor* getMemoryMonitor() const;
 
 private:
     class Impl;

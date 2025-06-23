@@ -1,6 +1,7 @@
 #include "core/asset_manager.h"
 #include "utils/stormlib_mpq_loader.h"
 #include "sprites/dc6_parser.h"
+#include "performance/memory_monitor.h"
 #include <filesystem>
 #include <unordered_map>
 #include <thread>
@@ -38,6 +39,9 @@ public:
     // Cache management
     std::unordered_map<std::string, CacheEntry> cache;
     mutable std::mutex cache_mutex;
+    
+    // Memory monitoring
+    d2::MemoryMonitor* memory_monitor = nullptr;
     
     // Utility methods
     std::string resolveFilePath(const std::string& relative_path) const {
@@ -407,6 +411,14 @@ void AssetManager::setMaxCacheSize(size_t max_bytes) {
 
 std::string AssetManager::getLastError() const {
     return pImpl->last_error;
+}
+
+void AssetManager::setMemoryMonitor(d2::MemoryMonitor* monitor) {
+    pImpl->memory_monitor = monitor;
+}
+
+d2::MemoryMonitor* AssetManager::getMemoryMonitor() const {
+    return pImpl->memory_monitor;
 }
 
 } // namespace core
