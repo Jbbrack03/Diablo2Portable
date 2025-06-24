@@ -74,3 +74,23 @@ TEST_F(SettingsManagerTest, VideoSettings) {
     EXPECT_EQ(settings.getGraphicsQuality(), SettingsManager::GraphicsQuality::HIGH);
     EXPECT_FALSE(settings.isFullscreen());
 }
+
+// Test 4: Control settings
+TEST_F(SettingsManagerTest, ControlSettings) {
+    SettingsManager settings;
+    
+    // Default control settings
+    EXPECT_FLOAT_EQ(settings.getGamepadSensitivity(), 1.0f);
+    EXPECT_FLOAT_EQ(settings.getGamepadDeadzone(), 0.2f);
+    EXPECT_TRUE(settings.isVibrationEnabled());
+    
+    // Change control settings
+    settings.setGamepadSensitivity(1.5f);
+    settings.setGamepadDeadzone(0.15f);
+    settings.setVibrationEnabled(false);
+    
+    // Verify changes
+    EXPECT_FLOAT_EQ(settings.getGamepadSensitivity(), 1.5f);
+    EXPECT_FLOAT_EQ(settings.getGamepadDeadzone(), 0.15f);
+    EXPECT_FALSE(settings.isVibrationEnabled());
+}

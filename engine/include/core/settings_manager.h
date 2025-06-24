@@ -42,6 +42,16 @@ public:
     bool isFullscreen() const;
     void setFullscreen(bool fullscreen);
 
+    // Control settings
+    float getGamepadSensitivity() const;
+    void setGamepadSensitivity(float sensitivity);
+    
+    float getGamepadDeadzone() const;
+    void setGamepadDeadzone(float deadzone);
+    
+    bool isVibrationEnabled() const;
+    void setVibrationEnabled(bool enabled);
+
 private:
     struct Impl;
     std::unique_ptr<Impl> impl_;

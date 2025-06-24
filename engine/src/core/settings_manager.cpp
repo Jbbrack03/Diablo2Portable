@@ -15,6 +15,11 @@ struct SettingsManager::Impl {
     int resolutionHeight = 720;
     GraphicsQuality graphicsQuality = GraphicsQuality::MEDIUM;
     bool fullscreen = true;
+    
+    // Control settings
+    float gamepadSensitivity = 1.0f;
+    float gamepadDeadzone = 0.2f;
+    bool vibrationEnabled = true;
 };
 
 SettingsManager::SettingsManager() : impl_(std::make_unique<Impl>()) {}
@@ -117,6 +122,31 @@ bool SettingsManager::isFullscreen() const {
 
 void SettingsManager::setFullscreen(bool fullscreen) {
     impl_->fullscreen = fullscreen;
+}
+
+// Control settings implementation
+float SettingsManager::getGamepadSensitivity() const {
+    return impl_->gamepadSensitivity;
+}
+
+void SettingsManager::setGamepadSensitivity(float sensitivity) {
+    impl_->gamepadSensitivity = sensitivity;
+}
+
+float SettingsManager::getGamepadDeadzone() const {
+    return impl_->gamepadDeadzone;
+}
+
+void SettingsManager::setGamepadDeadzone(float deadzone) {
+    impl_->gamepadDeadzone = deadzone;
+}
+
+bool SettingsManager::isVibrationEnabled() const {
+    return impl_->vibrationEnabled;
+}
+
+void SettingsManager::setVibrationEnabled(bool enabled) {
+    impl_->vibrationEnabled = enabled;
 }
 
 } // namespace d2
