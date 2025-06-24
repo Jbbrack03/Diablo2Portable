@@ -5,9 +5,16 @@
 namespace d2 {
 
 struct SettingsManager::Impl {
+    // Audio settings
     float masterVolume = 1.0f;
     float soundEffectVolume = 1.0f;
     float musicVolume = 1.0f;
+    
+    // Video settings
+    int resolutionWidth = 1280;
+    int resolutionHeight = 720;
+    GraphicsQuality graphicsQuality = GraphicsQuality::MEDIUM;
+    bool fullscreen = true;
 };
 
 SettingsManager::SettingsManager() : impl_(std::make_unique<Impl>()) {}
@@ -80,6 +87,36 @@ bool SettingsManager::load(const std::string& filepath) {
     
     file.close();
     return true;
+}
+
+// Video settings implementation
+int SettingsManager::getResolutionWidth() const {
+    return impl_->resolutionWidth;
+}
+
+int SettingsManager::getResolutionHeight() const {
+    return impl_->resolutionHeight;
+}
+
+void SettingsManager::setResolution(int width, int height) {
+    impl_->resolutionWidth = width;
+    impl_->resolutionHeight = height;
+}
+
+SettingsManager::GraphicsQuality SettingsManager::getGraphicsQuality() const {
+    return impl_->graphicsQuality;
+}
+
+void SettingsManager::setGraphicsQuality(GraphicsQuality quality) {
+    impl_->graphicsQuality = quality;
+}
+
+bool SettingsManager::isFullscreen() const {
+    return impl_->fullscreen;
+}
+
+void SettingsManager::setFullscreen(bool fullscreen) {
+    impl_->fullscreen = fullscreen;
 }
 
 } // namespace d2

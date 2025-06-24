@@ -7,6 +7,13 @@ namespace d2 {
 
 class SettingsManager {
 public:
+    enum class GraphicsQuality {
+        LOW = 0,
+        MEDIUM = 1,
+        HIGH = 2,
+        ULTRA = 3
+    };
+
     SettingsManager();
     ~SettingsManager();
 
@@ -23,6 +30,17 @@ public:
     // Save/Load functionality
     bool save(const std::string& filepath) const;
     bool load(const std::string& filepath);
+
+    // Video settings
+    int getResolutionWidth() const;
+    int getResolutionHeight() const;
+    void setResolution(int width, int height);
+    
+    GraphicsQuality getGraphicsQuality() const;
+    void setGraphicsQuality(GraphicsQuality quality);
+    
+    bool isFullscreen() const;
+    void setFullscreen(bool fullscreen);
 
 private:
     struct Impl;

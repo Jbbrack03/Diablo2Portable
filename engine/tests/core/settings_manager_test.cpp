@@ -52,3 +52,25 @@ TEST_F(SettingsManagerTest, SaveAndLoadSettings) {
     EXPECT_FLOAT_EQ(loadedSettings.getSoundEffectVolume(), 0.5f);
     EXPECT_FLOAT_EQ(loadedSettings.getMusicVolume(), 0.3f);
 }
+
+// Test 3: Video settings
+TEST_F(SettingsManagerTest, VideoSettings) {
+    SettingsManager settings;
+    
+    // Default video settings
+    EXPECT_EQ(settings.getResolutionWidth(), 1280);
+    EXPECT_EQ(settings.getResolutionHeight(), 720);
+    EXPECT_EQ(settings.getGraphicsQuality(), SettingsManager::GraphicsQuality::MEDIUM);
+    EXPECT_TRUE(settings.isFullscreen());
+    
+    // Change video settings
+    settings.setResolution(1920, 1080);
+    settings.setGraphicsQuality(SettingsManager::GraphicsQuality::HIGH);
+    settings.setFullscreen(false);
+    
+    // Verify changes
+    EXPECT_EQ(settings.getResolutionWidth(), 1920);
+    EXPECT_EQ(settings.getResolutionHeight(), 1080);
+    EXPECT_EQ(settings.getGraphicsQuality(), SettingsManager::GraphicsQuality::HIGH);
+    EXPECT_FALSE(settings.isFullscreen());
+}
