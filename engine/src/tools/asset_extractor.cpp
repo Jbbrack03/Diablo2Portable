@@ -1,6 +1,10 @@
 #include "tools/asset_extractor.h"
+#include "utils/stormlib_mpq_loader.h"
 #include <filesystem>
 #include <iostream>
+#include <vector>
+#include <algorithm>
+#include <fstream>
 
 namespace fs = std::filesystem;
 
@@ -90,10 +94,83 @@ bool AssetExtractor::extractMPQFiles(const fs::path& d2Path, const fs::path& out
     return true;
 }
 
-bool AssetExtractor::extractSprites(const fs::path& mpqPath, const fs::path& outputPath) {
-    // Minimal implementation to pass test
-    // Real implementation will extract DC6 files and organize by category
-    return true;
+bool AssetExtractor::extractSprites(const fs::path& d2Path, const fs::path& outputPath) {
+    d2portable::utils::StormLibMPQLoader mpqLoader;
+    
+    // Find and process all MPQ files
+    std::vector<fs::path> mpqFiles;
+    for (const auto& entry : fs::directory_iterator(d2Path)) {
+        if (entry.is_regular_file()) {
+            std::string filename = entry.path().filename().string();
+            std::transform(filename.begin(), filename.end(), filename.begin(), ::tolower);
+            if (filename.size() >= 4 && filename.substr(filename.size() - 4) == ".mpq") {
+                mpqFiles.push_back(entry.path());
+            }
+        }
+    }
+    
+    // Extract DC6 files from each MPQ
+    for (const auto& mpqFile : mpqFiles) {
+        if (!mpqLoader.open(mpqFile.string())) {
+            std::cerr << "Failed to open MPQ: " << mpqFile << std::endl;
+            continue;
+        }
+        
+        // Get list of files in the MPQ
+        auto fileList = mpqLoader.listFiles();
+        
+        for (const auto& fileInfo : fileList) {
+            // Check if it's a DC6 file
+            const std::string& filename = fileInfo.filename;
+            size_t len = filename.length();
+            if (len >= 4 && (filename.substr(len - 4) == ".dc6" || filename.substr(len - 4) == ".DC6")) {
+                std::vector<uint8_t> fileData;
+                if (mpqLoader.extractFile(filename, fileData)) {
+                    // Determine category based on path
+                    fs::path categoryPath = determineSpriteCategory(filename);
+                    fs::path fullOutputPath = outputPath / "sprites" / categoryPath;
+                    
+                    // Create directory if needed
+                    fs::create_directories(fullOutputPath.parent_path());
+                    
+                    // Write file
+                    std::ofstream outFile(fullOutputPath, std::ios::binary);
+                    if (outFile) {
+                        outFile.write(reinterpret_cast<const char*>(fileData.data()), fileData.size());
+                        extractedCount++;
+                    }
+                }
+            }
+        }
+        
+        mpqLoader.close();
+    }
+    
+    return extractedCount > 0;
+}
+
+fs::path AssetExtractor::determineSpriteCategory(const std::string& filePath) const {
+    std::string lowerPath = filePath;
+    std::transform(lowerPath.begin(), lowerPath.end(), lowerPath.begin(), ::tolower);
+    
+    // Categorize based on path patterns
+    if (lowerPath.find("char") != std::string::npos || 
+        lowerPath.find("player") != std::string::npos) {
+        return fs::path("characters") / fs::path(filePath).filename();
+    } else if (lowerPath.find("monster") != std::string::npos || 
+               lowerPath.find("mon") != std::string::npos) {
+        return fs::path("monsters") / fs::path(filePath).filename();
+    } else if (lowerPath.find("item") != std::string::npos || 
+               lowerPath.find("inv") != std::string::npos) {
+        return fs::path("items") / fs::path(filePath).filename();
+    } else if (lowerPath.find("panel") != std::string::npos || 
+               lowerPath.find("ui") != std::string::npos ||
+               lowerPath.find("menu") != std::string::npos) {
+        return fs::path("ui") / fs::path(filePath).filename();
+    } else {
+        // Default to ui category for uncategorized sprites
+        return fs::path("ui") / fs::path(filePath).filename();
+    }
 }
 
 bool AssetExtractor::extractSounds(const fs::path& mpqPath, const fs::path& outputPath) {

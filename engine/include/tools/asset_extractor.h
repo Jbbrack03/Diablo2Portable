@@ -57,6 +57,9 @@ private:
                           const std::filesystem::path& outputPath);
     
     void reportProgress(float progress, const std::string& currentFile);
+    
+    // Helper to determine sprite category from file path
+    std::filesystem::path determineSpriteCategory(const std::string& filePath) const;
 };
 
 } // namespace d2
