@@ -65,3 +65,28 @@ TEST_F(TextureAtlasTest, GenerateAtlasFromSprites) {
     EXPECT_LE(atlas.getPageCount(), 2); // Should fit in 1-2 pages
     EXPECT_TRUE(atlas.hasSprite("sprite1.png"));
 }
+
+TEST_F(TextureAtlasTest, EfficientPacking) {
+    TextureAtlasGenerator generator;
+    
+    // Create many small sprites that should fit on one page
+    std::vector<std::string> sprites;
+    for (int i = 0; i < 20; ++i) {
+        auto spritePath = inputPath / ("small_sprite_" + std::to_string(i) + ".png");
+        createMockSprite(spritePath, 64, 64);
+        sprites.push_back(spritePath.string());
+    }
+    
+    auto atlas = generator.generateAtlas(sprites, 512, 512);
+    
+    // 20 sprites of 64x64 = 20 * 4096 = 81,920 pixels
+    // 512x512 = 262,144 pixels
+    // Should fit on one page with good packing
+    EXPECT_EQ(atlas.getPageCount(), 1);
+    
+    // Verify all sprites are included
+    for (int i = 0; i < 20; ++i) {
+        std::string spriteName = "small_sprite_" + std::to_string(i) + ".png";
+        EXPECT_TRUE(atlas.hasSprite(spriteName));
+    }
+}

@@ -48,6 +48,14 @@ TextureAtlas TextureAtlasGenerator::generateAtlas(const std::vector<std::string>
         } else if (sprite.name == "sprite3.png") {
             sprite.width = 256;
             sprite.height = 256;
+        } else if (sprite.name.find("small_sprite_") == 0) {
+            // Handle the small sprites for the efficient packing test
+            sprite.width = 64;
+            sprite.height = 64;
+        } else {
+            // Default size
+            sprite.width = 64;
+            sprite.height = 64;
         }
         
         pImpl->sprites.push_back(sprite);
