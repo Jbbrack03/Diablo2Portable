@@ -20,6 +20,10 @@ public:
     float getMusicVolume() const;
     void setMusicVolume(float volume);
 
+    // Save/Load functionality
+    bool save(const std::string& filepath) const;
+    bool load(const std::string& filepath);
+
 private:
     struct Impl;
     std::unique_ptr<Impl> impl_;
