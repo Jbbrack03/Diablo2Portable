@@ -36,6 +36,7 @@ set(TEST_SOURCES
     input/control_mapper_test.cpp
     input/test_touch_input.cpp
     input/android_input_test.cpp
+    input/android_gamepad_test.cpp
     game/character_test.cpp
     game/character_inventory_test.cpp
     game/combat_test.cpp
