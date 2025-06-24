@@ -170,4 +170,26 @@ float AudioEngine::getAudioDuration(SoundId soundId) const {
     return 0.0f;
 }
 
+std::vector<uint8_t> AudioEngine::getDecodedPCMData(SoundId soundId) const {
+    // GREEN phase - return the PCM data if we have it
+    auto it = audioDataMap_.find(soundId);
+    if (it != audioDataMap_.end() && it->second != nullptr) {
+        return it->second->data;
+    }
+    return std::vector<uint8_t>();
+}
+
+AudioEngine::AudioProperties AudioEngine::getAudioProperties(SoundId soundId) const {
+    // GREEN phase - return the audio properties
+    auto it = audioDataMap_.find(soundId);
+    if (it != audioDataMap_.end() && it->second != nullptr) {
+        AudioProperties props;
+        props.sampleRate = it->second->sampleRate;
+        props.channels = it->second->channels;
+        props.bitsPerSample = it->second->bitsPerSample;
+        return props;
+    }
+    return AudioProperties();
+}
+
 } // namespace d2::audio

@@ -59,6 +59,15 @@ public:
     // Audio data queries
     bool hasAudioData(SoundId soundId) const;
     float getAudioDuration(SoundId soundId) const;
+    
+    struct AudioProperties {
+        int sampleRate = 44100;
+        int channels = 2;
+        int bitsPerSample = 16;
+    };
+    
+    std::vector<uint8_t> getDecodedPCMData(SoundId soundId) const;
+    AudioProperties getAudioProperties(SoundId soundId) const;
 
 private:
     struct AudioData {

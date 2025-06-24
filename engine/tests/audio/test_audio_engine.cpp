@@ -157,3 +157,22 @@ TEST_F(AudioEngineTest, LoadRealAudioFile) {
     EXPECT_TRUE(engine.hasAudioData(soundId));
     EXPECT_GT(engine.getAudioDuration(soundId), 0.0f);
 }
+
+TEST_F(AudioEngineTest, DecodeOggVorbisFile) {
+    AudioEngine engine;
+    engine.initialize();
+    
+    // Test loading and decoding an OGG Vorbis file
+    auto soundId = engine.loadSound("test_data/test_sound.ogg");
+    EXPECT_NE(soundId, AudioEngine::INVALID_SOUND_ID);
+    
+    // Check that we have decoded PCM data
+    auto pcmData = engine.getDecodedPCMData(soundId);
+    EXPECT_FALSE(pcmData.empty());
+    
+    // Verify audio properties
+    auto properties = engine.getAudioProperties(soundId);
+    EXPECT_EQ(properties.sampleRate, 44100);
+    EXPECT_EQ(properties.channels, 2);
+    EXPECT_EQ(properties.bitsPerSample, 16);
+}
