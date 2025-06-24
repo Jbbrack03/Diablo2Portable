@@ -34,7 +34,6 @@ set(TEST_SOURCES
     input/input_manager_test.cpp
     input/control_mapper_test.cpp
     input/test_touch_input.cpp
-    input/test_touch_input_debug.cpp
     game/character_test.cpp
     game/character_inventory_test.cpp
     game/combat_test.cpp
