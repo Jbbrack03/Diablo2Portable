@@ -58,9 +58,21 @@ bool SettingsManager::save(const std::string& filepath) const {
     }
     
     // Simple text format for now
+    // Audio settings
     file << "masterVolume=" << impl_->masterVolume << "\n";
     file << "soundEffectVolume=" << impl_->soundEffectVolume << "\n";
     file << "musicVolume=" << impl_->musicVolume << "\n";
+    
+    // Video settings
+    file << "resolutionWidth=" << impl_->resolutionWidth << "\n";
+    file << "resolutionHeight=" << impl_->resolutionHeight << "\n";
+    file << "graphicsQuality=" << static_cast<int>(impl_->graphicsQuality) << "\n";
+    file << "fullscreen=" << (impl_->fullscreen ? 1 : 0) << "\n";
+    
+    // Control settings
+    file << "gamepadSensitivity=" << impl_->gamepadSensitivity << "\n";
+    file << "gamepadDeadzone=" << impl_->gamepadDeadzone << "\n";
+    file << "vibrationEnabled=" << (impl_->vibrationEnabled ? 1 : 0) << "\n";
     
     file.close();
     return true;
@@ -78,14 +90,33 @@ bool SettingsManager::load(const std::string& filepath) {
         size_t equalPos = line.find('=');
         if (equalPos != std::string::npos) {
             std::string key = line.substr(0, equalPos);
-            float value = std::stof(line.substr(equalPos + 1));
+            std::string valueStr = line.substr(equalPos + 1);
             
+            // Audio settings
             if (key == "masterVolume") {
-                impl_->masterVolume = value;
+                impl_->masterVolume = std::stof(valueStr);
             } else if (key == "soundEffectVolume") {
-                impl_->soundEffectVolume = value;
+                impl_->soundEffectVolume = std::stof(valueStr);
             } else if (key == "musicVolume") {
-                impl_->musicVolume = value;
+                impl_->musicVolume = std::stof(valueStr);
+            }
+            // Video settings
+            else if (key == "resolutionWidth") {
+                impl_->resolutionWidth = std::stoi(valueStr);
+            } else if (key == "resolutionHeight") {
+                impl_->resolutionHeight = std::stoi(valueStr);
+            } else if (key == "graphicsQuality") {
+                impl_->graphicsQuality = static_cast<GraphicsQuality>(std::stoi(valueStr));
+            } else if (key == "fullscreen") {
+                impl_->fullscreen = (std::stoi(valueStr) != 0);
+            }
+            // Control settings
+            else if (key == "gamepadSensitivity") {
+                impl_->gamepadSensitivity = std::stof(valueStr);
+            } else if (key == "gamepadDeadzone") {
+                impl_->gamepadDeadzone = std::stof(valueStr);
+            } else if (key == "vibrationEnabled") {
+                impl_->vibrationEnabled = (std::stoi(valueStr) != 0);
             }
         }
     }
