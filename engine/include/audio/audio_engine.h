@@ -68,6 +68,18 @@ public:
     
     std::vector<uint8_t> getDecodedPCMData(SoundId soundId) const;
     AudioProperties getAudioProperties(SoundId soundId) const;
+    
+    // Audio device management
+    struct DeviceCapabilities {
+        int sampleRate = 0;
+        int bufferSize = 0;
+        int channels = 0;
+    };
+    
+    bool openAudioDevice();
+    bool isAudioDeviceOpen() const;
+    void closeAudioDevice();
+    DeviceCapabilities getDeviceCapabilities() const;
 
 private:
     struct AudioData {
@@ -92,6 +104,10 @@ private:
     float soundEffectVolume_ = 1.0f;
     float musicVolume_ = 1.0f;
     float lastPlayedVolume_ = 1.0f;
+    
+    // Audio device state
+    bool deviceOpen_ = false;
+    DeviceCapabilities deviceCapabilities_;
 };
 
 } // namespace d2::audio

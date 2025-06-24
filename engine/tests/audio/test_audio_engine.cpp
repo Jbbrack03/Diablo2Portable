@@ -176,3 +176,22 @@ TEST_F(AudioEngineTest, DecodeOggVorbisFile) {
     EXPECT_EQ(properties.channels, 2);
     EXPECT_EQ(properties.bitsPerSample, 16);
 }
+
+TEST_F(AudioEngineTest, AudioDevicePlayback) {
+    AudioEngine engine;
+    engine.initialize();  // Need to initialize first
+    
+    // Test that we can open an audio device for playback
+    EXPECT_TRUE(engine.openAudioDevice());
+    EXPECT_TRUE(engine.isAudioDeviceOpen());
+    
+    // Test that we can query device capabilities
+    auto deviceCaps = engine.getDeviceCapabilities();
+    EXPECT_GT(deviceCaps.sampleRate, 0);
+    EXPECT_GT(deviceCaps.bufferSize, 0);
+    EXPECT_GE(deviceCaps.channels, 2);
+    
+    // Test closing the device
+    engine.closeAudioDevice();
+    EXPECT_FALSE(engine.isAudioDeviceOpen());
+}

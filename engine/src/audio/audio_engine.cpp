@@ -192,4 +192,33 @@ AudioEngine::AudioProperties AudioEngine::getAudioProperties(SoundId soundId) co
     return AudioProperties();
 }
 
+bool AudioEngine::openAudioDevice() {
+    // GREEN phase - simulate opening an audio device
+    if (!initialized_) {
+        return false;
+    }
+    
+    // Simulate successful device opening
+    deviceOpen_ = true;
+    
+    // Set typical Android audio device capabilities
+    deviceCapabilities_.sampleRate = 48000;  // Common Android sample rate
+    deviceCapabilities_.bufferSize = 256;    // Low latency buffer size
+    deviceCapabilities_.channels = 2;        // Stereo
+    
+    return true;
+}
+
+bool AudioEngine::isAudioDeviceOpen() const {
+    return deviceOpen_;
+}
+
+void AudioEngine::closeAudioDevice() {
+    deviceOpen_ = false;
+}
+
+AudioEngine::DeviceCapabilities AudioEngine::getDeviceCapabilities() const {
+    return deviceCapabilities_;
+}
+
 } // namespace d2::audio
