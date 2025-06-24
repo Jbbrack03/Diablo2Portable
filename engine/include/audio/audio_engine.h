@@ -2,6 +2,9 @@
 
 #include <string>
 #include <unordered_set>
+#include <unordered_map>
+#include <vector>
+#include <memory>
 #include <glm/glm.hpp>
 
 namespace d2::audio {
@@ -52,13 +55,26 @@ public:
     bool isLooping(SoundId soundId) const;
     uint32_t getActiveSoundCount() const;
     bool isSoundPlaying(SoundId soundId) const;
+    
+    // Audio data queries
+    bool hasAudioData(SoundId soundId) const;
+    float getAudioDuration(SoundId soundId) const;
 
 private:
+    struct AudioData {
+        std::vector<uint8_t> data;
+        float duration = 0.0f;
+        int sampleRate = 44100;
+        int channels = 2;
+        int bitsPerSample = 16;
+    };
+
     bool initialized_ = false;
     SoundId nextSoundId_ = 1;
     std::unordered_set<SoundId> loadedSounds_;
     std::unordered_set<SoundId> loopingSounds_;
     std::unordered_set<SoundId> playingSounds_;
+    std::unordered_map<SoundId, std::unique_ptr<AudioData>> audioDataMap_;
     glm::vec3 listenerPosition_{0.0f, 0.0f, 0.0f};
     ChannelLevels currentLevels_;
     

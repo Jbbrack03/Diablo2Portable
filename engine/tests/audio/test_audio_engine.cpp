@@ -143,3 +143,17 @@ TEST_F(AudioEngineTest, SoundPriority) {
     // High priority sound should be playing
     EXPECT_TRUE(engine.isSoundPlaying(highPriority));
 }
+
+// Phase 18 Task 4 Tests - Real Audio Implementation
+TEST_F(AudioEngineTest, LoadRealAudioFile) {
+    AudioEngine engine;
+    engine.initialize();
+    
+    // Test loading a real audio file (should fail until implemented)
+    auto soundId = engine.loadSound("test_data/sword_swing.ogg");
+    EXPECT_NE(soundId, AudioEngine::INVALID_SOUND_ID);
+    
+    // The sound should actually contain audio data
+    EXPECT_TRUE(engine.hasAudioData(soundId));
+    EXPECT_GT(engine.getAudioDuration(soundId), 0.0f);
+}

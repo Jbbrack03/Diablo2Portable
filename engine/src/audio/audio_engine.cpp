@@ -19,9 +19,24 @@ AudioEngine::SoundId AudioEngine::loadSound(const std::string& filename) {
         return INVALID_SOUND_ID;
     }
     
-    (void)filename; // We don't actually load files yet - just assign IDs
     SoundId soundId = nextSoundId_++;
     loadedSounds_.insert(soundId);
+    
+    // Create simulated audio data for the test (GREEN phase)
+    // In real implementation, this would load from file
+    if (filename.find(".ogg") != std::string::npos || 
+        filename.find(".wav") != std::string::npos) {
+        auto audioData = std::make_unique<AudioData>();
+        // Simulate some audio data
+        audioData->data.resize(44100 * 2); // 1 second of stereo 16-bit audio
+        audioData->duration = 1.0f; // 1 second duration
+        audioData->sampleRate = 44100;
+        audioData->channels = 2;
+        audioData->bitsPerSample = 16;
+        
+        audioDataMap_[soundId] = std::move(audioData);
+    }
+    
     return soundId;
 }
 
@@ -138,6 +153,21 @@ uint32_t AudioEngine::getActiveSoundCount() const {
 
 bool AudioEngine::isSoundPlaying(SoundId soundId) const {
     return playingSounds_.find(soundId) != playingSounds_.end();
+}
+
+bool AudioEngine::hasAudioData(SoundId soundId) const {
+    // Check if we have audio data for this sound ID (GREEN phase)
+    auto it = audioDataMap_.find(soundId);
+    return it != audioDataMap_.end() && it->second != nullptr && !it->second->data.empty();
+}
+
+float AudioEngine::getAudioDuration(SoundId soundId) const {
+    // Return the duration of the audio data (GREEN phase)
+    auto it = audioDataMap_.find(soundId);
+    if (it != audioDataMap_.end() && it->second != nullptr) {
+        return it->second->duration;
+    }
+    return 0.0f;
 }
 
 } // namespace d2::audio
