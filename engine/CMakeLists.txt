@@ -26,6 +26,7 @@ add_library(d2engine STATIC
     src/utils/sparse_decompress.cpp
     src/sprites/dc6_parser.cpp
     src/core/asset_manager.cpp
+    src/core/settings_manager.cpp
     src/rendering/egl_context.cpp
     src/rendering/renderer.cpp
     src/rendering/shader_manager.cpp

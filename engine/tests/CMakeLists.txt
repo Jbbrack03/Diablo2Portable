@@ -23,6 +23,7 @@ set(TEST_SOURCES
     core/test_asset_manager_mpq.cpp
     core/test_asset_manager_mpq_fix.cpp
     core/asset_manager_memory_test.cpp
+    core/settings_manager_test.cpp
     rendering/egl_context_test.cpp
     rendering/renderer_test.cpp
     rendering/shader_manager_test.cpp
