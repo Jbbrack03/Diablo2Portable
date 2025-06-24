@@ -90,3 +90,47 @@ TEST_F(TextureAtlasTest, EfficientPacking) {
         EXPECT_TRUE(atlas.hasSprite(spriteName));
     }
 }
+
+TEST_F(TextureAtlasTest, RetrieveSpritePositions) {
+    TextureAtlasGenerator generator;
+    
+    std::vector<std::string> sprites = {
+        (inputPath / "sprite1.png").string(), // 128x128
+        (inputPath / "sprite2.png").string(), // 64x64
+        (inputPath / "sprite3.png").string()  // 256x256
+    };
+    
+    auto atlas = generator.generateAtlas(sprites, 512, 512);
+    
+    // Check sprite1 position
+    auto sprite1Info = atlas.getSpriteInfo("sprite1.png");
+    ASSERT_NE(sprite1Info, nullptr);
+    EXPECT_EQ(sprite1Info->width, 128);
+    EXPECT_EQ(sprite1Info->height, 128);
+    EXPECT_GE(sprite1Info->x, 0);
+    EXPECT_GE(sprite1Info->y, 0);
+    EXPECT_GE(sprite1Info->page, 0);
+    
+    // Check sprite2 position
+    auto sprite2Info = atlas.getSpriteInfo("sprite2.png");
+    ASSERT_NE(sprite2Info, nullptr);
+    EXPECT_EQ(sprite2Info->width, 64);
+    EXPECT_EQ(sprite2Info->height, 64);
+    
+    // Check sprite3 position
+    auto sprite3Info = atlas.getSpriteInfo("sprite3.png");
+    ASSERT_NE(sprite3Info, nullptr);
+    EXPECT_EQ(sprite3Info->width, 256);
+    EXPECT_EQ(sprite3Info->height, 256);
+    
+    // Sprites should not overlap
+    // Simple check: sprite1 and sprite2 on same page should not overlap
+    if (sprite1Info->page == sprite2Info->page) {
+        bool noOverlap = 
+            (sprite1Info->x + sprite1Info->width <= sprite2Info->x) ||
+            (sprite2Info->x + sprite2Info->width <= sprite1Info->x) ||
+            (sprite1Info->y + sprite1Info->height <= sprite2Info->y) ||
+            (sprite2Info->y + sprite2Info->height <= sprite1Info->y);
+        EXPECT_TRUE(noOverlap) << "Sprites should not overlap on the same page";
+    }
+}
