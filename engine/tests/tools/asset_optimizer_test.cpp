@@ -1,29 +1,11 @@
 #include <gtest/gtest.h>
+#include "tools/asset_optimizer.h"
 #include <filesystem>
 #include <fstream>
 #include <vector>
 
 namespace fs = std::filesystem;
-
-// Forward declaration - this class doesn't exist yet
-class AssetOptimizer {
-public:
-    bool optimizeSprite(const std::string& inputPath, const std::string& outputPath);
-    float getCompressionRatio() const { return compressionRatio; }
-    
-    enum class CompressionType {
-        PNG,     // For sprites with transparency
-        JPEG,    // For opaque backgrounds
-        WEBP,    // Modern format with good compression
-        PVR      // PowerVR texture compression for mobile
-    };
-    
-    void setCompressionType(CompressionType type) { compressionType = type; }
-    
-private:
-    float compressionRatio = 0.0f;
-    CompressionType compressionType = CompressionType::PNG;
-};
+using namespace d2;
 
 class AssetOptimizerTest : public ::testing::Test {
 protected:

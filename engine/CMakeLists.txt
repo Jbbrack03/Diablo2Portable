@@ -89,6 +89,7 @@ add_library(d2engine STATIC
     src/performance/optimized_update_system.cpp
     src/performance/memory_monitor.cpp
     src/tools/asset_extractor.cpp
+    src/tools/asset_optimizer.cpp
 )
 
 # Include directories
