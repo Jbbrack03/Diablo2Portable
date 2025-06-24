@@ -104,6 +104,7 @@ set(TEST_SOURCES
     performance/memory_profiling_test.cpp
     tools/asset_extractor_test.cpp
     tools/asset_optimizer_test.cpp
+    tools/texture_atlas_test.cpp
     # Tests will be added as we implement features following TDD
     # core/game_state_test.cpp
     # audio/sound_system_test.cpp
