@@ -14,6 +14,7 @@
 #include "game/dropped_item.h"
 #include "game/quest_manager.h"
 #include "input/input_manager.h"
+#include "input/touch_input.h"
 #include "performance/performance_monitor.h"
 #include "performance/optimized_update_system.h"
 #include <glm/glm.hpp>
@@ -77,6 +78,10 @@ bool GameEngine::initialize(const std::string& assetPath) {
     
     // Create optimized update system
     optimizedUpdateSystem_ = std::make_unique<d2::performance::OptimizedUpdateSystem>();
+    
+    // Create touch input system
+    touchInput_ = std::make_unique<d2::input::TouchInput>();
+    touchInput_->setScreenSize(800, 600); // Default size, will be updated
     
     initialized_ = true;
     return true;
@@ -150,6 +155,14 @@ void GameEngine::update(float deltaTime) {
         if (gameState_ && gameState_->hasPlayer()) {
             glm::vec2 movement = inputManager_->getMovement();
             processInput(movement);
+        }
+    }
+    
+    // Process touch input if we have ongoing touch
+    if (touchInput_ && touchInput_->isTouching()) {
+        auto gameInput = touchInput_->getGameInput();
+        if (gameInput.isMoving && gameState_ && gameState_->hasPlayer()) {
+            processInput(gameInput.moveDirection);
         }
     }
     
@@ -303,6 +316,60 @@ void GameEngine::setOptimizationsEnabled(bool enabled) {
     
     if (optimizedUpdateSystem_) {
         optimizedUpdateSystem_->setOptimizationsEnabled(enabled);
+    }
+}
+
+void GameEngine::processTouchInput(float x, float y, input::TouchAction action) {
+    if (!touchInput_ || !gameState_ || !initialized_) {
+        return;
+    }
+    
+    // Clear action triggered flag at the start of each input
+    if (action == input::TouchAction::DOWN) {
+        actionTriggered_ = false;
+    }
+    
+    // Process the touch event
+    touchInput_->onTouchEvent(x, y, action);
+    
+    // Check for tap action
+    if (touchInput_->wasTapped()) {
+        actionTriggered_ = true;
+        touchInput_->clearTapState();
+    }
+    
+    // Convert touch input to game input
+    auto gameInput = touchInput_->getGameInput();
+    
+    // Process movement if touching
+    if (gameInput.isMoving && gameState_->getPlayer()) {
+        // Convert to movement input for the existing system
+        processInput(gameInput.moveDirection);
+    }
+    
+    // Handle action button
+    if (gameInput.actionPressed) {
+        actionTriggered_ = true;
+        // In a full implementation, this would trigger the player's primary action
+    }
+}
+
+void GameEngine::setTouchControlMode(TouchControlMode mode) {
+    touchControlMode_ = mode;
+    
+    if (touchInput_) {
+        touchInput_->enableVirtualJoystick(mode == TouchControlMode::VIRTUAL_JOYSTICK);
+    }
+}
+
+void GameEngine::setScreenSize(int width, int height) {
+    if (touchInput_) {
+        touchInput_->setScreenSize(width, height);
+    }
+    
+    // Also update camera/renderer if needed
+    if (camera_) {
+        // camera_->setViewportSize(width, height);
     }
 }
 

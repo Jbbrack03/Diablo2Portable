@@ -33,6 +33,8 @@ set(TEST_SOURCES
     input/gamepad_manager_test.cpp
     input/input_manager_test.cpp
     input/control_mapper_test.cpp
+    input/test_touch_input.cpp
+    input/test_touch_input_debug.cpp
     game/character_test.cpp
     game/character_inventory_test.cpp
     game/combat_test.cpp
@@ -45,6 +47,7 @@ set(TEST_SOURCES
     game/game_state_test.cpp
     game/game_engine_input_test.cpp
     game/game_engine_render_test.cpp
+    game/test_game_engine_touch.cpp
     game/entity_manager_test.cpp
     game/item_drop_integration_test.cpp
     game/quest_system_test.cpp

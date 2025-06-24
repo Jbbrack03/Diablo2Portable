@@ -1,6 +1,7 @@
 #include "android/jni_bridge.h"
 #include "android/gamepad_handler.h"
 #include "game/game_engine.h"
+#include "input/touch_input.h"
 #include <cassert>
 #include <cstring>
 #include <memory>
@@ -103,15 +104,31 @@ bool GameEngineWrapper::loadAssets(const char* asset_path) {
 }
 
 void GameEngineWrapper::onTouchEvent(float x, float y, int action) {
-    if (!initialized_) {
+    if (!initialized_ || !engine_) {
         return;
     }
     
-    // TODO: Process touch input through input system
-    // For now, just store the coordinates (unused but validates parameters)
-    (void)x;
-    (void)y;
-    (void)action;
+    // Convert Android action to TouchAction enum
+    d2::input::TouchAction touchAction;
+    switch (action) {
+        case 0: // ACTION_DOWN
+            touchAction = d2::input::TouchAction::DOWN;
+            break;
+        case 1: // ACTION_UP
+            touchAction = d2::input::TouchAction::UP;
+            break;
+        case 2: // ACTION_MOVE
+            touchAction = d2::input::TouchAction::MOVE;
+            break;
+        case 3: // ACTION_CANCEL
+            touchAction = d2::input::TouchAction::CANCEL;
+            break;
+        default:
+            return; // Unknown action
+    }
+    
+    // Process touch input through the game engine
+    engine_->processTouchInput(x, y, touchAction);
 }
 
 void GameEngineWrapper::onSurfaceCreated(int width, int height) {
@@ -125,6 +142,11 @@ void GameEngineWrapper::onSurfaceCreated(int width, int height) {
     
     surface_width_ = width;
     surface_height_ = height;
+    
+    // Update screen size for touch input
+    if (engine_) {
+        engine_->setScreenSize(width, height);
+    }
     
     // Start the engine if not already running
     if (!engine_->isRunning()) {

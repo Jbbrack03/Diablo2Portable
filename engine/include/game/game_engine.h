@@ -26,6 +26,8 @@ class LootSystem;
 class QuestManager;
 namespace input {
 class InputManager;
+class TouchInput;
+enum class TouchAction;
 }
 namespace performance {
 class PerformanceMonitor;
@@ -34,6 +36,11 @@ class OptimizedUpdateSystem;
 
 class GameEngine {
 public:
+    enum class TouchControlMode {
+        DIRECT_MOVEMENT,
+        VIRTUAL_JOYSTICK
+    };
+    
     GameEngine();
     ~GameEngine();
     
@@ -56,6 +63,12 @@ public:
     void processCombat(float deltaTime);
     void processMonsterDeath(game::EntityId monsterId);
     void processItemPickup();
+    
+    // Touch input support
+    void processTouchInput(float x, float y, input::TouchAction action);
+    void setTouchControlMode(TouchControlMode mode);
+    void setScreenSize(int width, int height);
+    bool wasActionTriggered() const { return actionTriggered_; }
     
     d2portable::core::AssetManager* getAssetManager() const { 
         return assetManager_.get(); 
@@ -95,6 +108,8 @@ public:
 private:
     bool initialized_ = false;
     bool running_ = false;
+    bool actionTriggered_ = false;
+    TouchControlMode touchControlMode_ = TouchControlMode::DIRECT_MOVEMENT;
     std::unique_ptr<d2portable::core::AssetManager> assetManager_;
     std::unique_ptr<d2::rendering::Renderer> renderer_;
     std::unique_ptr<d2::rendering::WorldRenderer> worldRenderer_;
@@ -102,6 +117,7 @@ private:
     std::unique_ptr<d2::rendering::SpriteRenderer> spriteRenderer_;
     std::unique_ptr<d2::game::GameState> gameState_;
     std::unique_ptr<d2::input::InputManager> inputManager_;
+    std::unique_ptr<d2::input::TouchInput> touchInput_;
     std::unique_ptr<d2::game::CombatEngine> combatEngine_;
     std::unique_ptr<d2::game::LootSystem> lootSystem_;
     std::unique_ptr<QuestManager> questManager_;

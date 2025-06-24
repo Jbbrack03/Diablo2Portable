@@ -37,6 +37,7 @@ add_library(d2engine STATIC
     src/input/gamepad_manager.cpp
     src/input/input_manager.cpp
     src/input/control_mapper.cpp
+    src/input/touch_input.cpp
     src/game/character.cpp
     src/game/combat_engine.cpp
     src/game/item.cpp
