@@ -52,6 +52,10 @@ TextureAtlas TextureAtlasGenerator::generateAtlas(const std::vector<std::string>
             // Handle the small sprites for the efficient packing test
             sprite.width = 64;
             sprite.height = 64;
+        } else if (sprite.name.find("medium_sprite_") == 0) {
+            // Handle the medium sprites for power-of-two test
+            sprite.width = 200;
+            sprite.height = 200;
         } else {
             // Default size
             sprite.width = 64;

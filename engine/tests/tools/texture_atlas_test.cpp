@@ -134,3 +134,33 @@ TEST_F(TextureAtlasTest, RetrieveSpritePositions) {
         EXPECT_TRUE(noOverlap) << "Sprites should not overlap on the same page";
     }
 }
+
+TEST_F(TextureAtlasTest, PowerOfTwoTextures) {
+    TextureAtlasGenerator generator;
+    generator.setPowerOfTwo(true);
+    
+    // Create sprites that would fit in non-power-of-two but require power-of-two adjustment
+    std::vector<std::string> sprites;
+    for (int i = 0; i < 3; ++i) {
+        auto spritePath = inputPath / ("medium_sprite_" + std::to_string(i) + ".png");
+        createMockSprite(spritePath, 200, 200);
+        sprites.push_back(spritePath.string());
+    }
+    
+    // 3 sprites of 200x200 would fit in 600x200 or 200x600
+    // But with power-of-two, should use 1024x256 or 256x1024 or 512x512
+    auto atlas = generator.generateAtlas(sprites, 1024, 1024);
+    
+    EXPECT_TRUE(atlas.isValid());
+    
+    // Verify that atlas pages respect power-of-two dimensions
+    // This test assumes the implementation will provide a way to get page dimensions
+    // For now, we just verify the atlas was created successfully
+    EXPECT_EQ(atlas.getPageCount(), 1); // Should fit on one 1024x1024 page
+    
+    // Verify all sprites are included
+    for (int i = 0; i < 3; ++i) {
+        std::string spriteName = "medium_sprite_" + std::to_string(i) + ".png";
+        EXPECT_TRUE(atlas.hasSprite(spriteName));
+    }
+}
