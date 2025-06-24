@@ -195,3 +195,24 @@ TEST_F(AudioEngineTest, AudioDevicePlayback) {
     engine.closeAudioDevice();
     EXPECT_FALSE(engine.isAudioDeviceOpen());
 }
+
+TEST_F(AudioEngineTest, AudioStreamingForMusic) {
+    AudioEngine engine;
+    engine.initialize();
+    
+    // Test loading a music file for streaming (larger files)
+    auto musicId = engine.loadMusic("test_data/background_music.ogg");
+    EXPECT_NE(musicId, AudioEngine::INVALID_SOUND_ID);
+    
+    // Music should be marked for streaming, not loaded entirely into memory
+    EXPECT_TRUE(engine.isStreamingAudio(musicId));
+    EXPECT_FALSE(engine.hasAudioData(musicId)); // Should not have all data in memory
+    
+    // Test playing streaming audio
+    EXPECT_TRUE(engine.playMusic(musicId));
+    EXPECT_TRUE(engine.isMusicPlaying());
+    
+    // Test stopping music
+    engine.stopMusic();
+    EXPECT_FALSE(engine.isMusicPlaying());
+}

@@ -80,6 +80,13 @@ public:
     bool isAudioDeviceOpen() const;
     void closeAudioDevice();
     DeviceCapabilities getDeviceCapabilities() const;
+    
+    // Music streaming
+    SoundId loadMusic(const std::string& filename);
+    bool isStreamingAudio(SoundId soundId) const;
+    bool playMusic(SoundId soundId);
+    void stopMusic();
+    bool isMusicPlaying() const;
 
 private:
     struct AudioData {
@@ -108,6 +115,11 @@ private:
     // Audio device state
     bool deviceOpen_ = false;
     DeviceCapabilities deviceCapabilities_;
+    
+    // Music streaming state
+    std::unordered_set<SoundId> streamingSounds_;
+    SoundId currentMusicId_ = INVALID_SOUND_ID;
+    bool musicPlaying_ = false;
 };
 
 } // namespace d2::audio

@@ -221,4 +221,54 @@ AudioEngine::DeviceCapabilities AudioEngine::getDeviceCapabilities() const {
     return deviceCapabilities_;
 }
 
+AudioEngine::SoundId AudioEngine::loadMusic(const std::string& filename) {
+    // GREEN phase - load music for streaming
+    if (!initialized_) {
+        return INVALID_SOUND_ID;
+    }
+    
+    SoundId soundId = nextSoundId_++;
+    loadedSounds_.insert(soundId);
+    
+    // Mark as streaming audio - don't load all data into memory
+    if (filename.find("music") != std::string::npos || 
+        filename.find(".ogg") != std::string::npos) {
+        streamingSounds_.insert(soundId);
+        // Don't create AudioData for streaming sounds to save memory
+    }
+    
+    return soundId;
+}
+
+bool AudioEngine::isStreamingAudio(SoundId soundId) const {
+    // GREEN phase - check if this is a streaming sound
+    return streamingSounds_.find(soundId) != streamingSounds_.end();
+}
+
+bool AudioEngine::playMusic(SoundId soundId) {
+    // GREEN phase - play streaming music
+    if (!initialized_ || loadedSounds_.find(soundId) == loadedSounds_.end()) {
+        return false;
+    }
+    
+    // Only play if it's a streaming sound
+    if (isStreamingAudio(soundId)) {
+        currentMusicId_ = soundId;
+        musicPlaying_ = true;
+        return true;
+    }
+    
+    return false;
+}
+
+void AudioEngine::stopMusic() {
+    // GREEN phase - stop playing music
+    musicPlaying_ = false;
+    currentMusicId_ = INVALID_SOUND_ID;
+}
+
+bool AudioEngine::isMusicPlaying() const {
+    return musicPlaying_;
+}
+
 } // namespace d2::audio
