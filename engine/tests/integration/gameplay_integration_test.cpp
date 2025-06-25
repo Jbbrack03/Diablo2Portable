@@ -5,7 +5,10 @@
 #include "game/game_state.h"
 #include "game/player.h"
 #include "game/quest.h"
+#include "game/monster.h"
 #include "core/asset_manager.h"
+#include "performance/memory_monitor.h"
+#include "performance/performance_monitor.h"
 #include <filesystem>
 #include <chrono>
 #include <fstream>
@@ -215,4 +218,47 @@ TEST_F(GameplayIntegrationTest, CompleteGameplayLoop) {
     // Load and verify
     EXPECT_NO_THROW(testSession.loadGame()) << "Failed to load game";
     EXPECT_TRUE(testSession.isQuestComplete(QuestId::DEN_OF_EVIL)) << "Quest not marked as complete after load";
+}
+
+// Test 20.2: Performance Under Load
+TEST_F(GameplayIntegrationTest, PerformanceUnderLoad) {
+    GameEngine engine;
+    
+    // Initialize engine
+    EXPECT_TRUE(engine.initialize(test_assets_path));
+    EXPECT_TRUE(engine.start());
+    
+    // Get performance monitor
+    auto* perfMonitor = engine.getPerformanceMonitor();
+    ASSERT_NE(perfMonitor, nullptr) << "Performance monitor not available";
+    
+    // Simulate heavy game load
+    auto* gameState = engine.getGameState();
+    ASSERT_NE(gameState, nullptr);
+    
+    // Add many monsters to stress test
+    for (int i = 0; i < 100; i++) {
+        auto monster = std::make_shared<Monster>(MonsterType::FALLEN, 1); // Level 1
+        monster->setPosition(i * 10, i * 10);
+        gameState->addMonster(monster);
+    }
+    
+    // Run several update cycles
+    const int numFrames = 60; // 1 second at 60 FPS
+    for (int i = 0; i < numFrames; i++) {
+        engine.update(0.016f); // 16ms per frame
+        engine.renderFrame();
+    }
+    
+    // Check performance metrics
+    float avgFPS = perfMonitor->getAverageFPS();
+    
+    // First check if we're getting meaningful FPS data
+    EXPECT_GT(avgFPS, 0.0f) << "Performance monitor returned no FPS data";
+    
+    // Then check if it meets our target
+    EXPECT_GE(avgFPS, 60.0f) << "FPS dropped below 60 with 100 monsters (actual: " << avgFPS << ")";
+    
+    // Memory monitoring would be checked here in a full implementation
+    // For now, just verify the test completes without crashes
 }
