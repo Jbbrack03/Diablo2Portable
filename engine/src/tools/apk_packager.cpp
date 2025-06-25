@@ -14,7 +14,16 @@ APKPackager::~APKPackager() {
 }
 
 void APKPackager::addAsset(const std::string& sourcePath, const std::string& apkPath) {
-    // TODO: Implement
+    if (!fs::exists(sourcePath)) {
+        return;
+    }
+    
+    Asset asset;
+    asset.sourcePath = sourcePath;
+    asset.apkPath = apkPath;
+    asset.size = fs::file_size(sourcePath);
+    
+    assets.push_back(asset);
 }
 
 bool APKPackager::packageAssets(const std::string& outputDir, const PackageOptions& options) {

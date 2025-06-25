@@ -43,3 +43,29 @@ TEST_F(APKPackagerTest, CreatePackager) {
     EXPECT_EQ(packager.getAssetCount(), 0);
     EXPECT_EQ(packager.getTotalSize(), 0);
 }
+
+TEST_F(APKPackagerTest, AddAsset) {
+    APKPackager packager;
+    
+    // Create test files
+    auto file1 = assetsPath / "sprites" / "player.png";
+    createTestFile(file1, "fake png data");
+    
+    auto file2 = assetsPath / "sounds" / "music.ogg";
+    createTestFile(file2, "fake ogg data for music");
+    
+    // Add assets
+    packager.addAsset(file1.string(), "assets/sprites/player.png");
+    EXPECT_EQ(packager.getAssetCount(), 1);
+    
+    packager.addAsset(file2.string(), "assets/sounds/music.ogg");
+    EXPECT_EQ(packager.getAssetCount(), 2);
+    
+    // Check total size
+    EXPECT_EQ(packager.getTotalSize(), 13 + 23); // "fake png data" + "fake ogg data for music"
+    
+    // Clear and verify
+    packager.clear();
+    EXPECT_EQ(packager.getAssetCount(), 0);
+    EXPECT_EQ(packager.getTotalSize(), 0);
+}
