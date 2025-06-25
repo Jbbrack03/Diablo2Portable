@@ -32,12 +32,20 @@ protected:
         if (!fs::exists(test_assets_path)) {
             fs::create_directories(test_assets_path);
         }
+        
+        // Create minimal test data structure
+        fs::create_directories(test_assets_path + "/data");
     }
     
     void TearDown() override {
         // Clean up test save files
         if (fs::exists(test_save_path)) {
             fs::remove(test_save_path);
+        }
+        
+        // Clean up test assets
+        if (fs::exists(test_assets_path)) {
+            fs::remove_all(test_assets_path);
         }
     }
     
@@ -62,7 +70,7 @@ public:
         }
         
         // Initialize engine and create player
-        engine->initialize("/path/to/assets");
+        engine->initialize("test_assets/");
         engine->start();
         
         // Create player with character
@@ -172,25 +180,39 @@ TestSession createTestSession() {
 TEST_F(GameplayIntegrationTest, CompleteGameplayLoop) {
     GameEngine engine;
     
-    // Test that engine can be initialized
-    EXPECT_TRUE(engine.initialize("/path/to/game/assets"));
+    // Test that engine can be initialized with test assets
+    bool init_result = engine.initialize(test_assets_path);
+    EXPECT_TRUE(init_result) << "Engine initialization failed";
     EXPECT_TRUE(engine.isInitialized());
     
     // Test that engine can start
-    EXPECT_TRUE(engine.start());
+    bool start_result = engine.start();
+    EXPECT_TRUE(start_result) << "Engine start failed";
     EXPECT_TRUE(engine.isRunning());
     
     // Simulate full gameplay session
     auto testSession = createTestSession();
     testSession.createCharacter(CharacterClass::SORCERESS);
-    testSession.enterGame();
-    testSession.completeQuest(QuestId::DEN_OF_EVIL);
-    testSession.saveAndExit();
     
-    // Verify save file
-    EXPECT_TRUE(fs::exists(testSession.getSavePath()));
+    // Verify character was created
+    EXPECT_NO_THROW(testSession.enterGame()) << "Failed to enter game";
+    
+    // Complete a quest
+    EXPECT_NO_THROW(testSession.completeQuest(QuestId::DEN_OF_EVIL)) << "Failed to complete quest";
+    
+    // Save the game
+    EXPECT_NO_THROW(testSession.saveAndExit()) << "Failed to save and exit";
+    
+    // Verify save file was created
+    std::string save_path = testSession.getSavePath();
+    EXPECT_TRUE(fs::exists(save_path)) << "Save file not found at: " << save_path;
+    
+    // Verify save file has content
+    if (fs::exists(save_path)) {
+        EXPECT_GT(fs::file_size(save_path), 0) << "Save file is empty";
+    }
     
     // Load and verify
-    testSession.loadGame();
-    EXPECT_TRUE(testSession.isQuestComplete(QuestId::DEN_OF_EVIL));
+    EXPECT_NO_THROW(testSession.loadGame()) << "Failed to load game";
+    EXPECT_TRUE(testSession.isQuestComplete(QuestId::DEN_OF_EVIL)) << "Quest not marked as complete after load";
 }
