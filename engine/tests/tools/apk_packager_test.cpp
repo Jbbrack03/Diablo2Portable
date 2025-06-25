@@ -69,3 +69,42 @@ TEST_F(APKPackagerTest, AddAsset) {
     EXPECT_EQ(packager.getAssetCount(), 0);
     EXPECT_EQ(packager.getTotalSize(), 0);
 }
+
+TEST_F(APKPackagerTest, PackageAssets) {
+    APKPackager packager;
+    
+    // Create test files
+    auto sprite = assetsPath / "sprites" / "player.png";
+    createTestFile(sprite, "PNG sprite data");
+    
+    auto sound = assetsPath / "sounds" / "effect.ogg";
+    createTestFile(sound, "OGG sound data");
+    
+    auto data = assetsPath / "data" / "config.json";
+    createTestFile(data, "{\"version\":1}");
+    
+    // Add assets
+    packager.addAsset(sprite.string(), "assets/sprites/player.png");
+    packager.addAsset(sound.string(), "assets/sounds/effect.ogg");
+    packager.addAsset(data.string(), "assets/data/config.json");
+    
+    // Package assets
+    EXPECT_TRUE(packager.packageAssets(outputPath.string()));
+    
+    // Verify output structure
+    EXPECT_TRUE(fs::exists(outputPath / "assets"));
+    EXPECT_TRUE(fs::exists(outputPath / "assets" / "sprites"));
+    EXPECT_TRUE(fs::exists(outputPath / "assets" / "sounds"));
+    EXPECT_TRUE(fs::exists(outputPath / "assets" / "data"));
+    
+    // Verify files were copied
+    EXPECT_TRUE(fs::exists(outputPath / "assets" / "sprites" / "player.png"));
+    EXPECT_TRUE(fs::exists(outputPath / "assets" / "sounds" / "effect.ogg"));
+    EXPECT_TRUE(fs::exists(outputPath / "assets" / "data" / "config.json"));
+    
+    // Verify content
+    std::ifstream spriteFile(outputPath / "assets" / "sprites" / "player.png");
+    std::string spriteContent((std::istreambuf_iterator<char>(spriteFile)),
+                              std::istreambuf_iterator<char>());
+    EXPECT_EQ(spriteContent, "PNG sprite data");
+}
