@@ -92,6 +92,7 @@ add_library(d2engine STATIC
     src/tools/asset_optimizer.cpp
     src/tools/texture_atlas_generator.cpp
     src/tools/asset_manifest.cpp
+    src/tools/apk_packager.cpp
 )
 
 # Include directories
