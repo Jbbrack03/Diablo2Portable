@@ -71,6 +71,7 @@ set(TEST_SOURCES
     network/network_game_test.cpp
     utils/bzip2_test.cpp
     integration/test_real_mpq_files.cpp
+    integration/gameplay_integration_test.cpp
     test_pkware_real_format.cpp
     ui/test_ui_element.cpp
     ui/test_ui_button.cpp
