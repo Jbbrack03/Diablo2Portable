@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 #include "tools/apk_packager.h"
+#include "tools/asset_manifest.h"
 #include <filesystem>
 #include <fstream>
 
@@ -107,4 +108,122 @@ TEST_F(APKPackagerTest, PackageAssets) {
     std::string spriteContent((std::istreambuf_iterator<char>(spriteFile)),
                               std::istreambuf_iterator<char>());
     EXPECT_EQ(spriteContent, "PNG sprite data");
+}
+
+TEST_F(APKPackagerTest, CompressionSupport) {
+    APKPackager packager;
+    
+    // Create a larger test file to see compression effect
+    auto largeFile = assetsPath / "data" / "large_data.txt";
+    std::string largeContent(10000, 'A'); // 10KB of 'A' characters
+    createTestFile(largeFile, largeContent);
+    
+    packager.addAsset(largeFile.string(), "assets/data/large_data.txt");
+    
+    // Package with compression enabled
+    APKPackager::PackageOptions options;
+    options.compressAssets = true;
+    options.compressionLevel = 9; // Maximum compression
+    
+    EXPECT_TRUE(packager.packageAssets(outputPath.string(), options));
+    
+    // Verify file exists but is compressed (should be smaller than original)
+    auto compressedFile = outputPath / "assets" / "data" / "large_data.txt.gz";
+    EXPECT_TRUE(fs::exists(compressedFile));
+    
+    // Compressed file should be significantly smaller than 10KB
+    size_t compressedSize = fs::file_size(compressedFile);
+    EXPECT_LT(compressedSize, 1000); // Should compress to less than 1KB
+}
+
+TEST_F(APKPackagerTest, AddAssetDirectory) {
+    APKPackager packager;
+    
+    // Create test directory with multiple files
+    auto testDir = assetsPath / "test_sprites";
+    fs::create_directories(testDir);
+    
+    createTestFile(testDir / "player1.png", "PNG data 1");
+    createTestFile(testDir / "player2.png", "PNG data 2");
+    createTestFile(testDir / "player3.png", "PNG data 3");
+    
+    // Create subdirectory
+    auto subDir = testDir / "animations";
+    fs::create_directories(subDir);
+    createTestFile(subDir / "walk.png", "Walk animation");
+    createTestFile(subDir / "run.png", "Run animation");
+    
+    // Add entire directory
+    packager.addAssetDirectory(testDir.string(), "assets/sprites");
+    
+    // Should have added all 5 files
+    EXPECT_EQ(packager.getAssetCount(), 5);
+    
+    // Package and verify
+    EXPECT_TRUE(packager.packageAssets(outputPath.string()));
+    
+    // Verify all files exist in output
+    EXPECT_TRUE(fs::exists(outputPath / "assets" / "sprites" / "player1.png"));
+    EXPECT_TRUE(fs::exists(outputPath / "assets" / "sprites" / "player2.png"));
+    EXPECT_TRUE(fs::exists(outputPath / "assets" / "sprites" / "player3.png"));
+    EXPECT_TRUE(fs::exists(outputPath / "assets" / "sprites" / "animations" / "walk.png"));
+    EXPECT_TRUE(fs::exists(outputPath / "assets" / "sprites" / "animations" / "run.png"));
+}
+
+TEST_F(APKPackagerTest, GenerateAssetIndex) {
+    APKPackager packager;
+    
+    // Create test files
+    auto sprite = assetsPath / "sprites" / "player.png";
+    createTestFile(sprite, "PNG sprite data");
+    
+    auto sound = assetsPath / "sounds" / "effect.ogg";
+    createTestFile(sound, "OGG sound data");
+    
+    // Add assets
+    packager.addAsset(sprite.string(), "assets/sprites/player.png");
+    packager.addAsset(sound.string(), "assets/sounds/effect.ogg");
+    
+    // Package with index generation enabled
+    APKPackager::PackageOptions options;
+    options.generateIndex = true;
+    
+    EXPECT_TRUE(packager.packageAssets(outputPath.string(), options));
+    
+    // Verify index file was created
+    auto indexFile = outputPath / "assets" / "index.json";
+    EXPECT_TRUE(fs::exists(indexFile));
+    
+    // Verify index contains asset entries
+    std::ifstream file(indexFile);
+    std::string content((std::istreambuf_iterator<char>(file)),
+                        std::istreambuf_iterator<char>());
+    
+    EXPECT_NE(content.find("player.png"), std::string::npos);
+    EXPECT_NE(content.find("effect.ogg"), std::string::npos);
+}
+
+TEST_F(APKPackagerTest, ManifestIntegration) {
+    APKPackager packager;
+    auto manifest = std::make_shared<AssetManifest>();
+    
+    // Create test files
+    auto sprite = assetsPath / "sprites" / "player.png";
+    createTestFile(sprite, "PNG sprite data");
+    
+    // Set manifest
+    packager.setManifest(manifest);
+    
+    // Add asset
+    packager.addAsset(sprite.string(), "assets/sprites/player.png");
+    
+    // Package assets
+    EXPECT_TRUE(packager.packageAssets(outputPath.string()));
+    
+    // Verify manifest was updated
+    auto info = manifest->getAssetInfo("assets/sprites/player.png");
+    EXPECT_NE(info, nullptr);
+    EXPECT_EQ(info->size, 15); // "PNG sprite data" = 15 bytes
+    EXPECT_EQ(info->type, "image/png");
+    EXPECT_FALSE(info->checksum.empty());
 }

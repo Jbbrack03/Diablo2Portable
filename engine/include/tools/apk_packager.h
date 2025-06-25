@@ -27,8 +27,8 @@ public:
         int compressionLevel;     // Compression level (1-9)
         
         PackageOptions() 
-            : compressAssets(true)
-            , generateIndex(true)
+            : compressAssets(false)
+            , generateIndex(false)
             , targetABI("all")
             , compressionLevel(6) {}
     };
@@ -42,6 +42,13 @@ public:
      * @param apkPath Relative path within APK (e.g., "assets/sprites/player.png")
      */
     void addAsset(const std::string& sourcePath, const std::string& apkPath);
+    
+    /**
+     * Add all assets from a directory recursively
+     * @param sourceDir Path to the directory
+     * @param apkDir Base directory within APK
+     */
+    void addAssetDirectory(const std::string& sourceDir, const std::string& apkDir);
     
     /**
      * Package all added assets into APK structure

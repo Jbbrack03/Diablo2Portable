@@ -3,6 +3,7 @@
 #include <filesystem>
 #include <fstream>
 #include <set>
+#include <zlib.h>
 
 namespace fs = std::filesystem;
 
@@ -27,6 +28,26 @@ void APKPackager::addAsset(const std::string& sourcePath, const std::string& apk
     assets.push_back(asset);
 }
 
+void APKPackager::addAssetDirectory(const std::string& sourceDir, const std::string& apkDir) {
+    if (!fs::exists(sourceDir) || !fs::is_directory(sourceDir)) {
+        return;
+    }
+    
+    // Recursively iterate through all files in the directory
+    for (const auto& entry : fs::recursive_directory_iterator(sourceDir)) {
+        if (entry.is_regular_file()) {
+            // Calculate relative path from sourceDir
+            fs::path relativePath = fs::relative(entry.path(), sourceDir);
+            
+            // Construct APK path
+            fs::path apkPath = fs::path(apkDir) / relativePath;
+            
+            // Add the asset
+            addAsset(entry.path().string(), apkPath.string());
+        }
+    }
+}
+
 bool APKPackager::packageAssets(const std::string& outputDir, const PackageOptions& options) {
     if (assets.empty()) {
         return true; // Nothing to package
@@ -47,6 +68,39 @@ bool APKPackager::packageAssets(const std::string& outputDir, const PackageOptio
         if (!copyAsset(asset, outputDir, options)) {
             return false;
         }
+    }
+    
+    // Generate index if requested
+    if (options.generateIndex) {
+        fs::path indexPath = fs::path(outputDir) / "assets" / "index.json";
+        std::ofstream indexFile(indexPath);
+        if (!indexFile) {
+            return false;
+        }
+        
+        indexFile << "{\n";
+        indexFile << "  \"assets\": [\n";
+        
+        for (size_t i = 0; i < assets.size(); ++i) {
+            const auto& asset = assets[i];
+            fs::path assetPath = fs::path(asset.apkPath);
+            
+            indexFile << "    {\n";
+            indexFile << "      \"path\": \"" << asset.apkPath << "\",\n";
+            indexFile << "      \"name\": \"" << assetPath.filename().string() << "\",\n";
+            indexFile << "      \"size\": " << asset.size << ",\n";
+            indexFile << "      \"compressed\": " << (options.compressAssets ? "true" : "false") << "\n";
+            indexFile << "    }";
+            
+            if (i < assets.size() - 1) {
+                indexFile << ",";
+            }
+            indexFile << "\n";
+        }
+        
+        indexFile << "  ]\n";
+        indexFile << "}\n";
+        indexFile.close();
     }
     
     return true;
@@ -97,9 +151,105 @@ bool APKPackager::copyAsset(const Asset& asset, const std::string& outputDir, co
     fs::path sourcePath = asset.sourcePath;
     fs::path destPath = fs::path(outputDir) / asset.apkPath;
     
+    // Add .gz extension if compression is enabled
+    if (options.compressAssets) {
+        destPath += ".gz";
+    }
+    
     try {
-        // For now, just copy the file. In the future, we can add compression
-        fs::copy(sourcePath, destPath, fs::copy_options::overwrite_existing);
+        if (options.compressAssets) {
+            // Compress the file using zlib
+            std::ifstream input(sourcePath, std::ios::binary);
+            if (!input) {
+                return false;
+            }
+            
+            // Read entire file into buffer
+            input.seekg(0, std::ios::end);
+            size_t size = input.tellg();
+            input.seekg(0, std::ios::beg);
+            
+            std::vector<char> buffer(size);
+            input.read(buffer.data(), size);
+            input.close();
+            
+            // Compress using zlib
+            uLongf compressedSize = compressBound(size);
+            std::vector<Bytef> compressed(compressedSize);
+            
+            int result = compress2(compressed.data(), &compressedSize,
+                                   reinterpret_cast<const Bytef*>(buffer.data()),
+                                   size, options.compressionLevel);
+            
+            if (result != Z_OK) {
+                return false;
+            }
+            
+            // Write gzip format file
+            std::ofstream output(destPath, std::ios::binary);
+            if (!output) {
+                return false;
+            }
+            
+            // Write gzip header
+            const unsigned char gzipHeader[] = {
+                0x1f, 0x8b,  // Magic number
+                0x08,        // Compression method (deflate)
+                0x00,        // Flags
+                0x00, 0x00, 0x00, 0x00,  // Timestamp
+                0x00,        // Extra flags
+                0xff         // OS type
+            };
+            output.write(reinterpret_cast<const char*>(gzipHeader), sizeof(gzipHeader));
+            
+            // Write compressed data (skip first 2 bytes of zlib header)
+            output.write(reinterpret_cast<const char*>(compressed.data() + 2), compressedSize - 6);
+            
+            // Calculate CRC32
+            uLong crc = crc32(0L, reinterpret_cast<const Bytef*>(buffer.data()), size);
+            
+            // Write gzip trailer (CRC32 and uncompressed size)
+            unsigned char trailer[8];
+            trailer[0] = crc & 0xff;
+            trailer[1] = (crc >> 8) & 0xff;
+            trailer[2] = (crc >> 16) & 0xff;
+            trailer[3] = (crc >> 24) & 0xff;
+            trailer[4] = size & 0xff;
+            trailer[5] = (size >> 8) & 0xff;
+            trailer[6] = (size >> 16) & 0xff;
+            trailer[7] = (size >> 24) & 0xff;
+            output.write(reinterpret_cast<const char*>(trailer), 8);
+            
+            output.close();
+        } else {
+            // Just copy the file without compression
+            fs::copy(sourcePath, destPath, fs::copy_options::overwrite_existing);
+        }
+        
+        // Update manifest if set
+        if (manifest) {
+            std::string checksum = "TODO"; // Calculate actual checksum
+            size_t fileSize = asset.size;
+            manifest->addAsset(asset.apkPath, fileSize, checksum);
+            
+            // Determine asset type from extension
+            fs::path ext = fs::path(asset.apkPath).extension();
+            std::string type = "unknown";
+            if (ext == ".png" || ext == ".jpg") {
+                type = "image/png";
+            } else if (ext == ".ogg" || ext == ".mp3") {
+                type = "audio/ogg";
+            } else if (ext == ".json") {
+                type = "application/json";
+            }
+            
+            // Update type in manifest (need to extend manifest API for this)
+            auto info = const_cast<AssetManifest::AssetInfo*>(manifest->getAssetInfo(asset.apkPath));
+            if (info) {
+                info->type = type;
+            }
+        }
+        
         return true;
     } catch (const std::exception& e) {
         return false;
