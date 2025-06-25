@@ -158,3 +158,53 @@ TEST_F(AssetManifestTest, VersionManagement) {
     EXPECT_EQ(loaded.getVersion(), 5);
     EXPECT_EQ(loaded.getAssetCount(), 2);
 }
+
+TEST_F(AssetManifestTest, ErrorHandling) {
+    AssetManifest manifest;
+    
+    // Test loading non-existent file
+    EXPECT_FALSE(manifest.load("non/existent/file.json"));
+    EXPECT_EQ(manifest.getAssetCount(), 0); // Should remain empty
+    
+    // Test saving to invalid path
+    manifest.addAsset("test.png", 1024, "check1");
+    EXPECT_FALSE(manifest.save("/invalid/path/that/does/not/exist/manifest.json"));
+    
+    // Create a valid manifest file
+    auto validPath = tempPath / "valid_manifest.json";
+    EXPECT_TRUE(manifest.save(validPath.string()));
+    
+    // Verify we can load it
+    AssetManifest loaded;
+    EXPECT_TRUE(loaded.load(validPath.string()));
+    EXPECT_EQ(loaded.getAssetCount(), 1);
+}
+
+TEST_F(AssetManifestTest, ChecksumPreservation) {
+    AssetManifest manifest;
+    
+    // Add assets with specific checksums
+    manifest.addAsset("file1.png", 1024, "sha256:abcdef1234567890");
+    manifest.addAsset("file2.ogg", 2048, "md5:0987654321fedcba");
+    manifest.addAsset("file3.json", 512, "crc32:deadbeef");
+    
+    // Save manifest
+    auto manifestPath = tempPath / "checksum_manifest.json";
+    EXPECT_TRUE(manifest.save(manifestPath.string()));
+    
+    // Load and verify checksums are preserved
+    AssetManifest loaded;
+    EXPECT_TRUE(loaded.load(manifestPath.string()));
+    
+    const auto* info1 = loaded.getAssetInfo("file1.png");
+    ASSERT_NE(info1, nullptr);
+    EXPECT_EQ(info1->checksum, "sha256:abcdef1234567890");
+    
+    const auto* info2 = loaded.getAssetInfo("file2.ogg");
+    ASSERT_NE(info2, nullptr);
+    EXPECT_EQ(info2->checksum, "md5:0987654321fedcba");
+    
+    const auto* info3 = loaded.getAssetInfo("file3.json");
+    ASSERT_NE(info3, nullptr);
+    EXPECT_EQ(info3->checksum, "crc32:deadbeef");
+}
