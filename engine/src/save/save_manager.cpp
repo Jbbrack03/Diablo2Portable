@@ -1,634 +1,342 @@
-#include "save/save_manager.h"
+#include "game/save_manager.h"
 #include "game/character.h"
-#include "game/inventory.h"
-#include "game/item.h"
-#include <filesystem>
 #include <fstream>
+#include <filesystem>
 #include <cstring>
-#include <vector>
-#include <set>
-#include <tuple>
 
-namespace d2::save {
+namespace d2::game {
 
-// D2S file constants
-constexpr uint32_t D2S_SIGNATURE = 0xAA55AA55;
-constexpr uint32_t D2S_VERSION = 0x60;  // Version 96 (1.09)
-constexpr size_t D2S_HEADER_SIZE = 765;
+namespace fs = std::filesystem;
 
-// Calculate D2S checksum using proper rotating left shift algorithm
-uint32_t calculateChecksum(std::vector<uint8_t> data) {
-    // Zero out the checksum field (offset 12-15)
-    std::memset(&data[12], 0, 4);
-    
-    uint32_t sum = 0;
-    for (size_t i = 0; i < data.size(); ++i) {
-        // Check if we need to carry the high bit
-        uint32_t carry = (sum & 0x80000000) ? 1 : 0;
-        
-        // Rotate left by 1 (shift left and add carry to lowest bit)
-        sum = (sum << 1) | carry;
-        
-        // Add the current byte
-        sum += data[i];
-    }
-    
-    return sum;
+SaveManager::SaveManager() {
 }
 
-SaveManager::SaveManager(const std::string& saveDirectory) 
-    : m_saveDirectory(saveDirectory) {
-    // Create the save directory if it doesn't exist
-    std::filesystem::create_directories(saveDirectory);
+SaveManager::~SaveManager() {
+    // Stop auto-save thread if running
+    if (auto_save_running) {
+        auto_save_running = false;
+        if (auto_save_thread.joinable()) {
+            auto_save_thread.join();
+        }
+    }
 }
 
-bool SaveManager::saveCharacter(const d2::game::Character& character, const std::string& fileName) {
-    // Create full path
-    std::filesystem::path savePath = std::filesystem::path(m_saveDirectory) / fileName;
-    
-    // Check if file already exists and create backup if it does
-    if (std::filesystem::exists(savePath)) {
-        // Create backup directory if it doesn't exist
-        std::filesystem::path backupDir = std::filesystem::path(m_saveDirectory) / "backup";
-        std::filesystem::create_directories(backupDir);
+bool SaveManager::saveCharacter(const Character& character, const std::string& path) {
+    try {
+        // Create directory if it doesn't exist
+        fs::path filePath(path);
+        if (filePath.has_parent_path()) {
+            fs::create_directories(filePath.parent_path());
+        }
         
-        // Create backup file path
-        std::filesystem::path backupPath = backupDir / (fileName + ".bak");
+        // Handle backups if enabled
+        if (backup_enabled && fs::exists(path)) {
+            rotateBackups(path);
+        }
         
-        // Copy existing file to backup
-        std::filesystem::copy_file(savePath, backupPath, 
-                                   std::filesystem::copy_options::overwrite_existing);
+        std::ofstream file(path, std::ios::binary);
+        if (!file.is_open()) {
+            return false;
+        }
+        
+        // Write D2S header
+        uint32_t signature = D2S_SIGNATURE;
+        file.write(reinterpret_cast<const char*>(&signature), sizeof(signature));
+        
+        // Write version
+        uint32_t version = D2S_VERSION;
+        file.write(reinterpret_cast<const char*>(&version), sizeof(version));
+        
+        // Write file size (placeholder, will update later)
+        uint32_t fileSize = 0;
+        auto fileSizePos = file.tellp();
+        file.write(reinterpret_cast<const char*>(&fileSize), sizeof(fileSize));
+        
+        // Write checksum (placeholder)
+        uint32_t checksum = 0;
+        auto checksumPos = file.tellp();
+        file.write(reinterpret_cast<const char*>(&checksum), sizeof(checksum));
+        
+        // Write character name (16 bytes, null-terminated)
+        // Since Character doesn't have a name, use a placeholder
+        char name[16] = "Player";
+        file.write(name, 16);
+        
+        // Write character status flags
+        uint8_t status = 0x00; // Normal character
+        file.write(reinterpret_cast<const char*>(&status), sizeof(status));
+        
+        // Write character class
+        uint8_t charClass = static_cast<uint8_t>(character.getCharacterClass());
+        file.write(reinterpret_cast<const char*>(&charClass), sizeof(charClass));
+        
+        // Write level
+        uint8_t level = static_cast<uint8_t>(character.getLevel());
+        file.write(reinterpret_cast<const char*>(&level), sizeof(level));
+        
+        // Write experience (placeholder since Character doesn't expose getExperience)
+        uint32_t experience = 0;
+        file.write(reinterpret_cast<const char*>(&experience), sizeof(experience));
+        
+        // Write stats
+        uint16_t strength = character.getStrength();
+        uint16_t dexterity = character.getDexterity();
+        uint16_t vitality = character.getVitality();
+        uint16_t energy = character.getEnergy();
+        
+        file.write(reinterpret_cast<const char*>(&strength), sizeof(strength));
+        file.write(reinterpret_cast<const char*>(&dexterity), sizeof(dexterity));
+        file.write(reinterpret_cast<const char*>(&vitality), sizeof(vitality));
+        file.write(reinterpret_cast<const char*>(&energy), sizeof(energy));
+        
+        // Character doesn't have inventory support in current implementation
+        
+        // Update file size
+        auto endPos = file.tellp();
+        fileSize = static_cast<uint32_t>(endPos);
+        file.seekp(fileSizePos);
+        file.write(reinterpret_cast<const char*>(&fileSize), sizeof(fileSize));
+        
+        // Calculate and write checksum
+        file.seekp(0, std::ios::end);
+        file.close();
+        
+        // Reopen to calculate checksum
+        checksum = calculateChecksum(path);
+        file.open(path, std::ios::binary | std::ios::in | std::ios::out);
+        file.seekp(checksumPos);
+        file.write(reinterpret_cast<const char*>(&checksum), sizeof(checksum));
+        file.close();
+        
+        return true;
+    } catch (const std::exception&) {
+        return false;
+    }
+}
+
+std::unique_ptr<Character> SaveManager::loadCharacter(const std::string& path) {
+    if (!isValidSaveFile(path)) {
+        return nullptr;
     }
     
-    // Open file for binary writing
-    std::ofstream file(savePath, std::ios::binary);
-    if (!file.is_open()) {
+    try {
+        std::ifstream file(path, std::ios::binary);
+        if (!file.is_open()) {
+            return nullptr;
+        }
+        
+        // Skip signature and version (already validated)
+        file.seekg(8);
+        
+        // Skip file size
+        file.seekg(4, std::ios::cur);
+        
+        // Skip checksum (already validated)
+        file.seekg(4, std::ios::cur);
+        
+        // Read character name
+        char name[16];
+        file.read(name, 16);
+        name[15] = '\0'; // Ensure null termination
+        
+        // Skip status
+        file.seekg(1, std::ios::cur);
+        
+        // Read character class
+        uint8_t charClass;
+        file.read(reinterpret_cast<char*>(&charClass), sizeof(charClass));
+        
+        // Create character
+        auto character = std::make_unique<Character>(static_cast<CharacterClass>(charClass));
+        // Character doesn't have setName, name is just stored in save file
+        
+        // Read level
+        uint8_t level;
+        file.read(reinterpret_cast<char*>(&level), sizeof(level));
+        character->setLevel(level);
+        
+        // Read experience (but Character doesn't have setExperience)
+        uint32_t experience;
+        file.read(reinterpret_cast<char*>(&experience), sizeof(experience));
+        // Can't set experience on character - API limitation
+        
+        // Read stats
+        uint16_t strength, dexterity, vitality, energy;
+        file.read(reinterpret_cast<char*>(&strength), sizeof(strength));
+        file.read(reinterpret_cast<char*>(&dexterity), sizeof(dexterity));
+        file.read(reinterpret_cast<char*>(&vitality), sizeof(vitality));
+        file.read(reinterpret_cast<char*>(&energy), sizeof(energy));
+        
+        // Apply stat points (simplified - just set the difference)
+        int strPoints = strength - character->getStrength();
+        int dexPoints = dexterity - character->getDexterity();
+        int vitPoints = vitality - character->getVitality();
+        int enePoints = energy - character->getEnergy();
+        
+        if (strPoints > 0) character->addStatPoint(StatType::STRENGTH, strPoints);
+        if (dexPoints > 0) character->addStatPoint(StatType::DEXTERITY, dexPoints);
+        if (vitPoints > 0) character->addStatPoint(StatType::VITALITY, vitPoints);
+        if (enePoints > 0) character->addStatPoint(StatType::ENERGY, enePoints);
+        
+        // Character doesn't have inventory support in current implementation
+        
+        return character;
+    } catch (const std::exception&) {
+        return nullptr;
+    }
+}
+
+bool SaveManager::isValidSaveFile(const std::string& path) const {
+    if (!fs::exists(path)) {
         return false;
     }
     
-    // Create header buffer
-    std::vector<uint8_t> header(D2S_HEADER_SIZE, 0);
-    
-    // Write signature (offset 0)
-    *reinterpret_cast<uint32_t*>(&header[0]) = D2S_SIGNATURE;
-    
-    // Write version (offset 4)
-    *reinterpret_cast<uint32_t*>(&header[4]) = D2S_VERSION;
-    
-    // Write file size placeholder (offset 8) - will update later
-    *reinterpret_cast<uint32_t*>(&header[8]) = 0;
-    
-    // Checksum placeholder (offset 12) - will calculate later
-    *reinterpret_cast<uint32_t*>(&header[12]) = 0;
-    
-    // Write character name (offset 20)
-    const char* defaultName = "TestChar";
-    std::strncpy(reinterpret_cast<char*>(&header[20]), defaultName, 16);
-    
-    // Write character class (offset 40)
-    header[40] = static_cast<uint8_t>(character.getCharacterClass());
-    
-    // Write level (offset 43)
-    header[43] = static_cast<uint8_t>(character.getLevel());
-    
-    // Write stats at custom offsets (simplified for our implementation)
-    // These offsets are in unused parts of the header
-    // Strength at offset 100
-    *reinterpret_cast<uint16_t*>(&header[100]) = static_cast<uint16_t>(character.getStrength());
-    // Dexterity at offset 102
-    *reinterpret_cast<uint16_t*>(&header[102]) = static_cast<uint16_t>(character.getDexterity());
-    // Vitality at offset 104
-    *reinterpret_cast<uint16_t*>(&header[104]) = static_cast<uint16_t>(character.getVitality());
-    // Energy at offset 106
-    *reinterpret_cast<uint16_t*>(&header[106]) = static_cast<uint16_t>(character.getEnergy());
-    
-    // Write quest progress at custom offset (simplified approach)
-    // Quest data starts at offset 200 in our simplified format
-    // We'll store quest completion as a bit field (41 quests = 6 bytes needed)
-    for (int i = 0; i < 41; ++i) {
-        int byteOffset = 200 + (i / 8);
-        int bitPosition = i % 8;
-        
-        if (character.isQuestComplete(i)) {
-            header[byteOffset] |= (1 << bitPosition);
+    try {
+        std::ifstream file(path, std::ios::binary);
+        if (!file.is_open()) {
+            return false;
         }
-    }
-    
-    // Write waypoint activation at custom offset
-    // Waypoint data starts at offset 210 in our simplified format
-    // We'll store waypoint activation as a bit field (39 waypoints = 5 bytes needed)
-    for (int i = 0; i < 39; ++i) {
-        int byteOffset = 210 + (i / 8);
-        int bitPosition = i % 8;
         
-        if (character.isWaypointActive(i)) {
-            header[byteOffset] |= (1 << bitPosition);
+        // Check signature
+        uint32_t signature;
+        file.read(reinterpret_cast<char*>(&signature), sizeof(signature));
+        if (signature != D2S_SIGNATURE) {
+            return false;
         }
-    }
-    
-    // Calculate checksum using proper D2S algorithm
-    uint32_t checksum = calculateChecksum(header);
-    
-    // Write checksum back to header
-    *reinterpret_cast<uint32_t*>(&header[12]) = checksum;
-    
-    // Write header to file
-    file.write(reinterpret_cast<const char*>(header.data()), header.size());
-    
-    // Close file
-    file.close();
-    
-    return true;
-}
-
-std::unique_ptr<d2::game::Character> SaveManager::loadCharacter(const std::string& fileName) {
-    // Create full path
-    std::filesystem::path savePath = std::filesystem::path(m_saveDirectory) / fileName;
-    
-    // Open file for binary reading
-    std::ifstream file(savePath, std::ios::binary);
-    if (!file.is_open()) {
-        return nullptr;
-    }
-    
-    // Read header
-    std::vector<uint8_t> header(D2S_HEADER_SIZE);
-    file.read(reinterpret_cast<char*>(header.data()), header.size());
-    
-    if (!file.good()) {
-        return nullptr;
-    }
-    
-    // Verify signature
-    uint32_t signature = *reinterpret_cast<uint32_t*>(&header[0]);
-    if (signature != D2S_SIGNATURE) {
-        return nullptr;
-    }
-    
-    // Extract stored checksum before validation
-    uint32_t storedChecksum = *reinterpret_cast<uint32_t*>(&header[12]);
-    
-    // Calculate expected checksum
-    uint32_t calculatedChecksum = calculateChecksum(header);
-    
-    // Validate checksum
-    if (storedChecksum != calculatedChecksum) {
-        return nullptr;  // Invalid checksum - file is corrupted
-    }
-    
-    // Read character class (offset 40)
-    auto charClass = static_cast<d2::game::CharacterClass>(header[40]);
-    
-    // Read level (offset 43)
-    uint8_t level = header[43];
-    
-    // Create character
-    auto character = std::make_unique<d2::game::Character>(charClass);
-    character->setLevel(level);
-    
-    // Read stats from custom offsets
-    uint16_t strength = *reinterpret_cast<uint16_t*>(&header[100]);
-    uint16_t dexterity = *reinterpret_cast<uint16_t*>(&header[102]);
-    uint16_t vitality = *reinterpret_cast<uint16_t*>(&header[104]);
-    uint16_t energy = *reinterpret_cast<uint16_t*>(&header[106]);
-    
-    // Apply stats to character (need to subtract base stats first)
-    // Get base stats for the class
-    d2::game::Character tempChar(charClass);
-    int baseStr = tempChar.getStrength();
-    int baseDex = tempChar.getDexterity();
-    int baseVit = tempChar.getVitality();
-    int baseEne = tempChar.getEnergy();
-    
-    // Add the difference as stat points
-    if (strength > baseStr) {
-        character->addStatPoint(d2::game::StatType::STRENGTH, strength - baseStr);
-    }
-    if (dexterity > baseDex) {
-        character->addStatPoint(d2::game::StatType::DEXTERITY, dexterity - baseDex);
-    }
-    if (vitality > baseVit) {
-        character->addStatPoint(d2::game::StatType::VITALITY, vitality - baseVit);
-    }
-    if (energy > baseEne) {
-        character->addStatPoint(d2::game::StatType::ENERGY, energy - baseEne);
-    }
-    
-    // Read quest progress from custom offset
-    // Quest data starts at offset 200 in our simplified format
-    for (int i = 0; i < 41; ++i) {
-        int byteOffset = 200 + (i / 8);
-        int bitPosition = i % 8;
         
-        bool questComplete = (header[byteOffset] & (1 << bitPosition)) != 0;
-        character->setQuestComplete(i, questComplete);
-    }
-    
-    // Read waypoint activation from custom offset
-    // Waypoint data starts at offset 210 in our simplified format
-    for (int i = 0; i < 39; ++i) {
-        int byteOffset = 210 + (i / 8);
-        int bitPosition = i % 8;
-        
-        bool waypointActive = (header[byteOffset] & (1 << bitPosition)) != 0;
-        if (waypointActive) {
-            character->activateWaypoint(i);
+        // Check version
+        uint32_t version;
+        file.read(reinterpret_cast<char*>(&version), sizeof(version));
+        if (version != D2S_VERSION) {
+            return false;
         }
-    }
-    
-    return character;
-}
-
-bool SaveManager::saveCharacterWithInventory(const d2::game::Character& character, 
-                                             const d2::game::Inventory& inventory,
-                                             const std::string& fileName) {
-    // Create full path
-    std::filesystem::path savePath = std::filesystem::path(m_saveDirectory) / fileName;
-    
-    // Open file for binary writing
-    std::ofstream file(savePath, std::ios::binary);
-    if (!file.is_open()) {
+        
+        // Verify checksum
+        return verifyChecksum(path);
+    } catch (const std::exception&) {
         return false;
     }
-    
-    // Create complete save data buffer
-    std::vector<uint8_t> saveData;
-    
-    // First add the header (765 bytes)
-    std::vector<uint8_t> header(D2S_HEADER_SIZE, 0);
-    
-    // Write signature (offset 0)
-    *reinterpret_cast<uint32_t*>(&header[0]) = D2S_SIGNATURE;
-    
-    // Write version (offset 4)
-    *reinterpret_cast<uint32_t*>(&header[4]) = D2S_VERSION;
-    
-    // Write file size placeholder (offset 8) - will update later
-    *reinterpret_cast<uint32_t*>(&header[8]) = 0;
-    
-    // Checksum placeholder (offset 12) - will calculate later
-    *reinterpret_cast<uint32_t*>(&header[12]) = 0;
-    
-    // Write character name (offset 20)
-    const char* defaultName = "TestChar";
-    std::strncpy(reinterpret_cast<char*>(&header[20]), defaultName, 16);
-    
-    // Write character class (offset 40)
-    header[40] = static_cast<uint8_t>(character.getCharacterClass());
-    
-    // Write level (offset 43)
-    header[43] = static_cast<uint8_t>(character.getLevel());
-    
-    // Write stats at custom offsets (simplified for our implementation)
-    // These offsets are in unused parts of the header
-    // Strength at offset 100
-    *reinterpret_cast<uint16_t*>(&header[100]) = static_cast<uint16_t>(character.getStrength());
-    // Dexterity at offset 102
-    *reinterpret_cast<uint16_t*>(&header[102]) = static_cast<uint16_t>(character.getDexterity());
-    // Vitality at offset 104
-    *reinterpret_cast<uint16_t*>(&header[104]) = static_cast<uint16_t>(character.getVitality());
-    // Energy at offset 106
-    *reinterpret_cast<uint16_t*>(&header[106]) = static_cast<uint16_t>(character.getEnergy());
-    
-    // Write quest progress at custom offset (simplified approach)
-    // Quest data starts at offset 200 in our simplified format
-    // We'll store quest completion as a bit field (41 quests = 6 bytes needed)
-    for (int i = 0; i < 41; ++i) {
-        int byteOffset = 200 + (i / 8);
-        int bitPosition = i % 8;
-        
-        if (character.isQuestComplete(i)) {
-            header[byteOffset] |= (1 << bitPosition);
-        }
-    }
-    
-    // Write waypoint activation at custom offset
-    // Waypoint data starts at offset 210 in our simplified format
-    // We'll store waypoint activation as a bit field (39 waypoints = 5 bytes needed)
-    for (int i = 0; i < 39; ++i) {
-        int byteOffset = 210 + (i / 8);
-        int bitPosition = i % 8;
-        
-        if (character.isWaypointActive(i)) {
-            header[byteOffset] |= (1 << bitPosition);
-        }
-    }
-    
-    // Add header to save data
-    saveData.insert(saveData.end(), header.begin(), header.end());
-    
-    // Now add item data
-    // Item list starts with "JM" marker
-    saveData.push_back('J');
-    saveData.push_back('M');
-    
-    // Count items in inventory
-    uint16_t itemCount = 0;
-    std::vector<std::tuple<int, int, std::shared_ptr<d2::game::Item>>> uniqueItems;
-    std::set<std::shared_ptr<d2::game::Item>> countedItems;
-    
-    for (int y = 0; y < inventory.getHeight(); ++y) {
-        for (int x = 0; x < inventory.getWidth(); ++x) {
-            auto item = inventory.getItemAt(x, y);
-            if (item && countedItems.find(item) == countedItems.end()) {
-                countedItems.insert(item);
-                uniqueItems.push_back({x, y, item});
-                itemCount++;
-            }
-        }
-    }
-    
-    // Write item count
-    saveData.push_back(itemCount & 0xFF);
-    saveData.push_back((itemCount >> 8) & 0xFF);
-    
-    // Write item data for each unique item
-    for (const auto& [x, y, item] : uniqueItems) {
-        // Write item header "JM"
-        saveData.push_back('J');
-        saveData.push_back('M');
-        
-        // Write basic item data (simplified format)
-        // Position
-        saveData.push_back(static_cast<uint8_t>(x));
-        saveData.push_back(static_cast<uint8_t>(y));
-        
-        // Item type
-        saveData.push_back(static_cast<uint8_t>(item->getType()));
-        
-        // Item rarity
-        saveData.push_back(static_cast<uint8_t>(item->getRarity()));
-        
-        // Item size
-        saveData.push_back(static_cast<uint8_t>(item->getWidth()));
-        saveData.push_back(static_cast<uint8_t>(item->getHeight()));
-        
-        // Item name length and name
-        const std::string& name = item->getName();
-        saveData.push_back(static_cast<uint8_t>(name.length()));
-        saveData.insert(saveData.end(), name.begin(), name.end());
-        
-        // Combat stats
-        uint16_t minDamage = static_cast<uint16_t>(item->getMinDamage());
-        uint16_t maxDamage = static_cast<uint16_t>(item->getMaxDamage());
-        uint16_t defense = static_cast<uint16_t>(item->getDefense());
-        
-        saveData.push_back(minDamage & 0xFF);
-        saveData.push_back((minDamage >> 8) & 0xFF);
-        saveData.push_back(maxDamage & 0xFF);
-        saveData.push_back((maxDamage >> 8) & 0xFF);
-        saveData.push_back(defense & 0xFF);
-        saveData.push_back((defense >> 8) & 0xFF);
-    }
-    
-    // Update file size in header
-    uint32_t fileSize = static_cast<uint32_t>(saveData.size());
-    *reinterpret_cast<uint32_t*>(&saveData[8]) = fileSize;
-    
-    // Calculate checksum over entire save data
-    uint32_t checksum = calculateChecksum(saveData);
-    
-    // Write checksum back to save data
-    *reinterpret_cast<uint32_t*>(&saveData[12]) = checksum;
-    
-    // Write entire save data to file
-    file.write(reinterpret_cast<const char*>(saveData.data()), saveData.size());
-    
-    // Close file
-    file.close();
-    
-    return true;
 }
 
-SaveManager::LoadResult SaveManager::loadCharacterWithInventory(const std::string& fileName) {
-    LoadResult result;
-    
-    // Create full path
-    std::filesystem::path savePath = std::filesystem::path(m_saveDirectory) / fileName;
-    
-    // Open file for binary reading
-    std::ifstream file(savePath, std::ios::binary);
-    if (!file.is_open()) {
-        return result;
-    }
-    
-    // Get file size
-    file.seekg(0, std::ios::end);
-    size_t fileSize = file.tellg();
-    file.seekg(0, std::ios::beg);
-    
-    // Read entire file
-    std::vector<uint8_t> fileData(fileSize);
-    file.read(reinterpret_cast<char*>(fileData.data()), fileSize);
-    file.close();
-    
-    if (fileData.size() < D2S_HEADER_SIZE) {
-        return result;
-    }
-    
-    // Verify signature
-    uint32_t signature = *reinterpret_cast<uint32_t*>(&fileData[0]);
-    if (signature != D2S_SIGNATURE) {
-        return result;
-    }
-    
-    // Extract stored checksum before validation
-    uint32_t storedChecksum = *reinterpret_cast<uint32_t*>(&fileData[12]);
-    
-    // Calculate expected checksum
-    uint32_t calculatedChecksum = calculateChecksum(fileData);
-    
-    // Validate checksum
-    if (storedChecksum != calculatedChecksum) {
-        return result;  // Invalid checksum - file is corrupted
-    }
-    
-    // Read character class (offset 40)
-    auto charClass = static_cast<d2::game::CharacterClass>(fileData[40]);
-    
-    // Read level (offset 43)
-    uint8_t level = fileData[43];
-    
-    // Create character
-    result.character = std::make_unique<d2::game::Character>(charClass);
-    result.character->setLevel(level);
-    
-    // Create inventory
-    result.inventory = std::make_unique<d2::game::Inventory>(10, 4);  // Standard size
-    
-    // Parse item data if present
-    size_t pos = D2S_HEADER_SIZE;
-    if (pos + 2 <= fileData.size() && fileData[pos] == 'J' && fileData[pos + 1] == 'M') {
-        pos += 2;  // Skip JM marker
+uint32_t SaveManager::calculateChecksum(const std::string& path) const {
+    try {
+        std::ifstream file(path, std::ios::binary);
+        if (!file.is_open()) {
+            return 0;
+        }
         
-        // Read item count
-        if (pos + 2 <= fileData.size()) {
-            uint16_t itemCount = fileData[pos] | (fileData[pos + 1] << 8);
-            pos += 2;
+        // Skip to after checksum field
+        file.seekg(16); // Skip signature(4) + version(4) + filesize(4) + checksum(4)
+        
+        uint32_t checksum = 0;
+        char byte;
+        while (file.get(byte)) {
+            checksum = (checksum << 1) + (checksum >> 31) + static_cast<uint8_t>(byte);
+        }
+        
+        return checksum;
+    } catch (const std::exception&) {
+        return 0;
+    }
+}
+
+bool SaveManager::verifyChecksum(const std::string& path) const {
+    try {
+        std::ifstream file(path, std::ios::binary);
+        if (!file.is_open()) {
+            return false;
+        }
+        
+        // Skip to checksum field
+        file.seekg(12);
+        
+        // Read stored checksum
+        uint32_t storedChecksum;
+        file.read(reinterpret_cast<char*>(&storedChecksum), sizeof(storedChecksum));
+        file.close();
+        
+        // Calculate actual checksum
+        uint32_t actualChecksum = calculateChecksum(path);
+        
+        return storedChecksum == actualChecksum;
+    } catch (const std::exception&) {
+        return false;
+    }
+}
+
+void SaveManager::registerCharacterForAutoSave(Character* character, const std::string& path) {
+    if (!character) return;
+    
+    // Add to auto-save list
+    auto_save_entries.push_back({character, path, std::chrono::steady_clock::now()});
+    
+    // Start auto-save thread if not running
+    if (auto_save_enabled && !auto_save_running) {
+        auto_save_running = true;
+        auto_save_thread = std::thread(&SaveManager::runAutoSave, this);
+    }
+}
+
+void SaveManager::runAutoSave() {
+    while (auto_save_running && auto_save_enabled) {
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+        
+        auto now = std::chrono::steady_clock::now();
+        for (auto& entry : auto_save_entries) {
+            auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(
+                now - entry.last_save).count();
             
-            // Read each item
-            for (uint16_t i = 0; i < itemCount && pos < fileData.size(); ++i) {
-                // Check for item header
-                if (pos + 2 > fileData.size() || fileData[pos] != 'J' || fileData[pos + 1] != 'M') {
-                    break;
+            if (elapsed >= auto_save_interval) {
+                if (saveCharacter(*entry.character, entry.path)) {
+                    entry.last_save = now;
                 }
-                pos += 2;  // Skip JM marker
-                
-                // Read item data
-                if (pos + 8 > fileData.size()) {
-                    break;
-                }
-                
-                uint8_t x = fileData[pos++];
-                uint8_t y = fileData[pos++];
-                auto itemType = static_cast<d2::game::ItemType>(fileData[pos++]);
-                auto rarity = static_cast<d2::game::ItemRarity>(fileData[pos++]);
-                uint8_t width = fileData[pos++];
-                uint8_t height = fileData[pos++];
-                
-                // Read item name
-                if (pos >= fileData.size()) {
-                    break;
-                }
-                uint8_t nameLength = fileData[pos++];
-                if (pos + nameLength > fileData.size()) {
-                    break;
-                }
-                std::string itemName(reinterpret_cast<const char*>(&fileData[pos]), nameLength);
-                pos += nameLength;
-                
-                // Read combat stats
-                if (pos + 6 > fileData.size()) {
-                    break;
-                }
-                uint16_t minDamage = fileData[pos] | (fileData[pos + 1] << 8);
-                pos += 2;
-                uint16_t maxDamage = fileData[pos] | (fileData[pos + 1] << 8);
-                pos += 2;
-                uint16_t defense = fileData[pos] | (fileData[pos + 1] << 8);
-                pos += 2;
-                
-                // Create item
-                auto item = std::make_shared<d2::game::Item>(itemName, itemType);
-                item->setRarity(rarity);
-                item->setSize(width, height);
-                
-                if (itemType == d2::game::ItemType::WEAPON) {
-                    item->setDamage(minDamage, maxDamage);
-                } else if (itemType == d2::game::ItemType::ARMOR) {
-                    item->setDefense(defense);
-                }
-                
-                // Add to inventory
-                result.inventory->addItem(item, x, y);
             }
         }
     }
-    
-    return result;
 }
 
-std::unique_ptr<d2::game::Character> SaveManager::loadCharacterFromBackup(const std::string& fileName) {
-    // Create backup file path
-    std::filesystem::path backupPath = std::filesystem::path(m_saveDirectory) / "backup" / (fileName + ".bak");
+std::vector<std::string> SaveManager::getBackupFiles(const std::string& originalPath) const {
+    std::vector<std::string> backups;
     
-    // Check if backup exists
-    if (!std::filesystem::exists(backupPath)) {
-        return nullptr;
-    }
-    
-    // Open backup file for binary reading
-    std::ifstream file(backupPath, std::ios::binary);
-    if (!file.is_open()) {
-        return nullptr;
-    }
-    
-    // Read header
-    std::vector<uint8_t> header(D2S_HEADER_SIZE);
-    file.read(reinterpret_cast<char*>(header.data()), header.size());
-    
-    if (!file.good()) {
-        return nullptr;
-    }
-    
-    // Verify signature
-    uint32_t signature = *reinterpret_cast<uint32_t*>(&header[0]);
-    if (signature != D2S_SIGNATURE) {
-        return nullptr;
-    }
-    
-    // Extract stored checksum before validation
-    uint32_t storedChecksum = *reinterpret_cast<uint32_t*>(&header[12]);
-    
-    // Calculate expected checksum
-    uint32_t calculatedChecksum = calculateChecksum(header);
-    
-    // Validate checksum
-    if (storedChecksum != calculatedChecksum) {
-        return nullptr;  // Invalid checksum - file is corrupted
-    }
-    
-    // Read character class (offset 40)
-    auto charClass = static_cast<d2::game::CharacterClass>(header[40]);
-    
-    // Read level (offset 43)
-    uint8_t level = header[43];
-    
-    // Create character
-    auto character = std::make_unique<d2::game::Character>(charClass);
-    character->setLevel(level);
-    
-    // Read stats from custom offsets
-    uint16_t strength = *reinterpret_cast<uint16_t*>(&header[100]);
-    uint16_t dexterity = *reinterpret_cast<uint16_t*>(&header[102]);
-    uint16_t vitality = *reinterpret_cast<uint16_t*>(&header[104]);
-    uint16_t energy = *reinterpret_cast<uint16_t*>(&header[106]);
-    
-    // Apply stats to character (need to subtract base stats first)
-    // Get base stats for the class
-    d2::game::Character tempChar(charClass);
-    int baseStr = tempChar.getStrength();
-    int baseDex = tempChar.getDexterity();
-    int baseVit = tempChar.getVitality();
-    int baseEne = tempChar.getEnergy();
-    
-    // Add the difference as stat points
-    if (strength > baseStr) {
-        character->addStatPoint(d2::game::StatType::STRENGTH, strength - baseStr);
-    }
-    if (dexterity > baseDex) {
-        character->addStatPoint(d2::game::StatType::DEXTERITY, dexterity - baseDex);
-    }
-    if (vitality > baseVit) {
-        character->addStatPoint(d2::game::StatType::VITALITY, vitality - baseVit);
-    }
-    if (energy > baseEne) {
-        character->addStatPoint(d2::game::StatType::ENERGY, energy - baseEne);
-    }
-    
-    // Read quest progress from custom offset
-    // Quest data starts at offset 200 in our simplified format
-    for (int i = 0; i < 41; ++i) {
-        int byteOffset = 200 + (i / 8);
-        int bitPosition = i % 8;
-        
-        bool questComplete = (header[byteOffset] & (1 << bitPosition)) != 0;
-        character->setQuestComplete(i, questComplete);
-    }
-    
-    // Read waypoint activation from custom offset
-    // Waypoint data starts at offset 210 in our simplified format
-    for (int i = 0; i < 39; ++i) {
-        int byteOffset = 210 + (i / 8);
-        int bitPosition = i % 8;
-        
-        bool waypointActive = (header[byteOffset] & (1 << bitPosition)) != 0;
-        if (waypointActive) {
-            character->activateWaypoint(i);
+    for (int i = 1; i <= max_backups; i++) {
+        std::string backupPath = generateBackupPath(originalPath, i);
+        if (fs::exists(backupPath)) {
+            backups.push_back(backupPath);
         }
     }
     
-    return character;
+    return backups;
 }
 
-} // namespace d2::save
+std::string SaveManager::generateBackupPath(const std::string& originalPath, int index) const {
+    fs::path path(originalPath);
+    std::string stem = path.stem().string();
+    std::string ext = path.extension().string();
+    std::string dir = path.parent_path().string();
+    
+    return dir + "/" + stem + ".backup" + std::to_string(index) + ext;
+}
+
+void SaveManager::rotateBackups(const std::string& path) {
+    // Delete oldest backup if at max
+    std::string oldestBackup = generateBackupPath(path, max_backups);
+    if (fs::exists(oldestBackup)) {
+        fs::remove(oldestBackup);
+    }
+    
+    // Rotate existing backups
+    for (int i = max_backups - 1; i >= 1; i--) {
+        std::string currentBackup = generateBackupPath(path, i);
+        std::string nextBackup = generateBackupPath(path, i + 1);
+        
+        if (fs::exists(currentBackup)) {
+            fs::rename(currentBackup, nextBackup);
+        }
+    }
+    
+    // Copy current file to backup 1
+    std::string firstBackup = generateBackupPath(path, 1);
+    fs::copy_file(path, firstBackup, fs::copy_options::overwrite_existing);
+}
+
+} // namespace d2::game
