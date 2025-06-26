@@ -2,6 +2,7 @@
 #include "game/save_manager.h"
 #include "game/character.h"
 #include <filesystem>
+#include <fstream>
 
 using namespace d2::game;
 namespace fs = std::filesystem;
@@ -36,4 +37,30 @@ TEST(SaveManagerTest, SaveCharacterCreatesFile) {
     if (fs::exists(filename)) {
         fs::remove(filename);
     }
+}
+
+// TEST 3: Saved file should have D2S signature
+TEST(SaveManagerTest, SavedFileHasD2SSignature) {
+    SaveManager saveManager;
+    Character character(CharacterClass::SORCERESS);
+    
+    std::string filename = "test_signature.d2s";
+    
+    // Save character
+    saveManager.saveCharacter(character, filename);
+    
+    // Read file and check signature
+    std::ifstream file(filename, std::ios::binary);
+    ASSERT_TRUE(file.is_open());
+    
+    uint32_t signature;
+    file.read(reinterpret_cast<char*>(&signature), sizeof(signature));
+    
+    // D2S files must start with 0xAA55AA55
+    EXPECT_EQ(signature, 0xAA55AA55);
+    
+    file.close();
+    
+    // Clean up
+    fs::remove(filename);
 }

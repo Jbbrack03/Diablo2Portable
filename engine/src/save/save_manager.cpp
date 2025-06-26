@@ -5,14 +5,16 @@
 namespace d2::game {
 
 bool SaveManager::saveCharacter(const Character& character, const std::string& filename) {
-    // Minimal implementation - just create the file
-    std::ofstream file(filename);
+    // Open file in binary mode
+    std::ofstream file(filename, std::ios::binary);
     if (!file.is_open()) {
         return false;
     }
     
-    // Write something to the file so it's not empty
-    file << "D2S";
+    // Write D2S signature
+    uint32_t signature = 0xAA55AA55;
+    file.write(reinterpret_cast<const char*>(&signature), sizeof(signature));
+    
     file.close();
     
     return true;
