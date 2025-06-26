@@ -93,3 +93,28 @@ TEST(SaveManagerTest, SaveCharacterLevel) {
     file.close();
     fs::remove(filename);
 }
+
+// TEST 5: Load character from file
+TEST(SaveManagerTest, LoadCharacterFromFile) {
+    SaveManager saveManager;
+    
+    // Create and save a character
+    Character original(CharacterClass::AMAZON);
+    original.setLevel(25);
+    
+    std::string filename = "test_load.d2s";
+    saveManager.saveCharacter(original, filename);
+    
+    // Load the character
+    auto loaded = saveManager.loadCharacter(filename);
+    
+    // Verify it loaded
+    ASSERT_NE(loaded, nullptr);
+    
+    // Verify the data matches
+    EXPECT_EQ(loaded->getCharacterClass(), CharacterClass::AMAZON);
+    EXPECT_EQ(loaded->getLevel(), 25);
+    
+    // Clean up
+    fs::remove(filename);
+}
