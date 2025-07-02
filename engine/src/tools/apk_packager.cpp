@@ -4,10 +4,42 @@
 #include <fstream>
 #include <set>
 #include <zlib.h>
+#include <functional>
+#include <iomanip>
+#include <sstream>
+#include <algorithm>
 
 namespace fs = std::filesystem;
 
 namespace d2 {
+
+namespace {
+    // Helper function to calculate file checksum using content hash
+    std::string calculateFileChecksum(const std::string& filePath) {
+        std::ifstream file(filePath, std::ios::binary);
+        if (!file) {
+            return "";
+        }
+        
+        // Read entire file content
+        file.seekg(0, std::ios::end);
+        size_t size = file.tellg();
+        file.seekg(0, std::ios::beg);
+        
+        std::vector<char> content(size);
+        file.read(content.data(), size);
+        file.close();
+        
+        // Calculate hash of content
+        std::hash<std::string> hasher;
+        size_t hash = hasher(std::string(content.begin(), content.end()));
+        
+        // Convert hash to hex string
+        std::stringstream ss;
+        ss << std::hex << hash;
+        return ss.str();
+    }
+}
 
 APKPackager::APKPackager() {
 }
@@ -228,20 +260,12 @@ bool APKPackager::copyAsset(const Asset& asset, const std::string& outputDir, co
         
         // Update manifest if set
         if (manifest) {
-            std::string checksum = "TODO"; // Calculate actual checksum
+            std::string checksum = calculateFileChecksum(asset.sourcePath);
             size_t fileSize = asset.size;
             manifest->addAsset(asset.apkPath, fileSize, checksum);
             
             // Determine asset type from extension
-            fs::path ext = fs::path(asset.apkPath).extension();
-            std::string type = "unknown";
-            if (ext == ".png" || ext == ".jpg") {
-                type = "image/png";
-            } else if (ext == ".ogg" || ext == ".mp3") {
-                type = "audio/ogg";
-            } else if (ext == ".json") {
-                type = "application/json";
-            }
+            std::string type = getAssetType(asset.apkPath);
             
             // Update type in manifest (need to extend manifest API for this)
             auto info = const_cast<AssetManifest::AssetInfo*>(manifest->getAssetInfo(asset.apkPath));
@@ -257,8 +281,27 @@ bool APKPackager::copyAsset(const Asset& asset, const std::string& outputDir, co
 }
 
 std::string APKPackager::getAssetType(const std::string& path) const {
-    // TODO: Implement
-    return "";
+    fs::path pathObj(path);
+    std::string ext = pathObj.extension().string();
+    
+    // Convert to lowercase for case-insensitive comparison
+    std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
+    
+    if (ext == ".png") {
+        return "image/png";
+    } else if (ext == ".jpg" || ext == ".jpeg") {
+        return "image/jpeg";
+    } else if (ext == ".ogg") {
+        return "audio/ogg";
+    } else if (ext == ".mp3") {
+        return "audio/mpeg";
+    } else if (ext == ".json") {
+        return "application/json";
+    } else if (ext == ".txt") {
+        return "text/plain";
+    } else {
+        return "application/octet-stream";
+    }
 }
 
 } // namespace d2

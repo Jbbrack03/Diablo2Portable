@@ -226,4 +226,54 @@ TEST_F(APKPackagerTest, ManifestIntegration) {
     EXPECT_EQ(info->size, 15); // "PNG sprite data" = 15 bytes
     EXPECT_EQ(info->type, "image/png");
     EXPECT_FALSE(info->checksum.empty());
+    
+    // Verify checksum is not the TODO placeholder
+    EXPECT_NE(info->checksum, "TODO");
+    
+    // Verify checksum is deterministic (same content = same checksum)
+    auto sprite2 = assetsPath / "sprites" / "player2.png";
+    createTestFile(sprite2, "PNG sprite data"); // Same content
+    packager.addAsset(sprite2.string(), "assets/sprites/player2.png");
+    packager.packageAssets(outputPath.string());
+    
+    auto info2 = manifest->getAssetInfo("assets/sprites/player2.png");
+    EXPECT_NE(info2, nullptr);
+    EXPECT_EQ(info->checksum, info2->checksum); // Same content should have same checksum
+}
+
+TEST_F(APKPackagerTest, AssetTypeDetectionThroughManifest) {
+    APKPackager packager;
+    auto manifest = std::make_shared<AssetManifest>();
+    packager.setManifest(manifest);
+    
+    // Create test files with different extensions
+    auto pngFile = assetsPath / "sprites" / "player.png";
+    createTestFile(pngFile, "PNG data");
+    
+    auto oggFile = assetsPath / "sounds" / "music.ogg";
+    createTestFile(oggFile, "OGG data");
+    
+    auto jsonFile = assetsPath / "data" / "config.json";
+    createTestFile(jsonFile, "{\"test\":1}");
+    
+    // Add assets
+    packager.addAsset(pngFile.string(), "assets/sprites/player.png");
+    packager.addAsset(oggFile.string(), "assets/sounds/music.ogg");
+    packager.addAsset(jsonFile.string(), "assets/data/config.json");
+    
+    // Package assets (this will update manifest with types)
+    EXPECT_TRUE(packager.packageAssets(outputPath.string()));
+    
+    // Verify asset types in manifest
+    auto pngInfo = manifest->getAssetInfo("assets/sprites/player.png");
+    EXPECT_NE(pngInfo, nullptr);
+    EXPECT_EQ(pngInfo->type, "image/png");
+    
+    auto oggInfo = manifest->getAssetInfo("assets/sounds/music.ogg");
+    EXPECT_NE(oggInfo, nullptr);
+    EXPECT_EQ(oggInfo->type, "audio/ogg");
+    
+    auto jsonInfo = manifest->getAssetInfo("assets/data/config.json");
+    EXPECT_NE(jsonInfo, nullptr);
+    EXPECT_EQ(jsonInfo->type, "application/json");
 }
