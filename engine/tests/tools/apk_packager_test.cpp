@@ -277,3 +277,59 @@ TEST_F(APKPackagerTest, AssetTypeDetectionThroughManifest) {
     EXPECT_NE(jsonInfo, nullptr);
     EXPECT_EQ(jsonInfo->type, "application/json");
 }
+
+TEST_F(APKPackagerTest, GetAssetTypeReturnsCorrectMimeTypes) {
+    APKPackager packager;
+    
+    // Test the private getAssetType method through the manifest integration
+    auto manifest = std::make_shared<AssetManifest>();
+    packager.setManifest(manifest);
+    
+    // Create test files with various extensions
+    auto pngFile = assetsPath / "image.png";
+    createTestFile(pngFile, "PNG");
+    
+    auto jpgFile = assetsPath / "photo.jpg";
+    createTestFile(jpgFile, "JPG");
+    
+    auto jpegFile = assetsPath / "photo2.jpeg";
+    createTestFile(jpegFile, "JPEG");
+    
+    auto oggFile = assetsPath / "audio.ogg";
+    createTestFile(oggFile, "OGG");
+    
+    auto mp3File = assetsPath / "music.mp3";
+    createTestFile(mp3File, "MP3");
+    
+    auto jsonFile = assetsPath / "data.json";
+    createTestFile(jsonFile, "{}");
+    
+    auto txtFile = assetsPath / "readme.txt";
+    createTestFile(txtFile, "text");
+    
+    auto unknownFile = assetsPath / "binary.dat";
+    createTestFile(unknownFile, "data");
+    
+    // Add all assets
+    packager.addAsset(pngFile.string(), "assets/image.png");
+    packager.addAsset(jpgFile.string(), "assets/photo.jpg");
+    packager.addAsset(jpegFile.string(), "assets/photo2.jpeg");
+    packager.addAsset(oggFile.string(), "assets/audio.ogg");
+    packager.addAsset(mp3File.string(), "assets/music.mp3");
+    packager.addAsset(jsonFile.string(), "assets/data.json");
+    packager.addAsset(txtFile.string(), "assets/readme.txt");
+    packager.addAsset(unknownFile.string(), "assets/binary.dat");
+    
+    // Package to trigger type detection
+    EXPECT_TRUE(packager.packageAssets(outputPath.string()));
+    
+    // Verify all types
+    EXPECT_EQ(manifest->getAssetInfo("assets/image.png")->type, "image/png");
+    EXPECT_EQ(manifest->getAssetInfo("assets/photo.jpg")->type, "image/jpeg");
+    EXPECT_EQ(manifest->getAssetInfo("assets/photo2.jpeg")->type, "image/jpeg");
+    EXPECT_EQ(manifest->getAssetInfo("assets/audio.ogg")->type, "audio/ogg");
+    EXPECT_EQ(manifest->getAssetInfo("assets/music.mp3")->type, "audio/mpeg");
+    EXPECT_EQ(manifest->getAssetInfo("assets/data.json")->type, "application/json");
+    EXPECT_EQ(manifest->getAssetInfo("assets/readme.txt")->type, "text/plain");
+    EXPECT_EQ(manifest->getAssetInfo("assets/binary.dat")->type, "application/octet-stream");
+}
