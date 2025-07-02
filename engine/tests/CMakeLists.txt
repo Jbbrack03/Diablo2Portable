@@ -109,6 +109,7 @@ set(TEST_SOURCES
     tools/asset_manifest_test.cpp
     tools/apk_packager_test.cpp
     device/test_device_compatibility.cpp
+    device/test_device_tester.cpp
     # Tests will be added as we implement features following TDD
     # core/game_state_test.cpp
     # audio/sound_system_test.cpp
