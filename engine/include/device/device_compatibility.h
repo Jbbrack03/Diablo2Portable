@@ -21,6 +21,12 @@ public:
         if (major == 3 && minor >= 0) return true;
         return false;
     }
+    
+    // Check if RAM meets minimum requirements
+    bool isRAMSufficient(size_t ramMB) const {
+        // Minimum 1.5GB (1536MB) required
+        return ramMB >= 1536;
+    }
 };
 
 } // namespace d2::device

@@ -43,3 +43,20 @@ TEST(DeviceCompatibilityTest, CheckOpenGLESVersion) {
     result = checker.isOpenGLESVersionCompatible(2, 0);
     EXPECT_FALSE(result);
 }
+
+// TEST 4: Check RAM requirements
+TEST(DeviceCompatibilityTest, CheckRAMRequirements) {
+    DeviceCompatibility checker;
+    
+    // 2GB RAM should be compatible (plenty for 1.5GB requirement)
+    bool result = checker.isRAMSufficient(2048); // MB
+    EXPECT_TRUE(result);
+    
+    // 1.5GB RAM should be compatible (exact minimum)
+    result = checker.isRAMSufficient(1536);
+    EXPECT_TRUE(result);
+    
+    // 1GB RAM should not be compatible
+    result = checker.isRAMSufficient(1024);
+    EXPECT_FALSE(result);
+}
