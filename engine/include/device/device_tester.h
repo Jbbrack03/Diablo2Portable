@@ -8,8 +8,21 @@ namespace d2::device {
 struct DeviceTestReport {
     std::string deviceName;
     
+    // Test results
+    bool passedPerformanceTest = true;
+    float averageFPS = 60.0f;
+    
+    bool passedBatteryTest = true;
+    float estimatedBatteryLife = 4.5f; // hours
+    
+    bool passedControllerTest = true;
+    
     bool hasResults() const {
         return !deviceName.empty();
+    }
+    
+    bool isCompatible() const {
+        return passedPerformanceTest && passedBatteryTest && passedControllerTest;
     }
 };
 

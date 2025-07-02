@@ -27,3 +27,25 @@ TEST(DeviceTesterTest, RunDeviceTestSuite) {
     // Report should have test results
     EXPECT_TRUE(report.hasResults());
 }
+
+// TEST 3: Device test results
+TEST(DeviceTesterTest, DeviceTestResults) {
+    DeviceTester tester;
+    
+    // Run tests on simulated device
+    DeviceTestReport report = tester.runTestSuite("Test Device");
+    
+    // Check performance test
+    EXPECT_TRUE(report.passedPerformanceTest);
+    EXPECT_GE(report.averageFPS, 60.0f);
+    
+    // Check battery test
+    EXPECT_TRUE(report.passedBatteryTest);
+    EXPECT_GE(report.estimatedBatteryLife, 4.0f); // 4+ hours
+    
+    // Check controller test
+    EXPECT_TRUE(report.passedControllerTest);
+    
+    // Overall pass/fail
+    EXPECT_TRUE(report.isCompatible());
+}
