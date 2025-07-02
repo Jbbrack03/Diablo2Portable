@@ -8,18 +8,26 @@ This is a Diablo II Android port project targeting the Retroid Pocket Flip 2 dev
 
 ## Build Commands
 
-### Initial Setup
+### Initial Setup (Current - Manual Process)
 ```bash
 # Set up Android development environment
 ./tools/setup_environment.sh
 
 # Extract game assets (requires legally owned game files)
+# NOTE: Currently requires manual MPQ file placement in vendor/mpq/
 ./tools/extract_assets.sh /path/to/d2/files
 
 # Configure CMake for Android NDK
 cmake -B build -DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK/build/cmake/android.toolchain.cmake \
       -DANDROID_ABI=arm64-v8a -DANDROID_PLATFORM=android-26
 ```
+
+### Future: Automated Onboarding (Phases 21-24)
+The planned onboarding system will provide:
+- One-tap asset detection from any D2 installation source
+- In-app guided setup wizard for Android devices
+- Support for CD, ISO, ZIP, installer files
+- Real-time progress tracking and error recovery
 
 ### Building
 ```bash
@@ -240,8 +248,8 @@ During Phase 17 implementation, a TDD violation occurred:
 - **Integration Testing**: ✅ Real MPQ file validation with Diablo II game assets in vendor/mpq/
 - **Total Source Files**: 114+ (C++ engine implementation)
 - **Lines of Code**: ~23,000+ (core engine only)
-- **Phases Completed**: 20 of 20 ✅ (Phase 20 Final Testing and Release COMPLETED)
-- **Project Status**: **RELEASE READY** 🎉
+- **Phases Completed**: 20 of 24 ✅ (Core implementation complete, onboarding system planned)
+- **Project Status**: **CORE SYSTEMS COMPLETE** - Onboarding system in planning
 - **Asset Extraction**: ✅ 100% success rate on real Diablo II files (StormLib integration)
 - **Test Suite Health**: ✅ 100% tests passing with real-world validation
 - **Performance**: ✅ 160 FPS with 100 entities (exceeds 60 FPS requirement)
@@ -569,8 +577,9 @@ During Phase 17 implementation, a TDD violation occurred:
 - **TDD Compliance**: All features implemented with strict RED-GREEN cycles
 
 ### 🎯 **Current Status:**
-- ✅ **100% project completion** 🎉 - All 20 phases complete!
-- ✅ **Production-ready systems** - All core systems fully implemented and tested
+- ✅ **Core Systems Complete** - All 20 core implementation phases complete!
+- ✅ **Production-ready engine** - All core systems fully implemented and tested
+- 📋 **Onboarding System Planned** - 4 additional phases (21-24) designed for user-friendly asset management
 - ✅ **99.99% asset extraction** - Can load all Diablo II game files
 - ✅ **D2-accurate mechanics** - Life calculation, hit chance caps, strength damage bonus corrected
 - ✅ **95%+ test coverage achieved** - All implementation files comprehensively tested
@@ -589,8 +598,49 @@ During Phase 17 implementation, a TDD violation occurred:
 
 ### 📖 **Documentation:**
 - **Development History**: See `Docs/DEVELOPMENT_HISTORY.md` for detailed phase summaries
-- **Technical Implementation**: See `Docs/TDD_IMPLEMENTATION_PLAN.md` for remaining work
+- **Technical Implementation**: See `Docs/TDD_IMPLEMENTATION_PLAN.md` for complete implementation plan (Phases 0-24)
+- **Onboarding System**: Phases 21-24 provide comprehensive user-friendly asset extraction and setup
 - **All Documentation**: Available in `Docs/` directory
+
+## Onboarding System Design (Phases 21-24)
+
+### Current Asset Handling Limitations
+The current system requires users to manually:
+- Copy MPQ files to specific directories
+- Run command-line extraction scripts
+- Handle technical setup without guidance
+
+### Enhanced Onboarding Experience (Planned)
+**Phase 21: Complete Onboarding System**
+- Flexible asset source detection (CD, ISO, installers, directories)
+- In-app setup wizard with guided file selection
+- Advanced file format support (ZIP, RAR, executable installers)
+- Smart asset validation with corruption detection and repair
+
+**Phase 22: Enhanced Asset Pipeline**
+- Real-time extraction monitoring with progress tracking
+- Differential updates for modified assets only
+- Intelligent caching with LRU eviction
+- Multi-format asset processing and verification
+
+**Phase 23: User Experience Enhancement**
+- Visual asset browser with preview capabilities
+- Interactive tutorial system with controller setup
+- Accessibility features (screen reader, high contrast, large fonts)
+- Comprehensive troubleshooting tools and help system
+
+**Phase 24: Quality Assurance and Polish**
+- End-to-end integration testing
+- Performance validation and optimization
+- Device compatibility testing
+- Security and privacy validation
+
+### Onboarding Success Criteria
+- **Sub-5 minute setup time** for typical D2 installations
+- **95%+ extraction success rate** across all supported formats
+- **One-tap onboarding** for most common D2 installation sources
+- **Accessibility compliance** for inclusive user experience
+- **Production-quality** error recovery and troubleshooting
 
 ## Important Notes
 

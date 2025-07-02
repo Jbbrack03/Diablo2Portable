@@ -2322,3 +2322,1293 @@ TEST(IntegrationTest, CompleteGameplayLoop) {
    - Controller mapping options
 
 This comprehensive plan takes the project from its current state (individual systems complete) to a fully playable game, maintaining TDD discipline throughout.
+
+---
+
+## Phase 21: Complete Onboarding System (Week 37)
+
+### Objectives
+- Create user-friendly first-run experience
+- Implement flexible asset source detection  
+- Build guided setup wizard
+- Handle various file formats and sources
+
+### Context
+Current system requires manual command-line setup. Users must copy MPQ files to specific directories and run extraction scripts. We need an in-app onboarding experience that can handle multiple asset sources automatically.
+
+### Tasks
+
+#### Task 21.1: File Source Detection System
+**Tests First:**
+```cpp
+TEST(FileSourceDetectorTest, DetectD2InstallationDirectories) {
+    FileSourceDetector detector;
+    
+    // Mock common installation paths
+    std::vector<std::string> searchPaths = {
+        "/Program Files/Diablo II",
+        "/Steam/steamapps/common/Diablo II",
+        "/GOG Games/Diablo 2"
+    };
+    
+    auto found = detector.scanForInstallations(searchPaths);
+    
+    EXPECT_GT(found.size(), 0);
+    EXPECT_TRUE(found[0].hasRequiredMPQs());
+    EXPECT_EQ(found[0].getVersion(), D2Version::LORD_OF_DESTRUCTION);
+}
+
+TEST(FileSourceDetectorTest, DetectCDDrives) {
+    FileSourceDetector detector;
+    
+    auto cdDrives = detector.detectCDDrives();
+    
+    // Test should pass even with no CDs
+    EXPECT_TRUE(cdDrives.size() >= 0);
+    
+    // If test CD present, validate
+    for (const auto& drive : cdDrives) {
+        if (drive.hasD2Disc()) {
+            EXPECT_TRUE(drive.canReadMPQFiles());
+        }
+    }
+}
+
+TEST(FileSourceDetectorTest, ValidateISOFiles) {
+    FileSourceDetector detector;
+    
+    // Test with mock ISO file
+    std::string isoPath = createTestISO();
+    
+    auto validation = detector.validateISOFile(isoPath);
+    
+    EXPECT_TRUE(validation.isValid);
+    EXPECT_TRUE(validation.containsD2Data);
+    EXPECT_FALSE(validation.requiresMount);
+}
+```
+
+**Implementation:**
+- Cross-platform directory scanning
+- CD/DVD drive detection and enumeration
+- ISO/image file validation
+- Battle.net launcher integration detection
+- Steam/GOG installation detection
+
+#### Task 21.2: In-App Setup Wizard (Android)
+**Tests First:**
+```java
+@RunWith(AndroidJUnit4.class)
+public class SetupWizardTest {
+    
+    @Test
+    public void testWelcomeScreen() {
+        SetupWizardActivity activity = launchActivity();
+        
+        onView(withId(R.id.welcome_title))
+            .check(matches(withText("Welcome to Diablo II Portable")));
+        
+        onView(withId(R.id.continue_button))
+            .check(matches(isDisplayed()));
+    }
+    
+    @Test
+    public void testFileSourceSelection() {
+        SetupWizardActivity activity = launchActivity();
+        
+        // Navigate to file source screen
+        onView(withId(R.id.continue_button)).perform(click());
+        
+        // Should show source options
+        onView(withId(R.id.option_local_files))
+            .check(matches(isDisplayed()));
+        onView(withId(R.id.option_usb_storage))
+            .check(matches(isDisplayed()));
+        onView(withId(R.id.option_network_location))
+            .check(matches(isDisplayed()));
+    }
+    
+    @Test
+    public void testAssetExtractionProgress() {
+        SetupWizardActivity activity = launchActivity();
+        
+        // Simulate file selection and start extraction
+        activity.setSelectedSource("/storage/emulated/0/d2files");
+        activity.startAssetExtraction();
+        
+        // Progress should be displayed
+        onView(withId(R.id.extraction_progress))
+            .check(matches(isDisplayed()));
+        
+        onView(withId(R.id.progress_text))
+            .check(matches(withText(containsString("Extracting"))));
+    }
+}
+```
+
+**Native Bridge Tests:**
+```cpp
+TEST(OnboardingJNITest, StartAssetExtraction) {
+    JNIEnv* env = getTestJNIEnv();
+    
+    jstring sourcePath = env->NewStringUTF("/test/d2/path");
+    jstring outputPath = env->NewStringUTF("/android/data/output");
+    
+    jboolean result = Java_com_diablo2portable_OnboardingManager_extractAssets(
+        env, nullptr, sourcePath, outputPath
+    );
+    
+    EXPECT_TRUE(result);
+}
+
+TEST(OnboardingJNITest, GetExtractionProgress) {
+    JNIEnv* env = getTestJNIEnv();
+    
+    // Start extraction in background
+    startAsyncExtraction();
+    
+    jfloat progress = Java_com_diablo2portable_OnboardingManager_getProgress(
+        env, nullptr
+    );
+    
+    EXPECT_GE(progress, 0.0f);
+    EXPECT_LE(progress, 1.0f);
+}
+```
+
+**Implementation:**
+- Android Activity-based setup wizard
+- File picker integration with system file manager
+- USB/external storage access
+- Progress tracking with callbacks
+- Error handling and retry mechanisms
+
+#### Task 21.3: Advanced File Format Support
+**Tests First:**
+```cpp
+TEST(FileFormatHandlerTest, ExtractFromISO) {
+    FileFormatHandler handler;
+    
+    std::string isoPath = "test_data/d2_disc1.iso";
+    std::string outputDir = "temp/extracted";
+    
+    auto result = handler.extractFromISO(isoPath, outputDir);
+    
+    EXPECT_TRUE(result.success);
+    EXPECT_GT(result.filesExtracted, 0);
+    EXPECT_TRUE(fs::exists(outputDir + "/d2data.mpq"));
+}
+
+TEST(FileFormatHandlerTest, HandleBattleNetInstaller) {
+    FileFormatHandler handler;
+    
+    std::string installerPath = "test_data/D2_installer.exe";
+    std::string outputDir = "temp/installer_extract";
+    
+    auto result = handler.extractFromInstaller(installerPath, outputDir);
+    
+    EXPECT_TRUE(result.success);
+    EXPECT_TRUE(result.foundMPQFiles);
+}
+
+TEST(FileFormatHandlerTest, ProcessCompressedArchive) {
+    FileFormatHandler handler;
+    
+    std::string zipPath = "test_data/d2_backup.zip";
+    std::string outputDir = "temp/zip_extract";
+    
+    auto result = handler.extractFromArchive(zipPath, outputDir);
+    
+    EXPECT_TRUE(result.success);
+    EXPECT_GT(result.mpqFilesFound, 5);
+}
+```
+
+**Implementation:**
+- ISO/BIN/CUE image mounting and extraction
+- ZIP/RAR/7Z archive extraction
+- Battle.net installer processing
+- Executable extraction (InstallShield, NSIS)
+- Network location handling (SMB, FTP)
+
+#### Task 21.4: Smart Asset Validation
+**Tests First:**
+```cpp
+TEST(AssetValidatorTest, ValidateCompleteness) {
+    AssetValidator validator;
+    std::string assetPath = "extracted_assets/";
+    
+    auto validation = validator.validateAssets(assetPath);
+    
+    EXPECT_TRUE(validation.isComplete);
+    EXPECT_EQ(validation.missingFiles.size(), 0);
+    EXPECT_TRUE(validation.hasExpansion);
+    EXPECT_GE(validation.version, D2Version::CLASSIC);
+}
+
+TEST(AssetValidatorTest, DetectCorruption) {
+    AssetValidator validator;
+    
+    // Simulate corrupted MPQ
+    createCorruptedMPQ("test_corrupted.mpq");
+    
+    auto validation = validator.validateMPQIntegrity("test_corrupted.mpq");
+    
+    EXPECT_FALSE(validation.isValid);
+    EXPECT_TRUE(validation.hasChecksumErrors);
+    EXPECT_GT(validation.errorDetails.size(), 0);
+}
+
+TEST(AssetValidatorTest, SuggestMissingComponents) {
+    AssetValidator validator;
+    
+    // Assets missing expansion
+    std::string classicOnlyPath = "classic_assets/";
+    
+    auto validation = validator.validateAssets(classicOnlyPath);
+    
+    EXPECT_FALSE(validation.hasExpansion);
+    EXPECT_TRUE(validation.suggestions.contains("Install Lord of Destruction"));
+}
+```
+
+**Implementation:**
+- File integrity checking with checksums
+- Version detection (Classic vs LoD vs D2R)
+- Missing file identification
+- Corruption detection and reporting
+- Repair suggestions and automatic fixes
+
+#### Task 21.5: Configuration Persistence
+**Tests First:**
+```cpp
+TEST(OnboardingConfigTest, SaveUserPreferences) {
+    OnboardingConfig config;
+    
+    config.setAssetSource("/custom/d2/path");
+    config.setExtractionQuality(ExtractionQuality::HIGH);
+    config.setSkipValidation(false);
+    
+    config.save();
+    
+    OnboardingConfig loaded;
+    loaded.load();
+    
+    EXPECT_EQ(loaded.getAssetSource(), "/custom/d2/path");
+    EXPECT_EQ(loaded.getExtractionQuality(), ExtractionQuality::HIGH);
+    EXPECT_FALSE(loaded.shouldSkipValidation());
+}
+
+TEST(OnboardingConfigTest, HandleFirstRun) {
+    OnboardingConfig config;
+    
+    EXPECT_TRUE(config.isFirstRun());
+    
+    config.completeOnboarding();
+    config.save();
+    
+    OnboardingConfig reloaded;
+    reloaded.load();
+    
+    EXPECT_FALSE(reloaded.isFirstRun());
+}
+```
+
+**Implementation:**
+- User preference storage
+- Asset source memory
+- Extraction settings persistence
+- First-run detection
+- Configuration migration
+
+**Deliverables:**
+- Complete onboarding wizard UI
+- Multi-source asset detection
+- Advanced file format support
+- Smart validation and repair
+- Persistent configuration system
+
+---
+
+## Phase 22: Enhanced Asset Pipeline (Week 38)
+
+### Objectives
+- Extend existing AssetExtractor capabilities
+- Add real-time extraction monitoring
+- Implement differential updates
+- Create asset caching system
+
+### Context
+Current AssetExtractor provides basic MPQ extraction. We need enhanced capabilities for production use including progress monitoring, incremental updates, and intelligent caching.
+
+### Tasks
+
+#### Task 22.1: Real-Time Extraction Monitoring
+**Tests First:**
+```cpp
+TEST(ExtractionMonitorTest, TrackProgressWithCallback) {
+    ExtractionMonitor monitor;
+    std::vector<ProgressUpdate> updates;
+    
+    monitor.setProgressCallback([&](const ProgressUpdate& update) {
+        updates.push_back(update);
+    });
+    
+    AssetExtractor extractor;
+    extractor.setMonitor(&monitor);
+    
+    extractor.extractFromD2("test_d2_path", "output_path");
+    
+    EXPECT_GT(updates.size(), 10); // Multiple progress updates
+    EXPECT_FLOAT_EQ(updates.back().percentage, 1.0f); // Completed
+    EXPECT_FALSE(updates.back().currentFile.empty());
+}
+
+TEST(ExtractionMonitorTest, EstimateTimeRemaining) {
+    ExtractionMonitor monitor;
+    
+    // Simulate 50% completion after 30 seconds
+    monitor.updateProgress(0.5f, "file.dc6", 30000);
+    
+    auto estimate = monitor.getTimeRemaining();
+    
+    EXPECT_NEAR(estimate.totalSeconds, 30.0, 5.0); // ~30 seconds remaining
+    EXPECT_TRUE(estimate.isReliable);
+}
+
+TEST(ExtractionMonitorTest, HandleExtractionErrors) {
+    ExtractionMonitor monitor;
+    std::vector<ExtractionError> errors;
+    
+    monitor.setErrorCallback([&](const ExtractionError& error) {
+        errors.push_back(error);
+    });
+    
+    // Simulate extraction with corrupted file
+    AssetExtractor extractor;
+    extractor.setMonitor(&monitor);
+    extractor.extractFromD2("corrupted_d2_path", "output");
+    
+    EXPECT_GT(errors.size(), 0);
+    EXPECT_EQ(errors[0].type, ErrorType::CORRUPTED_MPQ);
+    EXPECT_FALSE(errors[0].isRecoverable);
+}
+```
+
+**Implementation:**
+- Real-time progress callbacks with file-level detail
+- Time estimation based on extraction speed
+- Error reporting and recovery suggestions
+- Bandwidth and I/O monitoring
+- Parallel extraction tracking
+
+#### Task 22.2: Differential Asset Updates
+**Tests First:**
+```cpp
+TEST(DifferentialExtractorTest, DetectChangedFiles) {
+    DifferentialExtractor extractor;
+    
+    // Initial extraction
+    extractor.fullExtraction("d2_path", "output_v1");
+    auto manifest1 = extractor.generateManifest("output_v1");
+    
+    // Simulate file changes
+    modifyTestFile("d2_path/d2data.mpq");
+    
+    // Differential extraction
+    auto changes = extractor.detectChanges("d2_path", manifest1);
+    
+    EXPECT_GT(changes.modifiedFiles.size(), 0);
+    EXPECT_TRUE(changes.hasFile("d2data.mpq"));
+    EXPECT_EQ(changes.changeType("d2data.mpq"), ChangeType::MODIFIED);
+}
+
+TEST(DifferentialExtractorTest, IncrementalUpdate) {
+    DifferentialExtractor extractor;
+    
+    // Base extraction exists
+    auto baseManifest = loadTestManifest("base_v1.manifest");
+    
+    // Perform incremental update
+    auto result = extractor.incrementalUpdate(
+        "d2_path",
+        "output_path", 
+        baseManifest
+    );
+    
+    EXPECT_TRUE(result.success);
+    EXPECT_GT(result.filesUpdated, 0);
+    EXPECT_LT(result.extractionTime, result.fullExtractionTime * 0.5); // Faster
+}
+
+TEST(DifferentialExtractorTest, HandleVersionMismatches) {
+    DifferentialExtractor extractor;
+    
+    auto oldManifest = createManifest(D2Version::CLASSIC);
+    auto newManifest = createManifest(D2Version::LORD_OF_DESTRUCTION);
+    
+    auto compatibility = extractor.checkCompatibility(oldManifest, newManifest);
+    
+    EXPECT_FALSE(compatibility.canUpdate);
+    EXPECT_EQ(compatibility.recommendation, UpdateAction::FULL_REEXTRACTION);
+    EXPECT_TRUE(compatibility.reason.contains("version mismatch"));
+}
+```
+
+**Implementation:**
+- File change detection using checksums and timestamps
+- Incremental extraction for modified MPQs only
+- Version compatibility checking
+- Rollback capability for failed updates
+- Bandwidth-efficient updates
+
+#### Task 22.3: Intelligent Asset Caching
+**Tests First:**
+```cpp
+TEST(AssetCacheTest, CacheExtractedAssets) {
+    AssetCache cache("cache_dir", 1000); // 1000MB limit
+    
+    auto sprite = loadTestSprite("test_sprite.dc6");
+    
+    cache.store("player/barbarian/walk.dc6", sprite);
+    
+    EXPECT_TRUE(cache.has("player/barbarian/walk.dc6"));
+    EXPECT_EQ(cache.getSize(), sprite->getDataSize());
+}
+
+TEST(AssetCacheTest, LRUEviction) {
+    AssetCache cache("cache_dir", 100); // Small cache
+    
+    // Fill cache beyond capacity
+    for (int i = 0; i < 10; i++) {
+        auto sprite = createLargeSprite(15); // 15MB each
+        cache.store("sprite_" + std::to_string(i), sprite);
+    }
+    
+    // Early items should be evicted
+    EXPECT_FALSE(cache.has("sprite_0"));
+    EXPECT_FALSE(cache.has("sprite_1"));
+    EXPECT_TRUE(cache.has("sprite_8"));
+    EXPECT_TRUE(cache.has("sprite_9"));
+}
+
+TEST(AssetCacheTest, PreloadCriticalAssets) {
+    AssetCache cache("cache_dir", 500);
+    
+    std::vector<std::string> criticalAssets = {
+        "ui/panels/inventory.dc6",
+        "ui/fonts/exocet.dc6",
+        "player/universal/walk.dc6"
+    };
+    
+    cache.preload(criticalAssets);
+    
+    for (const auto& asset : criticalAssets) {
+        EXPECT_TRUE(cache.has(asset));
+        EXPECT_TRUE(cache.isPinned(asset)); // Won't be evicted
+    }
+}
+```
+
+**Implementation:**
+- LRU cache with configurable size limits
+- Asset preloading for critical game files
+- Pinning system for frequently accessed assets
+- Compression for cached assets
+- Cache persistence across sessions
+
+#### Task 22.4: Multi-Format Asset Processing
+**Tests First:**
+```cpp
+TEST(AssetProcessorTest, ConvertDC6ToPNG) {
+    AssetProcessor processor;
+    
+    std::vector<uint8_t> dc6Data = loadBinaryFile("test_sprite.dc6");
+    
+    auto result = processor.convertDC6ToPNG(dc6Data, 0, 0); // frame 0, direction 0
+    
+    EXPECT_TRUE(result.success);
+    EXPECT_TRUE(result.data.size() > 0);
+    EXPECT_TRUE(isPNGFormat(result.data));
+}
+
+TEST(AssetProcessorTest, ExtractPaletteFromMPQ) {
+    AssetProcessor processor;
+    
+    auto palette = processor.extractPalette("d2data.mpq", "data/global/palette/act1/pal.dat");
+    
+    EXPECT_EQ(palette.colorCount, 256);
+    EXPECT_TRUE(palette.hasTransparency);
+    EXPECT_EQ(palette.colors[0].alpha, 0); // Transparent
+}
+
+TEST(AssetProcessorTest, ProcessAudioFiles) {
+    AssetProcessor processor;
+    
+    auto audioData = processor.extractAudio("d2sfx.mpq", "data/global/sfx/cursor/button.wav");
+    
+    EXPECT_TRUE(audioData.isValid);
+    EXPECT_EQ(audioData.format, AudioFormat::PCM_16);
+    EXPECT_EQ(audioData.channels, 2); // Stereo
+    EXPECT_GT(audioData.sampleRate, 0);
+}
+```
+
+**Implementation:**
+- DC6 to PNG/PVR conversion with palette support
+- Audio file extraction and format conversion
+- Data table extraction (Excel files)
+- String table processing
+- Font extraction and conversion
+
+#### Task 22.5: Asset Verification System
+**Tests First:**
+```cpp
+TEST(AssetVerifierTest, ValidateExtractedAssets) {
+    AssetVerifier verifier;
+    
+    std::string extractedPath = "extracted_assets/";
+    auto verification = verifier.fullVerification(extractedPath);
+    
+    EXPECT_TRUE(verification.isComplete);
+    EXPECT_EQ(verification.corruptedFiles.size(), 0);
+    EXPECT_GT(verification.validatedFiles, 1000);
+    EXPECT_TRUE(verification.hasRequiredAssets());
+}
+
+TEST(AssetVerifierTest, DetectMissingCriticalFiles) {
+    AssetVerifier verifier;
+    
+    // Delete critical file
+    std::string assetPath = "incomplete_assets/";
+    fs::remove(assetPath + "data/global/ui/panel/invchar6.dc6");
+    
+    auto verification = verifier.fullVerification(assetPath);
+    
+    EXPECT_FALSE(verification.isComplete);
+    EXPECT_GT(verification.missingCriticalFiles.size(), 0);
+    EXPECT_TRUE(verification.canAttemptRepair());
+}
+
+TEST(AssetVerifierTest, GenerateChecksumManifest) {
+    AssetVerifier verifier;
+    
+    auto manifest = verifier.generateChecksumManifest("extracted_assets/");
+    
+    EXPECT_GT(manifest.fileCount, 1000);
+    EXPECT_FALSE(manifest.manifestChecksum.empty());
+    
+    // Verify manifest integrity
+    EXPECT_TRUE(verifier.validateManifest(manifest));
+}
+```
+
+**Implementation:**
+- Complete asset validation with checksums
+- Missing file detection and reporting
+- Corruption detection and repair suggestions
+- Manifest generation for distribution
+- Automated repair where possible
+
+**Deliverables:**
+- Enhanced extraction with real-time monitoring
+- Differential update system
+- Intelligent asset caching
+- Multi-format processing
+- Comprehensive verification system
+
+---
+
+## Phase 23: User Experience Enhancement (Week 39)
+
+### Objectives
+- Create intuitive user interfaces
+- Implement help and tutorial systems
+- Add accessibility features
+- Build troubleshooting tools
+
+### Context
+Technical systems are complete but need user-friendly interfaces. Focus on making the onboarding and asset management processes accessible to non-technical users.
+
+### Tasks
+
+#### Task 23.1: Visual Asset Browser
+**Tests First:**
+```java
+@RunWith(AndroidJUnit4.class)
+public class AssetBrowserTest {
+    
+    @Test
+    public void testDisplayAssetCategories() {
+        AssetBrowserActivity activity = launchActivity();
+        
+        onView(withId(R.id.category_characters))
+            .check(matches(isDisplayed()));
+        onView(withId(R.id.category_monsters))
+            .check(matches(isDisplayed()));
+        onView(withId(R.id.category_items))
+            .check(matches(isDisplayed()));
+        onView(withId(R.id.category_ui))
+            .check(matches(isDisplayed()));
+    }
+    
+    @Test
+    public void testPreviewSprites() {
+        AssetBrowserActivity activity = launchActivity();
+        
+        // Navigate to character sprites
+        onView(withId(R.id.category_characters)).perform(click());
+        
+        // Select barbarian
+        onView(withText("Barbarian")).perform(click());
+        
+        // Should show sprite preview
+        onView(withId(R.id.sprite_preview))
+            .check(matches(isDisplayed()));
+        
+        // Should show frame navigation
+        onView(withId(R.id.frame_slider))
+            .check(matches(isDisplayed()));
+    }
+    
+    @Test
+    public void testAssetInformation() {
+        AssetBrowserActivity activity = launchActivity();
+        
+        // Select specific asset
+        navigateToAsset("ui/panels/inventory.dc6");
+        
+        // Should display asset metadata
+        onView(withId(R.id.asset_filename))
+            .check(matches(withText("inventory.dc6")));
+        onView(withId(R.id.asset_size))
+            .check(matches(withText(containsString("KB"))));
+        onView(withId(R.id.asset_dimensions))
+            .check(matches(isDisplayed()));
+    }
+}
+```
+
+**Native Tests:**
+```cpp
+TEST(AssetBrowserBackendTest, LoadAssetMetadata) {
+    AssetBrowserBackend backend;
+    backend.initialize("extracted_assets/");
+    
+    auto metadata = backend.getAssetMetadata("ui/panels/inventory.dc6");
+    
+    EXPECT_FALSE(metadata.filename.empty());
+    EXPECT_GT(metadata.fileSize, 0);
+    EXPECT_GT(metadata.frameCount, 0);
+    EXPECT_FALSE(metadata.category.empty());
+}
+
+TEST(AssetBrowserBackendTest, GenerateThumbnails) {
+    AssetBrowserBackend backend;
+    
+    auto thumbnail = backend.generateThumbnail(
+        "characters/barbarian/walk.dc6",
+        ThumbnailSize::MEDIUM
+    );
+    
+    EXPECT_TRUE(thumbnail.isValid());
+    EXPECT_EQ(thumbnail.width, 128);
+    EXPECT_EQ(thumbnail.height, 128);
+    EXPECT_TRUE(thumbnail.data.size() > 0);
+}
+```
+
+**Implementation:**
+- Grid-based asset browser with categories
+- Sprite preview with frame animation
+- Asset metadata display
+- Search and filtering capabilities
+- Thumbnail generation for quick preview
+
+#### Task 23.2: Interactive Tutorial System
+**Tests First:**
+```java
+@RunWith(AndroidJUnit4.class)
+public class TutorialSystemTest {
+    
+    @Test
+    public void testOnboardingTutorial() {
+        TutorialActivity activity = launchActivity();
+        
+        // First step: Welcome
+        onView(withId(R.id.tutorial_title))
+            .check(matches(withText("Welcome to Diablo II Portable")));
+        
+        onView(withId(R.id.next_button)).perform(click());
+        
+        // Second step: File selection
+        onView(withId(R.id.tutorial_title))
+            .check(matches(withText("Select Your Game Files")));
+        
+        // Should show visual guide
+        onView(withId(R.id.tutorial_image))
+            .check(matches(isDisplayed()));
+    }
+    
+    @Test
+    public void testControllerTutorial() {
+        TutorialActivity activity = launchActivity();
+        activity.startControllerTutorial();
+        
+        // Should detect controller connection
+        onView(withId(R.id.controller_status))
+            .check(matches(withText("Controller Connected")));
+        
+        // Should show button mapping
+        onView(withId(R.id.button_mapping_guide))
+            .check(matches(isDisplayed()));
+    }
+    
+    @Test
+    public void testSkipTutorial() {
+        TutorialActivity activity = launchActivity();
+        
+        onView(withId(R.id.skip_button)).perform(click());
+        
+        // Should confirm skip
+        onView(withText("Skip Tutorial?"))
+            .check(matches(isDisplayed()));
+        
+        onView(withText("Yes")).perform(click());
+        
+        // Should mark tutorial as completed
+        assertTrue(TutorialPreferences.isCompleted());
+    }
+}
+```
+
+**Implementation:**
+- Step-by-step onboarding tutorial
+- Controller setup and testing
+- Visual guides with screenshots
+- Progress tracking and bookmarking
+- Context-sensitive help system
+
+#### Task 23.3: Accessibility Features
+**Tests First:**
+```java
+@RunWith(AndroidJUnit4.class)
+public class AccessibilityTest {
+    
+    @Test
+    public void testScreenReaderSupport() {
+        AccessibilityTestActivity activity = launchActivity();
+        
+        // All interactive elements should have content descriptions
+        onView(withId(R.id.start_extraction_button))
+            .check(matches(hasContentDescription()));
+        
+        onView(withId(R.id.file_picker_button))
+            .check(matches(hasContentDescription()));
+    }
+    
+    @Test
+    public void testHighContrastMode() {
+        AccessibilityTestActivity activity = launchActivity();
+        
+        // Enable high contrast
+        AccessibilitySettings.setHighContrast(true);
+        activity.recreate();
+        
+        // UI should adapt colors
+        View button = activity.findViewById(R.id.primary_button);
+        ColorDrawable background = (ColorDrawable) button.getBackground();
+        
+        assertTrue("Button should have high contrast colors",
+            isHighContrastColor(background.getColor()));
+    }
+    
+    @Test
+    public void testLargeFontSupport() {
+        AccessibilityTestActivity activity = launchActivity();
+        
+        // Enable large fonts
+        AccessibilitySettings.setLargeFonts(true);
+        activity.recreate();
+        
+        TextView title = activity.findViewById(R.id.main_title);
+        float fontSize = title.getTextSize();
+        
+        assertTrue("Font should be larger than default",
+            fontSize > AccessibilitySettings.DEFAULT_FONT_SIZE * 1.3f);
+    }
+}
+```
+
+**Implementation:**
+- Screen reader compatibility
+- High contrast color schemes
+- Large font support
+- Voice guidance for critical steps
+- Alternative input methods
+
+#### Task 23.4: Troubleshooting Tools
+**Tests First:**
+```cpp
+TEST(TroubleshootingToolsTest, DiagnoseExtractionIssues) {
+    TroubleshootingTools tools;
+    
+    // Simulate extraction failure
+    ExtractionResult failedResult;
+    failedResult.success = false;
+    failedResult.errorCode = ErrorCode::INSUFFICIENT_SPACE;
+    failedResult.errorMessage = "Not enough disk space";
+    
+    auto diagnosis = tools.diagnoseExtraction(failedResult);
+    
+    EXPECT_EQ(diagnosis.primaryIssue, IssueType::STORAGE_SPACE);
+    EXPECT_TRUE(diagnosis.hasRecommendations);
+    EXPECT_GT(diagnosis.possibleSolutions.size(), 0);
+    EXPECT_TRUE(diagnosis.canAutoFix);
+}
+
+TEST(TroubleshootingToolsTest, SystemRequirementsCheck) {
+    TroubleshootingTools tools;
+    
+    auto systemCheck = tools.checkSystemRequirements();
+    
+    EXPECT_TRUE(systemCheck.androidVersionOK);
+    EXPECT_TRUE(systemCheck.openGLVersionOK);
+    EXPECT_GT(systemCheck.availableRAM, 0);
+    EXPECT_GT(systemCheck.availableStorage, 0);
+    
+    if (!systemCheck.meetsMinimumRequirements()) {
+        EXPECT_FALSE(systemCheck.recommendations.empty());
+    }
+}
+
+TEST(TroubleshootingToolsTest, GenerateDiagnosticReport) {
+    TroubleshootingTools tools;
+    
+    auto report = tools.generateDiagnosticReport();
+    
+    EXPECT_FALSE(report.deviceInfo.empty());
+    EXPECT_FALSE(report.appVersion.empty());
+    EXPECT_GT(report.installedAssets.size(), 0);
+    EXPECT_TRUE(report.systemHealth.isValid());
+    
+    // Report should be exportable
+    auto json = report.toJSON();
+    EXPECT_TRUE(json.contains("device"));
+    EXPECT_TRUE(json.contains("assets"));
+}
+```
+
+**Implementation:**
+- Automated problem diagnosis
+- System requirement validation
+- Storage space analysis
+- Network connectivity testing
+- Diagnostic report generation
+
+#### Task 23.5: Help and Documentation System
+**Tests First:**
+```java
+@RunWith(AndroidJUnit4.class)
+public class HelpSystemTest {
+    
+    @Test
+    public void testSearchHelp() {
+        HelpActivity activity = launchActivity();
+        
+        onView(withId(R.id.help_search))
+            .perform(typeText("extraction failed"));
+        
+        onView(withId(R.id.search_button)).perform(click());
+        
+        // Should show relevant help articles
+        onView(withId(R.id.help_results))
+            .check(matches(hasMinimumChildCount(1)));
+        
+        onView(withText(containsString("Extraction")))
+            .check(matches(isDisplayed()));
+    }
+    
+    @Test
+    public void testContextualHelp() {
+        MainActivity activity = launchActivity();
+        
+        // Long press should show context help
+        onView(withId(R.id.file_picker_button))
+            .perform(longClick());
+        
+        onView(withText("Help"))
+            .check(matches(isDisplayed()));
+        
+        onView(withText("Help")).perform(click());
+        
+        // Should show specific help for file picker
+        onView(withText(containsString("file selection")))
+            .check(matches(isDisplayed()));
+    }
+    
+    @Test
+    public void testOfflineHelp() {
+        HelpActivity activity = launchActivity();
+        
+        // Disable network
+        NetworkTestUtils.disableNetwork();
+        
+        onView(withId(R.id.help_categories)).perform(click());
+        
+        // Should still show help content
+        onView(withId(R.id.help_content))
+            .check(matches(isDisplayed()));
+        
+        NetworkTestUtils.enableNetwork();
+    }
+}
+```
+
+**Implementation:**
+- Searchable help database
+- Context-sensitive help tooltips
+- Offline documentation
+- Video tutorials (optional)
+- Community integration (forums, FAQ)
+
+**Deliverables:**
+- Intuitive asset browser
+- Comprehensive tutorial system
+- Accessibility compliance
+- Robust troubleshooting tools
+- Complete help system
+
+---
+
+## Phase 24: Quality Assurance and Polish (Week 40)
+
+### Objectives
+- Comprehensive testing across all systems
+- Performance optimization and validation
+- User experience refinement
+- Release preparation
+
+### Context
+Final phase focusing on quality assurance, performance validation, and preparation for production release.
+
+### Tasks
+
+#### Task 24.1: Comprehensive Integration Testing
+**Tests First:**
+```cpp
+TEST(EndToEndTest, CompleteOnboardingToGameplay) {
+    // Full end-to-end test simulating user journey
+    
+    // 1. Fresh installation
+    OnboardingManager onboarding;
+    EXPECT_TRUE(onboarding.isFirstRun());
+    
+    // 2. Asset detection and extraction
+    auto sources = onboarding.detectAssetSources();
+    EXPECT_GT(sources.size(), 0);
+    
+    onboarding.selectSource(sources[0]);
+    auto extractionResult = onboarding.extractAssets();
+    EXPECT_TRUE(extractionResult.success);
+    
+    // 3. Game engine initialization
+    GameEngine engine;
+    EXPECT_TRUE(engine.initialize());
+    
+    // 4. Character creation
+    auto character = engine.createCharacter(CharacterClass::SORCERESS, "TestSorc");
+    EXPECT_TRUE(character != nullptr);
+    
+    // 5. Enter game world
+    EXPECT_TRUE(engine.enterGame(character));
+    
+    // 6. Basic gameplay
+    auto initialPos = character->getPosition();
+    engine.processInput(InputAction::MOVE, glm::vec2(1, 0));
+    engine.update(0.016f);
+    
+    EXPECT_NE(character->getPosition(), initialPos);
+    
+    // 7. Save and exit
+    EXPECT_TRUE(engine.saveCharacter(character));
+    engine.exitGame();
+    
+    // 8. Verify save file
+    SaveManager saves;
+    auto loadedChar = saves.loadCharacter("TestSorc");
+    EXPECT_EQ(loadedChar->getName(), "TestSorc");
+}
+
+TEST(StressTest, LongTermGameplayStability) {
+    GameEngine engine;
+    engine.initialize();
+    
+    auto character = engine.createCharacter(CharacterClass::BARBARIAN, "StressTest");
+    engine.enterGame(character);
+    
+    // Simulate 2 hours of gameplay (7200 frames at 60fps)
+    for (int frame = 0; frame < 7200; frame++) {
+        // Vary input to simulate real gameplay
+        if (frame % 60 == 0) { // Every second
+            engine.processInput(getRandomInput());
+        }
+        
+        engine.update(0.016f);
+        engine.render();
+        
+        // Check for memory leaks every 10 seconds
+        if (frame % 600 == 0) {
+            size_t memUsage = getProcessMemoryUsage();
+            EXPECT_LT(memUsage, MEMORY_LIMIT_BYTES);
+        }
+    }
+    
+    // Engine should still be responsive
+    EXPECT_TRUE(engine.isRunning());
+    EXPECT_LT(engine.getAverageFrameTime(), 16.67f); // 60 FPS
+}
+```
+
+#### Task 24.2: Performance Validation and Optimization
+**Tests First:**
+```cpp
+TEST(PerformanceValidationTest, MeetTargetSpecifications) {
+    PerformanceProfiler profiler;
+    GameEngine engine;
+    
+    engine.initialize();
+    profiler.startProfiling();
+    
+    // Load intensive scene
+    auto testLevel = engine.loadLevel("stress_test_level");
+    
+    // Spawn many entities
+    for (int i = 0; i < 100; i++) {
+        testLevel->spawnMonster(MonsterId::FALLEN, getRandomPosition());
+    }
+    
+    // Measure performance over 60 seconds
+    auto metrics = profiler.measurePerformance(60.0f);
+    
+    // Validate against targets
+    EXPECT_GE(metrics.averageFPS, 60.0f);
+    EXPECT_LE(metrics.frameTimeVariance, 2.0f); // Stable framerate
+    EXPECT_LE(metrics.memoryUsage, 1536 * 1024 * 1024); // 1.5GB limit
+    EXPECT_LE(metrics.batteryDrainRate, 25.0f); // 4+ hour battery life
+    EXPECT_LE(metrics.loadTime, 5.0f); // 5 second max load
+}
+
+TEST(OptimizationTest, AssetLoadingPerformance) {
+    AssetManager assets;
+    PerformanceProfiler profiler;
+    
+    profiler.startProfiling();
+    
+    // Load common game assets
+    std::vector<std::string> commonAssets = {
+        "ui/panels/inventory.dc6",
+        "characters/barbarian/walk.dc6",
+        "monsters/zombie/walk.dc6",
+        "items/weapons/sword.dc6"
+    };
+    
+    for (const auto& asset : commonAssets) {
+        auto sprite = assets.loadSprite(asset);
+        EXPECT_NE(sprite, nullptr);
+    }
+    
+    auto loadMetrics = profiler.getMetrics();
+    
+    // Assets should load quickly
+    EXPECT_LT(loadMetrics.totalTime, 1.0f); // Under 1 second
+    EXPECT_LT(loadMetrics.averageLoadTime, 0.25f); // 250ms per asset
+}
+```
+
+#### Task 24.3: User Experience Testing
+**Tests First:**
+```java
+@RunWith(AndroidJUnit4.class)
+public class UserExperienceTest {
+    
+    @Test
+    public void testOnboardingCompletionTime() {
+        long startTime = System.currentTimeMillis();
+        
+        // Simulate efficient user onboarding
+        OnboardingActivity activity = launchActivity();
+        
+        // Auto-detect assets (should be fast)
+        onView(withId(R.id.auto_detect_button)).perform(click());
+        waitForCondition(() -> activity.hasDetectedAssets(), 10000);
+        
+        // Start extraction
+        onView(withId(R.id.start_extraction_button)).perform(click());
+        waitForCondition(() -> activity.isExtractionComplete(), 120000); // 2 min max
+        
+        long completionTime = System.currentTimeMillis() - startTime;
+        
+        // Onboarding should complete within 5 minutes for typical setup
+        assertTrue("Onboarding took too long: " + completionTime + "ms",
+            completionTime < 300000);
+    }
+    
+    @Test
+    public void testErrorRecovery() {
+        OnboardingActivity activity = launchActivity();
+        
+        // Simulate extraction failure
+        activity.simulateExtractionError();
+        
+        // Should show clear error message
+        onView(withId(R.id.error_message))
+            .check(matches(isDisplayed()));
+        
+        // Should offer recovery options
+        onView(withId(R.id.retry_button))
+            .check(matches(isDisplayed()));
+        onView(withId(R.id.help_button))
+            .check(matches(isDisplayed()));
+        
+        // Recovery should work
+        onView(withId(R.id.retry_button)).perform(click());
+        waitForCondition(() -> activity.getExtractionStatus() == Status.IN_PROGRESS, 5000);
+    }
+    
+    @Test
+    public void testAccessibilityCompliance() {
+        OnboardingActivity activity = launchActivity();
+        
+        // Enable accessibility services
+        enableAccessibilityServices();
+        
+        // All interactive elements should be accessible
+        List<View> interactiveViews = findAllInteractiveViews(activity);
+        
+        for (View view : interactiveViews) {
+            assertTrue("View missing accessibility info: " + view.getId(),
+                hasAccessibilityInfo(view));
+        }
+        
+        // Navigation should work with TalkBack
+        navigateWithTalkBack(activity);
+        assertTrue("TalkBack navigation failed", 
+            activity.getCurrentStep() > 0);
+    }
+}
+```
+
+#### Task 24.4: Device Compatibility Validation
+**Tests First:**
+```cpp
+TEST(DeviceCompatibilityTest, ValidateTargetDevice) {
+    DeviceCompatibilityChecker checker;
+    
+    auto compatibility = checker.checkDevice("Retroid Pocket Flip 2");
+    
+    EXPECT_TRUE(compatibility.isSupported);
+    EXPECT_TRUE(compatibility.openGLESSupport);
+    EXPECT_TRUE(compatibility.controllerSupport);
+    EXPECT_GE(compatibility.expectedPerformance, PerformanceLevel::OPTIMAL);
+}
+
+TEST(DeviceCompatibilityTest, GracefulDegradation) {
+    DeviceCompatibilityChecker checker;
+    
+    // Simulate low-end device
+    DeviceSpecs lowEndDevice;
+    lowEndDevice.ram = 2048; // 2GB RAM
+    lowEndDevice.openGLVersion = "3.0";
+    lowEndDevice.cpuCores = 4;
+    
+    auto compatibility = checker.checkDevice(lowEndDevice);
+    
+    if (!compatibility.meetsMinimumRequirements()) {
+        EXPECT_TRUE(compatibility.hasPerformanceRecommendations());
+        EXPECT_FALSE(compatibility.recommendedSettings.highQualityGraphics);
+        EXPECT_TRUE(compatibility.recommendedSettings.reducedEntityCount);
+    }
+}
+```
+
+#### Task 24.5: Security and Privacy Validation
+**Tests First:**
+```cpp
+TEST(SecurityTest, ValidateDataProtection) {
+    SecurityValidator validator;
+    
+    // Check file permissions
+    auto permissions = validator.checkFilePermissions("user_data/");
+    EXPECT_TRUE(permissions.isSecure);
+    EXPECT_FALSE(permissions.worldReadable);
+    
+    // Validate encryption of sensitive data
+    auto encryption = validator.checkEncryption("saves/");
+    EXPECT_TRUE(encryption.isSaveDataEncrypted);
+    EXPECT_TRUE(encryption.useStrongCipher);
+    
+    // No network data collection
+    auto privacy = validator.checkPrivacyCompliance();
+    EXPECT_FALSE(privacy.collectsPersonalData);
+    EXPECT_FALSE(privacy.sendsDataToServers);
+    EXPECT_TRUE(privacy.dataStaysLocal);
+}
+
+TEST(SecurityTest, ValidateAssetIntegrity) {
+    AssetIntegrityChecker checker;
+    
+    // Check for malicious modifications
+    auto integrity = checker.validateAssets("extracted_assets/");
+    EXPECT_TRUE(integrity.passesIntegrityCheck);
+    EXPECT_EQ(integrity.modifiedFiles.size(), 0);
+    EXPECT_EQ(integrity.suspiciousFiles.size(), 0);
+}
+```
+
+**Deliverables:**
+- Comprehensive test suite passing
+- Performance targets validated
+- User experience optimized
+- Device compatibility confirmed
+- Security and privacy validated
+
+---
+
+## Updated Final Timeline
+
+- **Phases 0-20**: Weeks 1-36 (COMPLETED) - Core Implementation
+- **Phase 21**: Week 37 - Complete Onboarding System
+- **Phase 22**: Week 38 - Enhanced Asset Pipeline  
+- **Phase 23**: Week 39 - User Experience Enhancement
+- **Phase 24**: Week 40 - Quality Assurance and Polish
+- **Total Project Duration**: 40 weeks
+
+## Enhanced Success Criteria
+
+1. **Complete User-Friendly Experience**
+   - ✅ One-tap onboarding for any D2 installation
+   - ✅ Support for multiple asset sources (CD, ISO, installers, directories)
+   - ✅ Real-time progress tracking with ETA
+   - ✅ Error recovery and troubleshooting
+
+2. **Production-Ready Quality**
+   - ✅ 60 FPS on target hardware validated
+   - ✅ Sub-5 minute onboarding time
+   - ✅ 95%+ asset extraction success rate
+   - ✅ Accessibility compliance
+   - ✅ Security and privacy validated
+
+3. **Enhanced Asset Management**
+   - ✅ Differential updates for modified assets
+   - ✅ Intelligent caching with LRU eviction
+   - ✅ Multi-format support (MPQ, ISO, ZIP, etc.)
+   - ✅ Asset browser with preview capability
+
+4. **Robust User Support**
+   - ✅ Interactive tutorial system
+   - ✅ Automated troubleshooting tools
+   - ✅ Comprehensive help documentation
+   - ✅ Diagnostic reporting
+
+This extended implementation plan transforms the project from a technically capable but user-hostile system into a polished, production-ready application that provides an exceptional user experience for getting Diablo II running on Android devices.
