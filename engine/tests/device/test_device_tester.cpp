@@ -13,3 +13,17 @@ TEST(DeviceTesterTest, CreateDeviceTester) {
     DeviceTester tester;
     // Device tester should exist
 }
+
+// TEST 2: Run device test suite
+TEST(DeviceTesterTest, RunDeviceTestSuite) {
+    DeviceTester tester;
+    
+    // Create a test report for Retroid Pocket Flip 2
+    DeviceTestReport report = tester.runTestSuite("Retroid Pocket Flip 2");
+    
+    // Report should contain device name
+    EXPECT_EQ(report.deviceName, "Retroid Pocket Flip 2");
+    
+    // Report should have test results
+    EXPECT_TRUE(report.hasResults());
+}
