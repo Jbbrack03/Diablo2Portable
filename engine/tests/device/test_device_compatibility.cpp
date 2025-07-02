@@ -60,3 +60,24 @@ TEST(DeviceCompatibilityTest, CheckRAMRequirements) {
     result = checker.isRAMSufficient(1024);
     EXPECT_FALSE(result);
 }
+
+// TEST 5: Check controller compatibility
+TEST(DeviceCompatibilityTest, CheckControllerCompatibility) {
+    DeviceCompatibility checker;
+    
+    // Xbox controller should be compatible
+    bool result = checker.isControllerCompatible("Xbox Wireless Controller");
+    EXPECT_TRUE(result);
+    
+    // PlayStation controller should be compatible
+    result = checker.isControllerCompatible("DualShock 4 Controller");
+    EXPECT_TRUE(result);
+    
+    // Generic gamepad should be compatible
+    result = checker.isControllerCompatible("Generic Gamepad");
+    EXPECT_TRUE(result);
+    
+    // Unknown controller should still be compatible (we support any gamepad)
+    result = checker.isControllerCompatible("Unknown Controller");
+    EXPECT_TRUE(result);
+}

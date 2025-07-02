@@ -1,5 +1,7 @@
 #pragma once
 
+#include <string>
+
 namespace d2::device {
 
 // Device compatibility checker for Phase 20 Task 2
@@ -26,6 +28,12 @@ public:
     bool isRAMSufficient(size_t ramMB) const {
         // Minimum 1.5GB (1536MB) required
         return ramMB >= 1536;
+    }
+    
+    // Check if controller is compatible
+    bool isControllerCompatible(const std::string& controllerName) const {
+        // We support any gamepad/controller
+        return true;
     }
 };
 
