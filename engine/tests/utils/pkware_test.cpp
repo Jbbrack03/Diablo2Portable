@@ -97,3 +97,28 @@ TEST_F(PKWareTest, UncodedLiterals) {
     // This test is more about verifying uncoded literal mode works
 }
 #endif
+
+// Test 5: No debug output to stderr
+TEST_F(PKWareTest, NoDebugOutputToStderr) {
+    // Create test data that would trigger debug output
+    std::vector<uint8_t> compressed = {
+        0x00,  // Coded literals
+        0x04,  // Dictionary size
+        0xFF   // Some compressed data
+    };
+    
+    std::vector<uint8_t> output;
+    size_t expected_size = 10;
+    
+    // Capture stderr
+    testing::internal::CaptureStderr();
+    
+    // Call the function (may fail, that's OK for this test)
+    d2portable::utils::PKWAREExplode(compressed, output, expected_size);
+    
+    // Get captured stderr
+    std::string stderr_output = testing::internal::GetCapturedStderr();
+    
+    // Should have no debug output
+    EXPECT_TRUE(stderr_output.empty()) << "Unexpected stderr output: " << stderr_output;
+}
