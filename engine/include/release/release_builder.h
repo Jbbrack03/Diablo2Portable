@@ -36,6 +36,25 @@ public:
         return script;
     }
     
+    // Generate installation guide
+    std::string generateInstallationGuide() const {
+        std::string guide;
+        guide += "# " + projectName_ + " Installation Guide\n\n";
+        guide += "## Requirements\n\n";
+        guide += "- Android 8.0 (API " + std::to_string(minSDKVersion_) + ") or higher\n";
+        guide += "- 2GB RAM minimum\n";
+        guide += "- 500MB storage space\n";
+        guide += "- Xbox-compatible gamepad\n";
+        guide += "- Legally owned Diablo II game files\n\n";
+        guide += "## Installation Steps\n\n";
+        guide += "1. Download " + projectName_ + "-" + version_ + ".apk\n";
+        guide += "2. Enable 'Install from Unknown Sources' in Android settings\n";
+        guide += "3. Install the APK\n";
+        guide += "4. Copy Diablo II MPQ files to /sdcard/Diablo2Portable/\n";
+        guide += "5. Launch the game\n";
+        return guide;
+    }
+    
 private:
     std::string projectName_;
     std::string version_;

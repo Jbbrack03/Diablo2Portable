@@ -48,3 +48,22 @@ TEST(ReleaseBuilderTest, GenerateBuildScript) {
     EXPECT_TRUE(script.find("cmake") != std::string::npos);
     EXPECT_TRUE(script.find("gradlew assembleRelease") != std::string::npos);
 }
+
+// TEST 4: Generate installation guide
+TEST(ReleaseBuilderTest, GenerateInstallationGuide) {
+    ReleaseBuilder builder;
+    
+    // Configure
+    builder.setProjectName("Diablo2Portable");
+    builder.setVersion("1.0.0");
+    builder.setMinSDKVersion(26);
+    
+    // Generate installation guide
+    std::string guide = builder.generateInstallationGuide();
+    
+    // Guide should contain key sections
+    EXPECT_TRUE(guide.find("Installation Guide") != std::string::npos);
+    EXPECT_TRUE(guide.find("Requirements") != std::string::npos);
+    EXPECT_TRUE(guide.find("Android 8.0") != std::string::npos);
+    EXPECT_TRUE(guide.find("Diablo II game files") != std::string::npos);
+}
