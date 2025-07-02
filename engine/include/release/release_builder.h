@@ -22,6 +22,20 @@ public:
     const std::string& getTargetPlatform() const { return targetPlatform_; }
     int getMinSDKVersion() const { return minSDKVersion_; }
     
+    // Generate build script
+    std::string generateBuildScript() const {
+        std::string script;
+        script += "#!/bin/bash\n";
+        script += "# Build script for " + projectName_ + " v" + version_ + "\n\n";
+        script += "# Configure CMake\n";
+        script += "cmake -B build -DCMAKE_BUILD_TYPE=Release\n\n";
+        script += "# Build native code\n";
+        script += "cmake --build build --config Release\n\n";
+        script += "# Build Android APK\n";
+        script += "./gradlew assembleRelease\n";
+        return script;
+    }
+    
 private:
     std::string projectName_;
     std::string version_;

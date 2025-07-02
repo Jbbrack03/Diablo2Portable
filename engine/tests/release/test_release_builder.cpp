@@ -31,3 +31,20 @@ TEST(ReleaseBuilderTest, ConfigureReleaseBuild) {
     EXPECT_EQ(builder.getTargetPlatform(), "Android");
     EXPECT_EQ(builder.getMinSDKVersion(), 26);
 }
+
+// TEST 3: Generate build script
+TEST(ReleaseBuilderTest, GenerateBuildScript) {
+    ReleaseBuilder builder;
+    
+    // Configure
+    builder.setProjectName("Diablo2Portable");
+    builder.setVersion("1.0.0");
+    
+    // Generate build script
+    std::string script = builder.generateBuildScript();
+    
+    // Script should contain key commands
+    EXPECT_TRUE(script.find("#!/bin/bash") != std::string::npos);
+    EXPECT_TRUE(script.find("cmake") != std::string::npos);
+    EXPECT_TRUE(script.find("gradlew assembleRelease") != std::string::npos);
+}
