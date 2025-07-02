@@ -104,6 +104,7 @@ set(TEST_SOURCES
     performance/memory_monitor_test.cpp
     performance/memory_profiling_test.cpp
     performance/test_performance_monitor.cpp
+    performance/test_optimized_update_system.cpp
     tools/asset_extractor_test.cpp
     tools/asset_optimizer_test.cpp
     tools/texture_atlas_test.cpp
