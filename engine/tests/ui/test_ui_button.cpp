@@ -2,6 +2,7 @@
 #include <glm/glm.hpp>
 #include "ui/ui_button.h"
 #include "ui/touch_input.h"
+#include "ui/ui_manager.h"
 
 namespace d2 {
 
@@ -125,6 +126,45 @@ TEST_F(UIButtonTest, VisualStateSprites) {
     // Pressed state
     button.handleTouchInput(150.0f, 125.0f, TouchEventType::TOUCH_DOWN);
     EXPECT_EQ(button.getCurrentSprite(), 102u); // Pressed sprite
+}
+
+TEST_F(UIButtonTest, HandleControllerInput) {
+    UIButton button("Controller Button");
+    
+    // Click callback tracking
+    bool clicked = false;
+    button.setOnClick([&clicked]() { clicked = true; });
+    
+    // Button should be focusable for controller input
+    button.setFocused(true);
+    EXPECT_TRUE(button.isFocused());
+    
+    // Action button should trigger click when focused
+    bool handled = button.handleControllerInput(ControllerAction::ACTION_BUTTON);
+    EXPECT_TRUE(handled);
+    EXPECT_TRUE(clicked);
+}
+
+TEST_F(UIButtonTest, ControllerNavigationStates) {
+    UIButton button("Nav Button");
+    button.setNormalSprite(100);
+    button.setHoverSprite(200);
+    button.setPressedSprite(201);
+    
+    // Normal state initially
+    EXPECT_EQ(button.getCurrentSprite(), 100u); // Normal sprite
+    
+    // Focus should trigger hover sprite
+    button.setFocused(true);
+    EXPECT_EQ(button.getCurrentSprite(), 200u); // Hover sprite when focused
+    
+    // Verify controller action is handled when focused
+    bool clicked = false;
+    button.setOnClick([&clicked]() { clicked = true; });
+    
+    bool handled = button.handleControllerInput(ControllerAction::ACTION_BUTTON);
+    EXPECT_TRUE(handled);
+    EXPECT_TRUE(clicked);
 }
 
 } // namespace d2

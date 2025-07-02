@@ -5,6 +5,10 @@
 #include <functional>
 
 namespace d2 {
+    enum class ControllerAction; // Forward declaration
+}
+
+namespace d2 {
 
 class UIButton : public UIElement {
 public:
@@ -26,6 +30,11 @@ public:
     // Touch input override
     bool handleTouchInput(float x, float y, TouchEventType type) override;
     
+    // Controller input handling
+    bool handleControllerInput(ControllerAction action);
+    
+    // DEPRECATED: Mouse handling methods kept for compatibility
+    // Use handleControllerInput() and handleTouchInput() instead
     void handleMouseDown(const glm::vec2& mousePos) {
         if (containsPoint(mousePos)) {
             pressed_ = true;
@@ -62,7 +71,7 @@ public:
         if (pressed_ && pressed_sprite_ != 0) {
             return pressed_sprite_;
         }
-        if (hovered_ && hover_sprite_ != 0) {
+        if ((hovered_ || isFocused()) && hover_sprite_ != 0) {
             return hover_sprite_;
         }
         return normal_sprite_;

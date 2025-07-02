@@ -1,4 +1,5 @@
 #include "ui/ui_button.h"
+#include "ui/ui_manager.h"
 
 namespace d2 {
 
@@ -40,6 +41,42 @@ bool UIButton::handleTouchInput(float x, float y, TouchEventType type) {
     }
     
     return in_bounds;
+}
+
+bool UIButton::handleControllerInput(ControllerAction action) {
+    if (!isEnabled() || !isVisible()) {
+        return false;
+    }
+    
+    switch (action) {
+        case ControllerAction::ACTION_BUTTON:
+            if (isFocused()) {
+                // Temporarily show pressed state
+                pressed_ = true;
+                
+                // Trigger click callback
+                if (onClick_) {
+                    onClick_();
+                }
+                
+                // Note: In a real implementation, we'd need a frame delay 
+                // or timer to show the pressed state briefly
+                pressed_ = false;
+                
+                return true;
+            }
+            break;
+            
+        case ControllerAction::NAVIGATE_UP:
+        case ControllerAction::NAVIGATE_DOWN:
+        case ControllerAction::NAVIGATE_LEFT:
+        case ControllerAction::NAVIGATE_RIGHT:
+        case ControllerAction::CANCEL_BUTTON:
+            // Navigation and cancel should be handled by parent container
+            return false;
+    }
+    
+    return false;
 }
 
 } // namespace d2
