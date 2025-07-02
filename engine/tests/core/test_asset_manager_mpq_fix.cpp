@@ -8,7 +8,7 @@ TEST(AssetManagerMPQFixTest, InitializeWithUppercaseMPQExtensions) {
     AssetManager asset_manager;
     
     // The vendor directory has .MPQ files (uppercase)
-    std::string mpq_dir = "/Users/jbbrack03/Diablo2Portable/vendor/extracted_mpq";
+    std::string mpq_dir = "/Users/jbbrack03/Diablo2Portable/vendor/mpq";
     
     // This should work with uppercase .MPQ extensions
     bool success = asset_manager.initializeWithMPQs(mpq_dir);

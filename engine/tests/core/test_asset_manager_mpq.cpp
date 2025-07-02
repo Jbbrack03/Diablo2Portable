@@ -25,8 +25,8 @@ protected:
     
     void createTestMPQ() {
         // Use our real working MPQ files instead of creating fake ones
-        std::string vendor_mpq_dir = "/Users/jbbrack03/Diablo2Portable/vendor/extracted_mpq";
-        test_mpq_path = vendor_mpq_dir + "/D2DATA.MPQ";
+        std::string vendor_mpq_dir = "/Users/jbbrack03/Diablo2Portable/vendor/mpq";
+        test_mpq_path = vendor_mpq_dir + "/d2data.mpq";  // lowercase filename
         test_mpq_dir = vendor_mpq_dir;
         
         // Verify the test MPQ exists and is valid
