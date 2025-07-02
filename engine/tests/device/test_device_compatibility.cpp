@@ -26,3 +26,20 @@ TEST(DeviceCompatibilityTest, CheckAndroidVersion) {
     result = checker.isAndroidVersionCompatible(25);
     EXPECT_FALSE(result);
 }
+
+// TEST 3: Check OpenGL ES version compatibility
+TEST(DeviceCompatibilityTest, CheckOpenGLESVersion) {
+    DeviceCompatibility checker;
+    
+    // OpenGL ES 3.0 should be compatible
+    bool result = checker.isOpenGLESVersionCompatible(3, 0);
+    EXPECT_TRUE(result);
+    
+    // OpenGL ES 3.1 should be compatible
+    result = checker.isOpenGLESVersionCompatible(3, 1);
+    EXPECT_TRUE(result);
+    
+    // OpenGL ES 2.0 should not be compatible
+    result = checker.isOpenGLESVersionCompatible(2, 0);
+    EXPECT_FALSE(result);
+}
