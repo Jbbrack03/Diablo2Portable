@@ -13,3 +13,16 @@ TEST(DeviceCompatibilityTest, CreateDeviceChecker) {
     DeviceCompatibility checker;
     // Device compatibility checker should exist - that's all for now
 }
+
+// TEST 2: Check Android version compatibility
+TEST(DeviceCompatibilityTest, CheckAndroidVersion) {
+    DeviceCompatibility checker;
+    
+    // Android 8.0 (API 26) should be compatible
+    bool result = checker.isAndroidVersionCompatible(26);
+    EXPECT_TRUE(result);
+    
+    // Android 7.0 (API 25) should not be compatible
+    result = checker.isAndroidVersionCompatible(25);
+    EXPECT_FALSE(result);
+}
