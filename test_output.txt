@@ -1,0 +1,247 @@
+[==========] Running 517 tests from 91 test suites.
+[----------] Global test environment set-up.
+[----------] 3 tests from StormLibMPQLoaderTest
+[ RUN      ] StormLibMPQLoaderTest.OpenValidMPQFile
+[       OK ] StormLibMPQLoaderTest.OpenValidMPQFile (0 ms)
+[ RUN      ] StormLibMPQLoaderTest.OpenNonExistentFile
+[       OK ] StormLibMPQLoaderTest.OpenNonExistentFile (0 ms)
+[ RUN      ] StormLibMPQLoaderTest.CloseMPQFile
+[       OK ] StormLibMPQLoaderTest.CloseMPQFile (0 ms)
+[----------] 3 tests from StormLibMPQLoaderTest (0 ms total)
+
+[----------] 2 tests from MPQFileEncryptionTest
+[ RUN      ] MPQFileEncryptionTest.DetectEncryptedListfile
+/Users/jbbrack03/Diablo2Portable/engine/tests/mpq/test_file_encryption.cpp:17: Skipped
+Set TEST_MPQ_PATH to test with real MPQ file
+
+[  SKIPPED ] MPQFileEncryptionTest.DetectEncryptedListfile (0 ms)
+[ RUN      ] MPQFileEncryptionTest.FileDecryptionAlgorithm
+[       OK ] MPQFileEncryptionTest.FileDecryptionAlgorithm (0 ms)
+[----------] 2 tests from MPQFileEncryptionTest (0 ms total)
+
+[----------] 7 tests from DC6ParserTest
+[ RUN      ] DC6ParserTest.ParseValidDC6
+[       OK ] DC6ParserTest.ParseValidDC6 (0 ms)
+[ RUN      ] DC6ParserTest.GetFrameDimensions
+[       OK ] DC6ParserTest.GetFrameDimensions (0 ms)
+[ RUN      ] DC6ParserTest.ConvertFrameToImage
+[       OK ] DC6ParserTest.ConvertFrameToImage (0 ms)
+[ RUN      ] DC6ParserTest.ParseRLECompressedDC6
+[       OK ] DC6ParserTest.ParseRLECompressedDC6 (0 ms)
+[ RUN      ] DC6ParserTest.ConvertFrameToImageWithPalette
+[       OK ] DC6ParserTest.ConvertFrameToImageWithPalette (0 ms)
+[ RUN      ] DC6ParserTest.ConvertWithDefaultDiabloPalette
+[       OK ] DC6ParserTest.ConvertWithDefaultDiabloPalette (0 ms)
+[ RUN      ] DC6ParserTest.HandleInvalidPaletteSize
+[       OK ] DC6ParserTest.HandleInvalidPaletteSize (0 ms)
+[----------] 7 tests from DC6ParserTest (3 ms total)
+
+[----------] 11 tests from AssetManagerTest
+[ RUN      ] AssetManagerTest.InitializeWithValidDirectory
+[       OK ] AssetManagerTest.InitializeWithValidDirectory (1 ms)
+[ RUN      ] AssetManagerTest.InitializeWithInvalidDirectory
+[       OK ] AssetManagerTest.InitializeWithInvalidDirectory (1 ms)
+[ RUN      ] AssetManagerTest.CheckFileExists
+[       OK ] AssetManagerTest.CheckFileExists (1 ms)
+[ RUN      ] AssetManagerTest.LoadSpriteSync
+[       OK ] AssetManagerTest.LoadSpriteSync (1 ms)
+[ RUN      ] AssetManagerTest.SpriteCaching
+[       OK ] AssetManagerTest.SpriteCaching (1 ms)
+[ RUN      ] AssetManagerTest.LoadFileData
+[       OK ] AssetManagerTest.LoadFileData (1 ms)
+[ RUN      ] AssetManagerTest.LoadSpriteAsync
+[       OK ] AssetManagerTest.LoadSpriteAsync (1 ms)
+[ RUN      ] AssetManagerTest.GetAssetInfo
+[       OK ] AssetManagerTest.GetAssetInfo (1 ms)
+[ RUN      ] AssetManagerTest.CacheMemoryManagement
+[       OK ] AssetManagerTest.CacheMemoryManagement (1 ms)
+[ RUN      ] AssetManagerTest.ClearCache
+[       OK ] AssetManagerTest.ClearCache (1 ms)
+[ RUN      ] AssetManagerTest.LoadNonExistentSprite
+[       OK ] AssetManagerTest.LoadNonExistentSprite (0 ms)
+[----------] 11 tests from AssetManagerTest (12 ms total)
+
+[----------] 6 tests from AssetManagerMPQTest
+[ RUN      ] AssetManagerMPQTest.InitializeWithMPQ
+/Users/jbbrack03/Diablo2Portable/engine/tests/core/test_asset_manager_mpq.cpp:35: Skipped
+Test MPQ files not available at "/Users/jbbrack03/Diablo2Portable/vendor/extracted_mpq/D2DATA.MPQ"
+
+[  SKIPPED ] AssetManagerMPQTest.InitializeWithMPQ (0 ms)
+[ RUN      ] AssetManagerMPQTest.HasFileInMPQ
+/Users/jbbrack03/Diablo2Portable/engine/tests/core/test_asset_manager_mpq.cpp:35: Skipped
+Test MPQ files not available at "/Users/jbbrack03/Diablo2Portable/vendor/extracted_mpq/D2DATA.MPQ"
+
+[  SKIPPED ] AssetManagerMPQTest.HasFileInMPQ (0 ms)
+[ RUN      ] AssetManagerMPQTest.LoadSpriteFromMPQ
+/Users/jbbrack03/Diablo2Portable/engine/tests/core/test_asset_manager_mpq.cpp:35: Skipped
+Test MPQ files not available at "/Users/jbbrack03/Diablo2Portable/vendor/extracted_mpq/D2DATA.MPQ"
+
+[  SKIPPED ] AssetManagerMPQTest.LoadSpriteFromMPQ (0 ms)
+[ RUN      ] AssetManagerMPQTest.LoadFileDataFromMPQ
+/Users/jbbrack03/Diablo2Portable/engine/tests/core/test_asset_manager_mpq.cpp:35: Skipped
+Test MPQ files not available at "/Users/jbbrack03/Diablo2Portable/vendor/extracted_mpq/D2DATA.MPQ"
+
+[  SKIPPED ] AssetManagerMPQTest.LoadFileDataFromMPQ (0 ms)
+[ RUN      ] AssetManagerMPQTest.InitializeWithMPQDirectory
+/Users/jbbrack03/Diablo2Portable/engine/tests/core/test_asset_manager_mpq.cpp:35: Skipped
+Test MPQ files not available at "/Users/jbbrack03/Diablo2Portable/vendor/extracted_mpq/D2DATA.MPQ"
+
+[  SKIPPED ] AssetManagerMPQTest.InitializeWithMPQDirectory (0 ms)
+[ RUN      ] AssetManagerMPQTest.FallbackToFilesystem
+/Users/jbbrack03/Diablo2Portable/engine/tests/core/test_asset_manager_mpq.cpp:35: Skipped
+Test MPQ files not available at "/Users/jbbrack03/Diablo2Portable/vendor/extracted_mpq/D2DATA.MPQ"
+
+[  SKIPPED ] AssetManagerMPQTest.FallbackToFilesystem (0 ms)
+[----------] 6 tests from AssetManagerMPQTest (1 ms total)
+
+[----------] 1 test from AssetManagerMPQFixTest
+[ RUN      ] AssetManagerMPQFixTest.InitializeWithUppercaseMPQExtensions
+/Users/jbbrack03/Diablo2Portable/engine/tests/core/test_asset_manager_mpq_fix.cpp:16: Failure
+Value of: success
+  Actual: false
+Expected: true
+Failed to initialize with MPQ directory: MPQ directory does not exist: /Users/jbbrack03/Diablo2Portable/vendor/extracted_mpq
+
+[  FAILED  ] AssetManagerMPQFixTest.InitializeWithUppercaseMPQExtensions (0 ms)
+[----------] 1 test from AssetManagerMPQFixTest (0 ms total)
+
+[----------] 2 tests from AssetManagerMemoryTest
+[ RUN      ] AssetManagerMemoryTest.SetMemoryMonitor
+[       OK ] AssetManagerMemoryTest.SetMemoryMonitor (0 ms)
+[ RUN      ] AssetManagerMemoryTest.TrackClearCacheMemoryUsage
+[       OK ] AssetManagerMemoryTest.TrackClearCacheMemoryUsage (0 ms)
+[----------] 2 tests from AssetManagerMemoryTest (0 ms total)
+
+[----------] 5 tests from SettingsManagerTest
+[ RUN      ] SettingsManagerTest.CreateSettingsManager
+[       OK ] SettingsManagerTest.CreateSettingsManager (0 ms)
+[ RUN      ] SettingsManagerTest.SaveAndLoadSettings
+[       OK ] SettingsManagerTest.SaveAndLoadSettings (0 ms)
+[ RUN      ] SettingsManagerTest.VideoSettings
+[       OK ] SettingsManagerTest.VideoSettings (0 ms)
+[ RUN      ] SettingsManagerTest.ControlSettings
+[       OK ] SettingsManagerTest.ControlSettings (0 ms)
+[ RUN      ] SettingsManagerTest.SaveAndLoadAllSettings
+[       OK ] SettingsManagerTest.SaveAndLoadAllSettings (0 ms)
+[----------] 5 tests from SettingsManagerTest (0 ms total)
+
+[----------] 1 test from EGLContextTest
+[ RUN      ] EGLContextTest.InitializeContext
+[       OK ] EGLContextTest.InitializeContext (0 ms)
+[----------] 1 test from EGLContextTest (0 ms total)
+
+[----------] 1 test from RendererTest
+[ RUN      ] RendererTest.InitializeRenderer
+[       OK ] RendererTest.InitializeRenderer (0 ms)
+[----------] 1 test from RendererTest (0 ms total)
+
+[----------] 1 test from ShaderManagerTest
+[ RUN      ] ShaderManagerTest.CompileVertexShader
+[       OK ] ShaderManagerTest.CompileVertexShader (0 ms)
+[----------] 1 test from ShaderManagerTest (0 ms total)
+
+[----------] 1 test from TextureManagerTest
+[ RUN      ] TextureManagerTest.UploadSpriteToTexture
+[       OK ] TextureManagerTest.UploadSpriteToTexture (0 ms)
+[----------] 1 test from TextureManagerTest (0 ms total)
+
+[----------] 2 tests from SpriteRendererTest
+[ RUN      ] SpriteRendererTest.RenderSingleSprite
+[       OK ] SpriteRendererTest.RenderSingleSprite (0 ms)
+[ RUN      ] SpriteRendererTest.BatchMultipleSprites
+[       OK ] SpriteRendererTest.BatchMultipleSprites (0 ms)
+[----------] 2 tests from SpriteRendererTest (0 ms total)
+
+[----------] 6 tests from WorldRendererTest
+[ RUN      ] WorldRendererTest.RenderPlayerInWorld
+[       OK ] WorldRendererTest.RenderPlayerInWorld (0 ms)
+[ RUN      ] WorldRendererTest.RenderMapTiles
+[       OK ] WorldRendererTest.RenderMapTiles (0 ms)
+[ RUN      ] WorldRendererTest.ViewportCulling
+[       OK ] WorldRendererTest.ViewportCulling (0 ms)
+[ RUN      ] WorldRendererTest.UseActualSprites
+[       OK ] WorldRendererTest.UseActualSprites (0 ms)
+[ RUN      ] WorldRendererTest.RenderHUD
+[       OK ] WorldRendererTest.RenderHUD (0 ms)
+[ RUN      ] WorldRendererTest.RenderMonsters
+[       OK ] WorldRendererTest.RenderMonsters (0 ms)
+[----------] 6 tests from WorldRendererTest (0 ms total)
+
+[----------] 1 test from CameraTest
+[ RUN      ] CameraTest.FollowPlayer
+[       OK ] CameraTest.FollowPlayer (0 ms)
+[----------] 1 test from CameraTest (0 ms total)
+
+[----------] 3 tests from GamepadManagerTest
+[ RUN      ] GamepadManagerTest.DetectController
+[       OK ] GamepadManagerTest.DetectController (0 ms)
+[ RUN      ] GamepadManagerTest.NoControllerConnected
+[       OK ] GamepadManagerTest.NoControllerConnected (0 ms)
+[ RUN      ] GamepadManagerTest.IgnoreNonGamepadDevices
+[       OK ] GamepadManagerTest.IgnoreNonGamepadDevices (0 ms)
+[----------] 3 tests from GamepadManagerTest (0 ms total)
+
+[----------] 2 tests from InputManagerTest
+[ RUN      ] InputManagerTest.ReadButtonStates
+
+GMOCK WARNING:
+Uninteresting mock function call - returning default value.
+    Function call: getAxis(0)
+          Returns: 0
+NOTE: You can safely ignore the above warning unless this call should not happen.  Do not suppress it by blindly adding an EXPECT_CALL() if you don't mean to enforce the call.  See https://github.com/google/googletest/blob/main/docs/gmock_cook_book.md#knowing-when-to-expect-useoncall for details.
+
+GMOCK WARNING:
+Uninteresting mock function call - returning default value.
+    Function call: getAxis(1)
+          Returns: 0
+NOTE: You can safely ignore the above warning unless this call should not happen.  Do not suppress it by blindly adding an EXPECT_CALL() if you don't mean to enforce the call.  See https://github.com/google/googletest/blob/main/docs/gmock_cook_book.md#knowing-when-to-expect-useoncall for details.
+[       OK ] InputManagerTest.ReadButtonStates (0 ms)
+[ RUN      ] InputManagerTest.ReadAxisValues
+
+GMOCK WARNING:
+Uninteresting mock function call - returning default value.
+    Function call: getButton(0)
+          Returns: false
+NOTE: You can safely ignore the above warning unless this call should not happen.  Do not suppress it by blindly adding an EXPECT_CALL() if you don't mean to enforce the call.  See https://github.com/google/googletest/blob/main/docs/gmock_cook_book.md#knowing-when-to-expect-useoncall for details.
+
+GMOCK WARNING:
+Uninteresting mock function call - returning default value.
+    Function call: getButton(1)
+          Returns: false
+NOTE: You can safely ignore the above warning unless this call should not happen.  Do not suppress it by blindly adding an EXPECT_CALL() if you don't mean to enforce the call.  See https://github.com/google/googletest/blob/main/docs/gmock_cook_book.md#knowing-when-to-expect-useoncall for details.
+[       OK ] InputManagerTest.ReadAxisValues (0 ms)
+[----------] 2 tests from InputManagerTest (0 ms total)
+
+[----------] 1 test from ControlMapperTest
+[ RUN      ] ControlMapperTest.DirectMovement
+[       OK ] ControlMapperTest.DirectMovement (0 ms)
+[----------] 1 test from ControlMapperTest (0 ms total)
+
+[----------] 6 tests from TouchInputTest
+[ RUN      ] TouchInputTest.ProcessSingleTouch
+[       OK ] TouchInputTest.ProcessSingleTouch (0 ms)
+[ RUN      ] TouchInputTest.ProcessTouchMove
+[       OK ] TouchInputTest.ProcessTouchMove (0 ms)
+[ RUN      ] TouchInputTest.ProcessTouchUp
+[       OK ] TouchInputTest.ProcessTouchUp (0 ms)
+[ RUN      ] TouchInputTest.ConvertToGameInput
+[       OK ] TouchInputTest.ConvertToGameInput (0 ms)
+[ RUN      ] TouchInputTest.DetectTapGesture
+[       OK ] TouchInputTest.DetectTapGesture (0 ms)
+[ RUN      ] TouchInputTest.VirtualJoystickMovement
+[       OK ] TouchInputTest.VirtualJoystickMovement (0 ms)
+[----------] 6 tests from TouchInputTest (0 ms total)
+
+[----------] 4 tests from AndroidInputTest
+[ RUN      ] AndroidInputTest.CreateAndroidInput
+[       OK ] AndroidInputTest.CreateAndroidInput (0 ms)
+[ RUN      ] AndroidInputTest.AddGamepadDevice
+[       OK ] AndroidInputTest.AddGamepadDevice (0 ms)
+[ RUN      ] AndroidInputTest.AddNonGamepadDevices
+[       OK ] AndroidInputTest.AddNonGamepadDevices (0 ms)
+[ RUN      ] AndroidInputTest.RemoveDevice
+[       OK ] AndroidInputTest.RemoveDevice (0 ms)
+[----------] 4 tests from AndroidInputTest (0 ms total)
+
+[----------] 12 tests from AndroidGamepadTest
+[ RUN      ] AndroidGamepadTest.HandleButtonPress
