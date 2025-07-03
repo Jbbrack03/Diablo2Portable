@@ -91,6 +91,7 @@ set(TEST_SOURCES
     ui/test_pause_screen.cpp
     ui/test_ui_renderer.cpp
     ui/test_ui_layout.cpp
+    ui/tutorial_system_test.cpp
     save/test_save_manager.cpp
     android/test_android_structure.cpp
     android/test_jni_bridge.cpp
