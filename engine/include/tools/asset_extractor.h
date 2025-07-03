@@ -7,6 +7,9 @@
 
 namespace d2 {
 
+// Forward declaration
+class ExtractionMonitor;
+
 /**
  * AssetExtractor - Extracts game assets from Diablo II MPQ files
  * 
@@ -40,9 +43,18 @@ public:
         progressCallback = callback;
     }
     
+    /**
+     * Set extraction monitor for detailed progress tracking
+     * @param monitor Pointer to extraction monitor (can be nullptr)
+     */
+    void setMonitor(ExtractionMonitor* monitor) {
+        extractionMonitor = monitor;
+    }
+    
 private:
     size_t extractedCount = 0;
     std::function<void(float, const std::string&)> progressCallback;
+    ExtractionMonitor* extractionMonitor = nullptr;
     
     // Helper methods
     bool validateD2Path(const std::filesystem::path& path) const;

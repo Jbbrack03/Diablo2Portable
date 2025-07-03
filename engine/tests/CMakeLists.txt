@@ -111,6 +111,7 @@ set(TEST_SOURCES
     tools/texture_atlas_test.cpp
     tools/asset_manifest_test.cpp
     tools/apk_packager_test.cpp
+    tools/extraction_monitor_test.cpp
     device/test_device_compatibility.cpp
     device/test_device_tester.cpp
     release/test_release_builder.cpp
