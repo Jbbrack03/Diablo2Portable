@@ -45,3 +45,24 @@ TEST_F(AssetCacheTest, CreateCacheWithMemoryLimit) {
     EXPECT_EQ(cache.getCacheHits(), 0);
     EXPECT_EQ(cache.getCacheMisses(), 0);
 }
+
+TEST_F(AssetCacheTest, LoadAssetIntoCache) {
+    AssetCache cache(1024 * 1024); // 1MB limit
+    
+    // Load sprite1.dc6 (100KB)
+    fs::path assetPath = testPath / "sprite1.dc6";
+    auto data = cache.loadAsset(assetPath.string());
+    
+    EXPECT_TRUE(data != nullptr);
+    EXPECT_EQ(data->size(), 1024 * 100); // 100KB
+    EXPECT_EQ(cache.getCurrentMemory(), 1024 * 100);
+    EXPECT_EQ(cache.getCacheMisses(), 1); // First load is a miss
+    
+    // Load same asset again - should be a cache hit
+    auto data2 = cache.loadAsset(assetPath.string());
+    EXPECT_TRUE(data2 != nullptr);
+    EXPECT_EQ(data2->size(), 1024 * 100);
+    EXPECT_EQ(cache.getCurrentMemory(), 1024 * 100); // Still only 100KB
+    EXPECT_EQ(cache.getCacheHits(), 1);
+    EXPECT_EQ(cache.getCacheMisses(), 1);
+}

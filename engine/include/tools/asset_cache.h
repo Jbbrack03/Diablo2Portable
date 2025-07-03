@@ -49,11 +49,27 @@ public:
      */
     size_t getCacheMisses() const { return cacheMisses; }
     
+    /**
+     * Load asset from file system
+     * @param assetPath Path to the asset file
+     * @return Shared pointer to asset data, nullptr if loading fails
+     */
+    std::shared_ptr<std::vector<uint8_t>> loadAsset(const std::string& assetPath);
+    
 private:
+    struct CacheEntry {
+        std::shared_ptr<std::vector<uint8_t>> data;
+        std::chrono::steady_clock::time_point lastAccess;
+    };
+    
     size_t maxMemory;
     size_t currentMemory = 0;
     size_t cacheHits = 0;
     size_t cacheMisses = 0;
+    
+    std::unordered_map<std::string, CacheEntry> cache;
+    std::list<std::string> lruList; // Most recently used at front
+    mutable std::mutex cacheMutex;
 };
 
 } // namespace d2
