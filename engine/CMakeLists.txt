@@ -93,6 +93,7 @@ add_library(d2engine STATIC
     src/tools/differential_extractor.cpp
     src/tools/asset_cache.cpp
     src/tools/multi_format_processor.cpp
+    src/tools/asset_verifier.cpp
     src/tools/asset_optimizer.cpp
     src/tools/texture_atlas_generator.cpp
     src/tools/asset_manifest.cpp
