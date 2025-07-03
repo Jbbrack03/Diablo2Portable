@@ -101,4 +101,85 @@ Palette MultiFormatProcessor::extractPalette(const std::string& palettePath) {
     return palette;
 }
 
+AudioData MultiFormatProcessor::extractAudio(const std::string& audioPath) {
+    AudioData audioData;
+    
+    if (!fs::exists(audioPath)) {
+        return audioData; // Return invalid audio data
+    }
+    
+    std::ifstream file(audioPath, std::ios::binary);
+    if (!file) {
+        return audioData;
+    }
+    
+    // Read RIFF header
+    char riff[4];
+    file.read(riff, 4);
+    if (std::string(riff, 4) != "RIFF") {
+        return audioData;
+    }
+    
+    // Skip file size
+    file.seekg(4, std::ios::cur);
+    
+    // Read WAVE header
+    char wave[4];
+    file.read(wave, 4);
+    if (std::string(wave, 4) != "WAVE") {
+        return audioData;
+    }
+    
+    // Read fmt chunk
+    char fmt[4];
+    file.read(fmt, 4);
+    if (std::string(fmt, 4) != "fmt ") {
+        return audioData;
+    }
+    
+    // Read fmt chunk size
+    uint32_t fmtSize;
+    file.read(reinterpret_cast<char*>(&fmtSize), 4);
+    
+    // Read audio format
+    uint16_t audioFormat;
+    file.read(reinterpret_cast<char*>(&audioFormat), 2);
+    
+    // Read channels
+    uint16_t channels;
+    file.read(reinterpret_cast<char*>(&channels), 2);
+    
+    // Read sample rate
+    uint32_t sampleRate;
+    file.read(reinterpret_cast<char*>(&sampleRate), 4);
+    
+    // Skip byte rate and block align
+    file.seekg(6, std::ios::cur);
+    
+    // Read bits per sample
+    uint16_t bitsPerSample;
+    file.read(reinterpret_cast<char*>(&bitsPerSample), 2);
+    
+    // Set audio data properties
+    audioData.isValid = true;
+    audioData.channels = channels;
+    audioData.sampleRate = sampleRate;
+    
+    // Determine format based on bits per sample
+    if (bitsPerSample == 16) {
+        audioData.format = AudioFormat::PCM_16;
+    } else if (bitsPerSample == 8) {
+        audioData.format = AudioFormat::PCM_8;
+    } else if (bitsPerSample == 24) {
+        audioData.format = AudioFormat::PCM_24;
+    } else if (bitsPerSample == 32) {
+        audioData.format = AudioFormat::PCM_32;
+    }
+    
+    // For now, we don't read the actual audio samples
+    // In a real implementation, we would read the data chunk
+    
+    return audioData;
+}
+
 } // namespace d2

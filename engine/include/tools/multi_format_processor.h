@@ -36,6 +36,29 @@ struct Palette {
 };
 
 /**
+ * Audio format types
+ */
+enum class AudioFormat {
+    UNKNOWN,
+    PCM_8,
+    PCM_16,
+    PCM_24,
+    PCM_32,
+    FLOAT_32
+};
+
+/**
+ * Audio data extracted from sound files
+ */
+struct AudioData {
+    bool isValid = false;
+    AudioFormat format = AudioFormat::UNKNOWN;
+    int channels = 0;
+    int sampleRate = 0;
+    std::vector<uint8_t> samples;
+};
+
+/**
  * MultiFormatProcessor - Converts DC6 sprites to mobile-optimized formats
  * 
  * Features:
@@ -65,6 +88,13 @@ public:
      * @return Extracted palette data
      */
     Palette extractPalette(const std::string& palettePath);
+    
+    /**
+     * Extract audio data from a sound file
+     * @param audioPath Path to the audio file
+     * @return Extracted audio data
+     */
+    AudioData extractAudio(const std::string& audioPath);
 };
 
 } // namespace d2

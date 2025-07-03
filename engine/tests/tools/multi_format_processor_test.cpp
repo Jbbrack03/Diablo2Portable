@@ -90,6 +90,45 @@ protected:
         }
     }
     
+    void createTestWAVFile(const fs::path& path) {
+        std::ofstream file(path, std::ios::binary);
+        
+        // RIFF header
+        file.write("RIFF", 4);
+        uint32_t fileSize = 36 + 100; // Header + small data
+        file.write(reinterpret_cast<const char*>(&fileSize), 4);
+        file.write("WAVE", 4);
+        
+        // fmt chunk
+        file.write("fmt ", 4);
+        uint32_t fmtSize = 16;
+        uint16_t audioFormat = 1; // PCM
+        uint16_t channels = 2; // Stereo
+        uint32_t sampleRate = 44100;
+        uint32_t byteRate = sampleRate * channels * 2; // 16-bit
+        uint16_t blockAlign = channels * 2;
+        uint16_t bitsPerSample = 16;
+        
+        file.write(reinterpret_cast<const char*>(&fmtSize), 4);
+        file.write(reinterpret_cast<const char*>(&audioFormat), 2);
+        file.write(reinterpret_cast<const char*>(&channels), 2);
+        file.write(reinterpret_cast<const char*>(&sampleRate), 4);
+        file.write(reinterpret_cast<const char*>(&byteRate), 4);
+        file.write(reinterpret_cast<const char*>(&blockAlign), 2);
+        file.write(reinterpret_cast<const char*>(&bitsPerSample), 2);
+        
+        // data chunk
+        file.write("data", 4);
+        uint32_t dataSize = 100;
+        file.write(reinterpret_cast<const char*>(&dataSize), 4);
+        
+        // Write some sample data
+        for (int i = 0; i < 50; ++i) {
+            int16_t sample = static_cast<int16_t>(i * 100);
+            file.write(reinterpret_cast<const char*>(&sample), 2);
+        }
+    }
+    
     fs::path testPath;
     fs::path outputPath;
 };
@@ -121,4 +160,19 @@ TEST_F(MultiFormatProcessorTest, ExtractPaletteFromMPQ) {
     EXPECT_EQ(palette.colorCount, 256);
     EXPECT_TRUE(palette.hasTransparency);
     EXPECT_EQ(palette.colors[0].alpha, 0); // First color is transparent
+}
+
+TEST_F(MultiFormatProcessorTest, ProcessAudioFiles) {
+    MultiFormatProcessor processor;
+    
+    // Create a test WAV file
+    fs::path audioPath = testPath / "test_audio.wav";
+    createTestWAVFile(audioPath);
+    
+    auto audioData = processor.extractAudio(audioPath.string());
+    
+    EXPECT_TRUE(audioData.isValid);
+    EXPECT_EQ(audioData.format, AudioFormat::PCM_16);
+    EXPECT_EQ(audioData.channels, 2); // Stereo
+    EXPECT_EQ(audioData.sampleRate, 44100);
 }
