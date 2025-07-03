@@ -1,6 +1,8 @@
 #pragma once
 
 #include <memory>
+#include <vector>
+#include <string>
 
 namespace d2 {
 
@@ -11,6 +13,9 @@ public:
     
     bool showFileBrowser();
     bool canSelectMPQFiles();
+    
+    bool validateMPQFiles(const std::vector<std::string>& files);
+    bool importFiles(const std::vector<std::string>& files);
     
 private:
     class Impl;

@@ -33,3 +33,23 @@ TEST_F(OnboardingWizardTest, ShowFileBrowser) {
     EXPECT_TRUE(wizard.showFileBrowser());
     EXPECT_TRUE(wizard.canSelectMPQFiles());
 }
+
+// STEP 2: Write exactly ONE failing test for MPQ validation and import
+TEST_F(OnboardingWizardTest, ValidateAndImportMPQFiles) {
+    OnboardingWizard wizard;
+    
+    // Create mock MPQ files
+    fs::path mpqDir = testDir / "mpqs";
+    fs::create_directories(mpqDir);
+    
+    std::ofstream(mpqDir / "d2data.mpq").close();
+    std::ofstream(mpqDir / "d2exp.mpq").close();
+    
+    std::vector<std::string> files = {
+        (mpqDir / "d2data.mpq").string(),
+        (mpqDir / "d2exp.mpq").string()
+    };
+    
+    EXPECT_TRUE(wizard.validateMPQFiles(files));
+    EXPECT_TRUE(wizard.importFiles(files));
+}
