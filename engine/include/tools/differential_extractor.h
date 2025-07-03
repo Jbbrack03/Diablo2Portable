@@ -93,6 +93,15 @@ public:
      */
     FileChanges detectChanges(const std::string& d2Path, 
                              const AssetManifest& baseManifest);
+    
+    /**
+     * Detect changes in extracted assets compared to manifest
+     * @param extractedPath Path to extracted assets
+     * @param baseManifest Previous extraction manifest
+     * @return File changes information
+     */
+    FileChanges detectChangesInExtractedAssets(const std::string& extractedPath,
+                                              const AssetManifest& baseManifest);
 
 private:
     // Helper methods will be added as needed
