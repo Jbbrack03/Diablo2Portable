@@ -1,6 +1,7 @@
 package com.diablo2portable;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.AsyncTask;
 import android.os.Handler;
@@ -11,6 +12,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 public class OnboardingActivity extends Activity {
+    private static final int REQUEST_SELECT_MPQ = 1;
     private String selectedSource;
     
     @Override
@@ -33,9 +35,40 @@ public class OnboardingActivity extends Activity {
         Button localFiles = findViewById(R.id.option_local_files);
         if (localFiles != null) {
             localFiles.setOnClickListener(v -> {
-                setSelectedSource("/storage/emulated/0/d2files");
-                startAssetExtraction();
+                // Open file browser to select MPQ files
+                Intent intent = new Intent(this, FileBrowserActivity.class);
+                intent.putExtra("filter_extension", ".mpq");
+                startActivityForResult(intent, REQUEST_SELECT_MPQ);
             });
+        }
+        
+        Button usbStorage = findViewById(R.id.option_usb_storage);
+        if (usbStorage != null) {
+            usbStorage.setOnClickListener(v -> {
+                Toast.makeText(this, "USB storage not yet implemented", Toast.LENGTH_SHORT).show();
+            });
+        }
+        
+        Button networkLocation = findViewById(R.id.option_network_location);
+        if (networkLocation != null) {
+            networkLocation.setOnClickListener(v -> {
+                Toast.makeText(this, "Network location not yet implemented", Toast.LENGTH_SHORT).show();
+            });
+        }
+    }
+    
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        
+        if (requestCode == REQUEST_SELECT_MPQ && resultCode == RESULT_OK) {
+            String selectedFile = data.getStringExtra("selected_file");
+            if (selectedFile != null) {
+                // Get directory containing the MPQ file
+                java.io.File file = new java.io.File(selectedFile);
+                setSelectedSource(file.getParent());
+                startAssetExtraction();
+            }
         }
     }
     

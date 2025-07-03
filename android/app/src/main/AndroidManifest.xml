@@ -32,6 +32,13 @@
             android:theme="@style/Theme.AppCompat.NoActionBar" />
             
         <activity
+            android:name=".FileBrowserActivity"
+            android:configChanges="orientation|keyboardHidden|screenSize"
+            android:exported="false"
+            android:screenOrientation="landscape"
+            android:theme="@style/Theme.AppCompat.NoActionBar" />
+            
+        <activity
             android:name=".MainActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:exported="true"
