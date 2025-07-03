@@ -20,6 +20,14 @@ struct ProgressUpdate {
 };
 
 /**
+ * Time estimate information
+ */
+struct TimeEstimate {
+    double totalSeconds = 0.0;       // Estimated seconds remaining
+    bool isReliable = false;         // Whether estimate is reliable
+};
+
+/**
  * ExtractionMonitor - Provides real-time monitoring of asset extraction
  * 
  * Features:
@@ -60,8 +68,53 @@ public:
         }
     }
     
+    /**
+     * Update progress with percentage and current file
+     * @param percentage Progress from 0.0 to 1.0
+     * @param currentFile Current file being processed
+     * @param elapsedMs Elapsed time in milliseconds
+     */
+    void updateProgress(float percentage, const std::string& currentFile, int64_t elapsedMs) {
+        ProgressUpdate update;
+        update.percentage = percentage;
+        update.currentFile = currentFile;
+        update.elapsedTime = std::chrono::milliseconds(elapsedMs);
+        
+        // Track start time if this is first update
+        if (startTime == std::chrono::steady_clock::time_point{}) {
+            startTime = std::chrono::steady_clock::now();
+        }
+        
+        lastUpdate = update;
+        updateProgress(update);
+    }
+    
+    /**
+     * Get estimated time remaining
+     * @return Time estimate information
+     */
+    TimeEstimate getTimeRemaining() const {
+        TimeEstimate estimate;
+        
+        if (lastUpdate.percentage > 0.0f && lastUpdate.percentage < 1.0f) {
+            // Calculate time per percentage point
+            double secondsElapsed = lastUpdate.elapsedTime.count() / 1000.0;
+            double percentageComplete = lastUpdate.percentage;
+            double percentageRemaining = 1.0f - percentageComplete;
+            
+            // Estimate time remaining
+            double timePerPercent = secondsElapsed / percentageComplete;
+            estimate.totalSeconds = timePerPercent * percentageRemaining;
+            estimate.isReliable = percentageComplete > 0.1f; // Need at least 10% for reliable estimate
+        }
+        
+        return estimate;
+    }
+    
 private:
     std::function<void(const ProgressUpdate&)> progressCallback;
+    std::chrono::steady_clock::time_point startTime;
+    ProgressUpdate lastUpdate;
 };
 
 } // namespace d2

@@ -57,3 +57,15 @@ TEST_F(ExtractionMonitorTest, TrackProgressWithCallback) {
     EXPECT_FLOAT_EQ(updates.back().percentage, 1.0f); // Completed
     EXPECT_FALSE(updates.back().currentFile.empty());
 }
+
+TEST_F(ExtractionMonitorTest, EstimateTimeRemaining) {
+    ExtractionMonitor monitor;
+    
+    // Simulate 50% completion after 30 seconds
+    monitor.updateProgress(0.5f, "file.dc6", 30000);
+    
+    auto estimate = monitor.getTimeRemaining();
+    
+    EXPECT_NEAR(estimate.totalSeconds, 30.0, 5.0); // ~30 seconds remaining
+    EXPECT_TRUE(estimate.isReliable);
+}
