@@ -35,6 +35,10 @@ public:
     // Configuration
     void setImportDirectory(const std::string& path);
     
+    // Path memory
+    void setLastUsedPath(const std::string& path);
+    std::string getLastUsedPath() const;
+    
 private:
     class Impl;
     std::unique_ptr<Impl> pImpl;

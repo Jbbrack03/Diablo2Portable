@@ -15,6 +15,7 @@ public:
     ProgressCallback progressCallback;
     std::vector<std::string> importedFiles;
     fs::path importDirectory = "vendor/mpq"; // Default location for imported files
+    std::string lastUsedPath; // Store last used path
 };
 
 OnboardingWizard::OnboardingWizard() : pImpl(std::make_unique<Impl>()) {}
@@ -154,6 +155,14 @@ FileCheckResult OnboardingWizard::checkRequiredFiles() const {
 
 void OnboardingWizard::setImportDirectory(const std::string& path) {
     pImpl->importDirectory = path;
+}
+
+void OnboardingWizard::setLastUsedPath(const std::string& path) {
+    pImpl->lastUsedPath = path;
+}
+
+std::string OnboardingWizard::getLastUsedPath() const {
+    return pImpl->lastUsedPath;
 }
 
 } // namespace d2

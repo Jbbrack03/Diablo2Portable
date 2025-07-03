@@ -159,3 +159,14 @@ TEST_F(OnboardingWizardTest, RecoverFromPartialImport) {
     EXPECT_FALSE(finalResult.allFilesPresent); // Still missing some files
     EXPECT_GT(finalResult.missingFiles.size(), 0);
 }
+
+// STEP 6: Write exactly ONE failing test for remembering last used path
+TEST_F(OnboardingWizardTest, RememberLastUsedPath) {
+    OnboardingWizard wizard;
+    
+    // Set a path
+    wizard.setLastUsedPath("/storage/emulated/0/Diablo2");
+    
+    // Should be able to retrieve it
+    EXPECT_EQ(wizard.getLastUsedPath(), "/storage/emulated/0/Diablo2");
+}
