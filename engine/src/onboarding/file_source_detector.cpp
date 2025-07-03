@@ -157,4 +157,32 @@ ISOValidation FileSourceDetector::validateISOFile(const std::string& isoPath) {
     return result;
 }
 
+std::vector<std::string> FileSourceDetector::getAndroidSearchPaths() const {
+    std::vector<std::string> paths;
+    
+    // Common Android storage locations
+    paths.push_back("/storage/emulated/0");
+    paths.push_back("/storage/emulated/0/Download");
+    paths.push_back("/storage/emulated/0/Documents");
+    paths.push_back("/sdcard");
+    paths.push_back("/sdcard/Download");
+    
+    // External SD card paths
+    paths.push_back("/storage/sdcard1");
+    paths.push_back("/storage/external_SD");
+    
+    // App-specific external storage (no permissions needed)
+    paths.push_back("/storage/emulated/0/Android/data/com.diablo2portable/files");
+    
+    // Filter out non-existent paths
+    std::vector<std::string> existingPaths;
+    for (const auto& path : paths) {
+        if (fs::exists(path)) {
+            existingPaths.push_back(path);
+        }
+    }
+    
+    return existingPaths.empty() ? paths : existingPaths;
+}
+
 } // namespace d2

@@ -3,6 +3,7 @@
 #include <string>
 #include <filesystem>
 #include <fstream>
+#include <algorithm>
 #include "onboarding/file_source_detector.h"
 
 namespace fs = std::filesystem;
@@ -85,4 +86,44 @@ TEST_F(FileSourceDetectorTest, ValidateISOFiles) {
     EXPECT_TRUE(validation.isValid);
     EXPECT_TRUE(validation.containsD2Data);
     EXPECT_FALSE(validation.requiresMount);
+}
+
+// STEP 4: Write exactly ONE failing test for Android path support
+TEST_F(FileSourceDetectorTest, DetectAndroidStoragePaths) {
+    FileSourceDetector detector;
+    
+    // Create mock Android storage structure
+    fs::path androidInternal = testDir / "storage" / "emulated" / "0";
+    fs::path androidExternal = testDir / "storage" / "sdcard1";
+    fs::path androidDownloads = androidInternal / "Download";
+    
+    fs::create_directories(androidInternal);
+    fs::create_directories(androidExternal);
+    fs::create_directories(androidDownloads);
+    
+    // Add D2 files in Downloads
+    fs::path d2DownloadDir = androidDownloads / "Diablo2";
+    fs::create_directories(d2DownloadDir);
+    
+    std::ofstream(d2DownloadDir / "d2data.mpq").close();
+    std::ofstream(d2DownloadDir / "d2exp.mpq").close();
+    std::ofstream(d2DownloadDir / "d2sfx.mpq").close();
+    
+    auto androidPaths = detector.getAndroidSearchPaths();
+    
+    // Should include standard Android paths
+    EXPECT_TRUE(std::find(androidPaths.begin(), androidPaths.end(), 
+                         "/storage/emulated/0") != androidPaths.end());
+    EXPECT_TRUE(std::find(androidPaths.begin(), androidPaths.end(), 
+                         "/storage/emulated/0/Download") != androidPaths.end());
+    
+    // Now scan with Android paths included
+    std::vector<std::string> searchPaths;
+    searchPaths.push_back(androidInternal.string());
+    searchPaths.push_back(androidDownloads.string());
+    
+    auto found = detector.scanForInstallations(searchPaths);
+    
+    EXPECT_GT(found.size(), 0);
+    EXPECT_TRUE(found[0].hasRequiredMPQs());
 }

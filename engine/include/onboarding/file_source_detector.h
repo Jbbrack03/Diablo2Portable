@@ -64,6 +64,9 @@ public:
     std::vector<D2Installation> scanForInstallations(const std::vector<std::string>& searchPaths);
     std::vector<CDDrive> detectCDDrives();
     ISOValidation validateISOFile(const std::string& isoPath);
+    
+    // Platform-specific path helpers
+    std::vector<std::string> getAndroidSearchPaths() const;
 };
 
 } // namespace d2
