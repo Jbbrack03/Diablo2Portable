@@ -126,4 +126,44 @@ jobjectArray Java_com_diablo2portable_OnboardingManager_detectUSBStorage(
     return &deviceStrings;
 }
 
+// Connect to network location
+jboolean Java_com_diablo2portable_OnboardingManager_connectToNetwork(
+    JNIEnv* env, jobject obj,
+    jstring protocol, jstring host, jstring share, 
+    jstring username, jstring password) {
+    
+    const char* protocolStr = env->GetStringUTFChars(protocol, nullptr);
+    const char* hostStr = env->GetStringUTFChars(host, nullptr);
+    const char* shareStr = env->GetStringUTFChars(share, nullptr);
+    const char* usernameStr = env->GetStringUTFChars(username, nullptr);
+    const char* passwordStr = env->GetStringUTFChars(password, nullptr);
+    
+    d2::NetworkLocation location;
+    
+    // Set protocol type
+    if (std::string(protocolStr) == "SMB") {
+        location.type = d2::NetworkType::SMB;
+    } else if (std::string(protocolStr) == "FTP") {
+        location.type = d2::NetworkType::FTP;
+    } else if (std::string(protocolStr) == "HTTP") {
+        location.type = d2::NetworkType::HTTP;
+    }
+    
+    location.host = hostStr;
+    location.share = shareStr;
+    location.username = usernameStr;
+    location.password = passwordStr;
+    
+    d2::FileSourceDetector detector;
+    auto result = detector.connectToNetworkLocation(location);
+    
+    env->ReleaseStringUTFChars(protocol, protocolStr);
+    env->ReleaseStringUTFChars(host, hostStr);
+    env->ReleaseStringUTFChars(share, shareStr);
+    env->ReleaseStringUTFChars(username, usernameStr);
+    env->ReleaseStringUTFChars(password, passwordStr);
+    
+    return result.connected;
+}
+
 } // extern "C"

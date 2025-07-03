@@ -12,6 +12,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.LinearLayout;
 import android.widget.ImageView;
+import android.widget.Spinner;
+import android.widget.EditText;
 
 public class OnboardingActivity extends Activity {
     private static final int REQUEST_SELECT_MPQ = 1;
@@ -55,7 +57,8 @@ public class OnboardingActivity extends Activity {
         Button networkLocation = findViewById(R.id.option_network_location);
         if (networkLocation != null) {
             networkLocation.setOnClickListener(v -> {
-                Toast.makeText(this, "Network location not yet implemented", Toast.LENGTH_SHORT).show();
+                // Show network location screen
+                showNetworkLocation();
             });
         }
     }
@@ -290,6 +293,82 @@ public class OnboardingActivity extends Activity {
                 Toast.makeText(this, 
                     "Please ensure you have all Diablo II MPQ files in the selected directory", 
                     Toast.LENGTH_LONG).show();
+            });
+        }
+    }
+    
+    private void showNetworkLocation() {
+        // Show network location configuration screen
+        setContentView(R.layout.fragment_network_location);
+        
+        Spinner protocolSpinner = findViewById(R.id.protocol_spinner);
+        EditText hostEdit = findViewById(R.id.host_edit);
+        EditText shareEdit = findViewById(R.id.share_edit);
+        EditText usernameEdit = findViewById(R.id.username_edit);
+        EditText passwordEdit = findViewById(R.id.password_edit);
+        Button connectButton = findViewById(R.id.connect_button);
+        ProgressBar connectionProgress = findViewById(R.id.connection_progress);
+        TextView connectionStatus = findViewById(R.id.connection_status);
+        
+        if (connectButton != null) {
+            connectButton.setOnClickListener(v -> {
+                // Get network location details
+                String host = hostEdit != null ? hostEdit.getText().toString() : "";
+                String share = shareEdit != null ? shareEdit.getText().toString() : "";
+                String username = usernameEdit != null ? usernameEdit.getText().toString() : "";
+                String password = passwordEdit != null ? passwordEdit.getText().toString() : "";
+                int protocolIndex = protocolSpinner != null ? protocolSpinner.getSelectedItemPosition() : 0;
+                
+                if (host.isEmpty() || share.isEmpty()) {
+                    Toast.makeText(this, "Please enter host and share path", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                
+                // Show progress
+                if (connectionProgress != null) connectionProgress.setVisibility(View.VISIBLE);
+                if (connectionStatus != null) {
+                    connectionStatus.setVisibility(View.VISIBLE);
+                    connectionStatus.setText("Connecting...");
+                }
+                if (connectButton != null) connectButton.setEnabled(false);
+                
+                // Try to connect in background
+                new AsyncTask<Void, Void, Boolean>() {
+                    @Override
+                    protected Boolean doInBackground(Void... params) {
+                        // Convert protocol index to type
+                        String protocolType = protocolIndex == 0 ? "SMB" : 
+                                            protocolIndex == 1 ? "FTP" : "HTTP";
+                        
+                        // Try to connect
+                        return OnboardingManager.connectToNetwork(
+                            protocolType, host, share, username, password
+                        );
+                    }
+                    
+                    @Override
+                    protected void onPostExecute(Boolean success) {
+                        if (connectionProgress != null) connectionProgress.setVisibility(View.GONE);
+                        if (connectButton != null) connectButton.setEnabled(true);
+                        
+                        if (success) {
+                            if (connectionStatus != null) {
+                                connectionStatus.setText("Connected! Scanning for Diablo II files...");
+                            }
+                            
+                            // Scan for D2 files
+                            String networkPath = "\\\\" + host + "\\" + share;
+                            setSelectedSource(networkPath);
+                            startAssetExtraction();
+                        } else {
+                            if (connectionStatus != null) {
+                                connectionStatus.setText("Connection failed. Please check your settings.");
+                            }
+                            Toast.makeText(OnboardingActivity.this, 
+                                "Failed to connect to network location", Toast.LENGTH_LONG).show();
+                        }
+                    }
+                }.execute();
             });
         }
     }

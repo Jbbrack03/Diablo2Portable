@@ -48,4 +48,16 @@ public class OnboardingManager {
      * @return Array of USB device info strings in format "path|label|totalSpace|freeSpace"
      */
     public static native String[] detectUSBStorage();
+    
+    /**
+     * Connect to network location
+     * @param protocol Protocol type (SMB, FTP, HTTP)
+     * @param host Host or IP address
+     * @param share Share name or path
+     * @param username Username (can be empty)
+     * @param password Password (can be empty)
+     * @return true if connection successful
+     */
+    public static native boolean connectToNetwork(String protocol, String host, 
+                                                  String share, String username, String password);
 }

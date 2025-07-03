@@ -5,4 +5,11 @@
     <string name="error_initialization">Failed to initialize game engine</string>
     <string name="error_assets">Failed to load game assets</string>
     <string name="requires_gamepad">This game requires a gamepad controller</string>
+    
+    <!-- Network protocols array -->
+    <string-array name="network_protocols">
+        <item>SMB/CIFS (Windows Share)</item>
+        <item>FTP</item>
+        <item>HTTP/WebDAV</item>
+    </string-array>
 </resources>
