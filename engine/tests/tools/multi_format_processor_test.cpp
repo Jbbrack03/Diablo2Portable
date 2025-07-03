@@ -75,6 +75,21 @@ protected:
         }
     }
     
+    void createTestPaletteFile(const fs::path& path) {
+        std::ofstream file(path, std::ios::binary);
+        
+        // D2 palette format: 256 colors * 3 bytes (RGB)
+        for (int i = 0; i < 256; ++i) {
+            uint8_t r = static_cast<uint8_t>(i);
+            uint8_t g = static_cast<uint8_t>(i);
+            uint8_t b = static_cast<uint8_t>(i);
+            
+            file.write(reinterpret_cast<const char*>(&r), 1);
+            file.write(reinterpret_cast<const char*>(&g), 1);
+            file.write(reinterpret_cast<const char*>(&b), 1);
+        }
+    }
+    
     fs::path testPath;
     fs::path outputPath;
 };
@@ -92,4 +107,18 @@ TEST_F(MultiFormatProcessorTest, ConvertDC6ToPNG) {
     EXPECT_GT(fs::file_size(pngFile), 0);
     EXPECT_EQ(result.format, "PNG");
     EXPECT_GT(result.compressionRatio, 0.0f);
+}
+
+TEST_F(MultiFormatProcessorTest, ExtractPaletteFromMPQ) {
+    MultiFormatProcessor processor;
+    
+    // Create a test palette file
+    fs::path palettePath = testPath / "test_palette.dat";
+    createTestPaletteFile(palettePath);
+    
+    auto palette = processor.extractPalette(palettePath.string());
+    
+    EXPECT_EQ(palette.colorCount, 256);
+    EXPECT_TRUE(palette.hasTransparency);
+    EXPECT_EQ(palette.colors[0].alpha, 0); // First color is transparent
 }

@@ -17,6 +17,25 @@ struct ConversionResult {
 };
 
 /**
+ * Color structure for palette entries
+ */
+struct Color {
+    uint8_t r = 0;
+    uint8_t g = 0;
+    uint8_t b = 0;
+    uint8_t alpha = 255;
+};
+
+/**
+ * Palette data extracted from D2 palette files
+ */
+struct Palette {
+    int colorCount = 0;
+    bool hasTransparency = false;
+    std::vector<Color> colors;
+};
+
+/**
  * MultiFormatProcessor - Converts DC6 sprites to mobile-optimized formats
  * 
  * Features:
@@ -39,6 +58,13 @@ public:
      */
     ConversionResult convertDC6ToPNG(const std::string& dc6Path, 
                                      const std::string& pngPath);
+    
+    /**
+     * Extract palette from a D2 palette file
+     * @param palettePath Path to the palette file
+     * @return Extracted palette data
+     */
+    Palette extractPalette(const std::string& palettePath);
 };
 
 } // namespace d2

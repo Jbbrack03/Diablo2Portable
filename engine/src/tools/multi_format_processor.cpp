@@ -67,4 +67,38 @@ ConversionResult MultiFormatProcessor::convertDC6ToPNG(const std::string& dc6Pat
     return result;
 }
 
+Palette MultiFormatProcessor::extractPalette(const std::string& palettePath) {
+    Palette palette;
+    
+    if (!fs::exists(palettePath)) {
+        return palette; // Return empty palette
+    }
+    
+    std::ifstream file(palettePath, std::ios::binary);
+    if (!file) {
+        return palette;
+    }
+    
+    // D2 palette format: 256 colors * 3 bytes (RGB)
+    palette.colorCount = 256;
+    palette.colors.resize(256);
+    
+    for (int i = 0; i < 256; ++i) {
+        uint8_t rgb[3];
+        file.read(reinterpret_cast<char*>(rgb), 3);
+        
+        palette.colors[i].r = rgb[0];
+        palette.colors[i].g = rgb[1];
+        palette.colors[i].b = rgb[2];
+        
+        // First color is typically transparent in D2
+        if (i == 0) {
+            palette.colors[i].alpha = 0;
+            palette.hasTransparency = true;
+        }
+    }
+    
+    return palette;
+}
+
 } // namespace d2
