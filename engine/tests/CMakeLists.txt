@@ -116,6 +116,7 @@ set(TEST_SOURCES
     release/test_release_builder.cpp
     onboarding/file_source_detector_test.cpp
     onboarding/onboarding_wizard_test.cpp
+    onboarding/onboarding_jni_test.cpp
     # Tests will be added as we implement features following TDD
     # core/game_state_test.cpp
     # audio/sound_system_test.cpp
