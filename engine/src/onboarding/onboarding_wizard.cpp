@@ -41,11 +41,26 @@ bool OnboardingWizard::validateMPQFiles(const std::vector<std::string>& files) {
 }
 
 bool OnboardingWizard::importFiles(const std::vector<std::string>& files) {
-    if (files.empty()) return false;
+    if (!validateMPQFiles(files)) return false;
     
-    // For now, just validate that the files exist
-    // In a real implementation, we'd copy them to the game directory
-    return validateMPQFiles(files);
+    // Ensure import directory exists
+    fs::create_directories(pImpl->importDirectory);
+    
+    // Copy each file to the import directory
+    for (const auto& file : files) {
+        fs::path sourcePath(file);
+        fs::path destPath = pImpl->importDirectory / sourcePath.filename();
+        
+        try {
+            fs::copy_file(sourcePath, destPath, fs::copy_options::overwrite_existing);
+            pImpl->importedFiles.push_back(destPath.string());
+        } catch (const std::exception& e) {
+            // Failed to copy file
+            return false;
+        }
+    }
+    
+    return true;
 }
 
 void OnboardingWizard::setProgressCallback(const ProgressCallback& callback) {
@@ -54,6 +69,9 @@ void OnboardingWizard::setProgressCallback(const ProgressCallback& callback) {
 
 bool OnboardingWizard::importWithProgress(const std::vector<std::string>& files) {
     if (!validateMPQFiles(files)) return false;
+    
+    // Ensure import directory exists
+    fs::create_directories(pImpl->importDirectory);
     
     // Calculate total size for progress tracking
     size_t totalSize = 0;
@@ -67,20 +85,26 @@ bool OnboardingWizard::importWithProgress(const std::vector<std::string>& files)
     for (size_t i = 0; i < files.size(); ++i) {
         const auto& file = files[i];
         size_t fileSize = fs::file_size(file);
+        fs::path sourcePath(file);
+        fs::path destPath = pImpl->importDirectory / sourcePath.filename();
         
-        // Simulate processing the file in chunks for progress updates
+        // Copy the file in chunks for progress updates
         const size_t chunkSize = 256 * 1024; // 256KB chunks
         size_t fileProcessed = 0;
         
         std::ifstream input(file, std::ios::binary);
         if (!input) return false;
         
+        std::ofstream output(destPath, std::ios::binary);
+        if (!output) return false;
+        
         while (fileProcessed < fileSize) {
             size_t toRead = std::min(chunkSize, fileSize - fileProcessed);
             
-            // Simulate reading/processing
+            // Read and write chunk
             std::vector<char> buffer(toRead);
             input.read(buffer.data(), toRead);
+            output.write(buffer.data(), toRead);
             
             fileProcessed += toRead;
             processedSize += toRead;
@@ -91,6 +115,8 @@ bool OnboardingWizard::importWithProgress(const std::vector<std::string>& files)
                 pImpl->progressCallback(progress);
             }
         }
+        
+        pImpl->importedFiles.push_back(destPath.string());
     }
     
     // Ensure we report 100% completion
