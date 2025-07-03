@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@color/diablo_black"
+    android:padding="16dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Horadric Wisdom"
+            style="@style/DiabloTitle"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginBottom="24dp" />
+
+        <!-- Getting Started -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Getting Started"
+            style="@style/DiabloSubtitle"
+            android:layout_marginBottom="8dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="To play Diablo II Portable, you need the original game files from your legally purchased copy of Diablo II."
+            style="@style/DiabloText"
+            android:layout_marginBottom="16dp" />
+
+        <!-- Required Files -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Required Files"
+            style="@style/DiabloSubtitle"
+            android:layout_marginBottom="8dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="• d2data.mpq - Core game data\n• d2exp.mpq - Expansion data\n• d2sfx.mpq - Sound effects\n• d2music.mpq - Background music\n• d2xmusic.mpq - Expansion music\n• d2xtalk.mpq - Expansion dialogue\n• d2speech.mpq - Character voices"
+            style="@style/DiabloText"
+            android:layout_marginBottom="16dp" />
+
+        <!-- File Sources -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Where to Find Your Files"
+            style="@style/DiabloSubtitle"
+            android:layout_marginBottom="8dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="1. PC Installation:\n   C:\\Program Files\\Diablo II\n\n2. Battle.net Installation:\n   C:\\Program Files\\Battle.net\\Diablo II\n\n3. Original CDs:\n   Insert your D2 CDs and select CD/DVD drive\n\n4. Digital Purchase:\n   Download and install, then copy MPQ files"
+            style="@style/DiabloText"
+            android:layout_marginBottom="16dp" />
+
+        <!-- Storage Options -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Storage Options"
+            style="@style/DiabloSubtitle"
+            android:layout_marginBottom="8dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="• Local Storage: Copy files to your device\n• USB Storage: Read from USB drive or SD card\n• Network Share: Access files over WiFi from PC"
+            style="@style/DiabloText"
+            android:layout_marginBottom="16dp" />
+
+        <!-- Troubleshooting -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Common Issues"
+            style="@style/DiabloSubtitle"
+            android:layout_marginBottom="8dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="• Missing Files: Ensure all MPQ files are in the same folder\n• Permission Denied: Grant storage permissions in Android settings\n• Network Failed: Check WiFi connection and share permissions\n• Extraction Failed: Ensure files are not corrupted"
+            style="@style/DiabloText"
+            android:layout_marginBottom="24dp" />
+
+        <Button
+            android:id="@+id/close_help_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Return to Quest"
+            style="@style/DiabloButton"
+            android:layout_gravity="center_horizontal" />
+
+    </LinearLayout>
+
+</ScrollView>

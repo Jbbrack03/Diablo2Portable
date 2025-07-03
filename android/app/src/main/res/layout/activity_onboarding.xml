@@ -28,5 +28,16 @@
         android:layout_height="wrap_content"
         android:text="Enter Sanctuary"
         style="@style/DiabloButton" />
+        
+    <TextView
+        android:id="@+id/help_link"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Need help finding your game files?"
+        style="@style/DiabloText"
+        android:layout_marginTop="24dp"
+        android:textColor="@color/diablo_gold"
+        android:clickable="true"
+        android:focusable="true" />
 
 </LinearLayout>

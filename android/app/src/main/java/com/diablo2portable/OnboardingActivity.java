@@ -33,6 +33,14 @@ public class OnboardingActivity extends Activity {
                 setupFileSourceButtons();
             }
         });
+        
+        TextView helpLink = findViewById(R.id.help_link);
+        if (helpLink != null) {
+            helpLink.setOnClickListener(v -> {
+                HelpDialogFragment helpDialog = new HelpDialogFragment();
+                helpDialog.show(getFragmentManager(), "help");
+            });
+        }
     }
     
     private void setupFileSourceButtons() {
@@ -290,9 +298,9 @@ public class OnboardingActivity extends Activity {
         Button helpButton = findViewById(R.id.help_button);
         if (helpButton != null) {
             helpButton.setOnClickListener(v -> {
-                Toast.makeText(this, 
-                    "Please ensure you have all Diablo II MPQ files in the selected directory", 
-                    Toast.LENGTH_LONG).show();
+                // Show comprehensive help dialog
+                HelpDialogFragment helpDialog = new HelpDialogFragment();
+                helpDialog.show(getFragmentManager(), "help");
             });
         }
     }
