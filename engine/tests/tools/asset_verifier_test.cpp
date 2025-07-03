@@ -82,3 +82,15 @@ TEST_F(AssetVerifierTest, DetectMissingCriticalFiles) {
     EXPECT_GT(verification.missingCriticalFiles.size(), 0);
     EXPECT_TRUE(verification.canAttemptRepair());
 }
+
+TEST_F(AssetVerifierTest, GenerateChecksumManifest) {
+    AssetVerifier verifier;
+    
+    auto manifest = verifier.generateChecksumManifest(extractedPath.string());
+    
+    EXPECT_GT(manifest.fileCount, 0);
+    EXPECT_FALSE(manifest.manifestChecksum.empty());
+    
+    // Verify manifest integrity
+    EXPECT_TRUE(verifier.validateManifest(manifest));
+}

@@ -25,6 +25,15 @@ struct VerificationResult {
 };
 
 /**
+ * Checksum manifest for asset distribution
+ */
+struct ChecksumManifest {
+    int fileCount = 0;
+    std::string manifestChecksum;
+    std::unordered_map<std::string, std::string> fileChecksums;
+};
+
+/**
  * AssetVerifier - Validates extracted game assets
  * 
  * Features:
@@ -44,6 +53,20 @@ public:
      * @return Verification result
      */
     VerificationResult fullVerification(const std::string& assetPath);
+    
+    /**
+     * Generate checksum manifest for all assets
+     * @param assetPath Path to the extracted assets directory
+     * @return Generated manifest
+     */
+    ChecksumManifest generateChecksumManifest(const std::string& assetPath);
+    
+    /**
+     * Validate a checksum manifest
+     * @param manifest The manifest to validate
+     * @return True if manifest is valid
+     */
+    bool validateManifest(const ChecksumManifest& manifest);
 };
 
 } // namespace d2

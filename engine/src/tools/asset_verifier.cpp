@@ -2,6 +2,9 @@
 #include <filesystem>
 #include <vector>
 #include <string>
+#include <fstream>
+#include <sstream>
+#include <iomanip>
 
 namespace fs = std::filesystem;
 
@@ -43,6 +46,70 @@ VerificationResult AssetVerifier::fullVerification(const std::string& assetPath)
     result.isComplete = result.missingCriticalFiles.empty() && result.validatedFiles > 0;
     
     return result;
+}
+
+// Simple checksum calculation (for testing)
+static std::string calculateChecksum(const std::string& filePath) {
+    std::ifstream file(filePath, std::ios::binary);
+    if (!file) {
+        return "";
+    }
+    
+    // Simple sum of bytes for now
+    unsigned long checksum = 0;
+    char byte;
+    while (file.get(byte)) {
+        checksum += static_cast<unsigned char>(byte);
+    }
+    
+    std::stringstream ss;
+    ss << std::hex << checksum;
+    return ss.str();
+}
+
+ChecksumManifest AssetVerifier::generateChecksumManifest(const std::string& assetPath) {
+    ChecksumManifest manifest;
+    
+    if (!fs::exists(assetPath)) {
+        return manifest;
+    }
+    
+    // Generate checksums for all files
+    for (const auto& entry : fs::recursive_directory_iterator(assetPath)) {
+        if (entry.is_regular_file()) {
+            std::string relativePath = fs::relative(entry.path(), assetPath).string();
+            std::string checksum = calculateChecksum(entry.path().string());
+            
+            if (!checksum.empty()) {
+                manifest.fileChecksums[relativePath] = checksum;
+                manifest.fileCount++;
+            }
+        }
+    }
+    
+    // Generate manifest checksum (simple concatenation of all checksums)
+    std::stringstream manifestData;
+    for (const auto& [path, checksum] : manifest.fileChecksums) {
+        manifestData << path << ":" << checksum << "\n";
+    }
+    
+    // Calculate checksum of the manifest data itself
+    unsigned long manifestChecksum = 0;
+    std::string data = manifestData.str();
+    for (char c : data) {
+        manifestChecksum += static_cast<unsigned char>(c);
+    }
+    
+    std::stringstream ss;
+    ss << std::hex << manifestChecksum;
+    manifest.manifestChecksum = ss.str();
+    
+    return manifest;
+}
+
+bool AssetVerifier::validateManifest(const ChecksumManifest& manifest) {
+    // For now, just check that it has content
+    return manifest.fileCount > 0 && !manifest.manifestChecksum.empty();
 }
 
 } // namespace d2
