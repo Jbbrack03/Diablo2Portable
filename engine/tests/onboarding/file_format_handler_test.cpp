@@ -90,3 +90,26 @@ TEST_F(FileFormatHandlerTest, HandleBattleNetInstaller) {
     EXPECT_TRUE(result.success);
     EXPECT_TRUE(result.foundMPQFiles);
 }
+
+// STEP 3: Write exactly ONE failing test for processing compressed archives
+TEST_F(FileFormatHandlerTest, ProcessCompressedArchive) {
+    FileFormatHandler handler;
+    
+    fs::path zipPath = testDir / "d2_backup.zip";
+    fs::path outputDir = testDir / "zip_extract";
+    
+    // Create a mock ZIP file with proper header
+    std::ofstream file(zipPath, std::ios::binary);
+    // ZIP file signature
+    char zip_header[] = {'P', 'K', 0x03, 0x04};
+    file.write(zip_header, sizeof(zip_header));
+    // Add some dummy data
+    std::vector<char> data(1024, 0);
+    file.write(data.data(), data.size());
+    file.close();
+    
+    auto result = handler.extractFromArchive(zipPath.string(), outputDir.string());
+    
+    EXPECT_TRUE(result.success);
+    EXPECT_GT(result.mpqFilesFound, 5);
+}
