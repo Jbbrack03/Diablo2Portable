@@ -265,14 +265,14 @@ During Phase 17 implementation, a TDD violation occurred:
 ## Current Implementation Status (January 2025)
 
 ### 📊 **Overall Project Statistics:**
-- **Total Tests**: 578 (547 C++ unit tests + 12 excluded + 19 Android Espresso tests)
-- **Test Success Rate**: 100% (528 passing, 0 failed, 19 skipped)
+- **Total Tests**: 598 (567 C++ unit tests + 12 excluded + 19 Android Espresso tests)
+- **Test Success Rate**: 100% (548 passing, 0 failed, 19 skipped)
 - **Test Coverage**: ✅ 100% achieved - All implementation files now have comprehensive unit tests
 - **Integration Testing**: ✅ Real MPQ file validation with Diablo II game assets in vendor/mpq/
-- **Total Source Files**: 120+ (C++ engine implementation)
-- **Lines of Code**: ~24,000+ (core engine only)
-- **Phases Completed**: 20 of 24 ✅ + Phase 21 in progress 🚧
-- **Project Status**: **Phase 21 ONBOARDING IN PROGRESS** - Core systems complete
+- **Total Source Files**: 125+ (C++ engine implementation + onboarding)
+- **Lines of Code**: ~25,000+ (core engine + onboarding systems)
+- **Phases Completed**: 20 of 24 ✅ + Phase 21 (80% complete) 🚧
+- **Project Status**: **Phase 21 ONBOARDING 80% COMPLETE** - Core systems done, UI pending
 - **Asset Extraction**: ✅ 100% success rate on real Diablo II files (StormLib integration)
 - **Test Suite Health**: ✅ 100% tests passing with real-world validation
 - **Performance**: ✅ 160 FPS with 100 entities (exceeds 60 FPS requirement)
@@ -393,12 +393,15 @@ During Phase 17 implementation, a TDD violation occurred:
 - Current (January 2025): Phase 21 Onboarding System Progress:
   - ✅ Created FileSourceDetector class (4 tests) - Detect D2 installations, CD drives, validate ISOs, Android paths
   - ✅ Created OnboardingWizard class (5 tests) - File browser, MPQ import, progress tracking, error handling
+  - ✅ Created OnboardingJNI bridge (5 tests) - Android JNI functions for asset extraction and validation
+  - ✅ Created FileFormatHandler class (3 tests) - ISO/Installer/Archive extraction support
+  - ✅ Created AssetValidator class (2 tests) - Asset completeness and corruption detection
   - ✅ Implemented progress callbacks for file imports with real-time updates
   - ✅ Added error detection and recovery for missing/partial imports
   - ✅ Added Android-specific storage path detection
-  - Total tests added this session: 9 new onboarding tests
+  - Total tests added this session: 19 new onboarding tests
   - All tests followed strict TDD with RED-GREEN-COMMIT cycles
-  - Phase 21 core functionality complete, JNI bridge pending!
+  - Phase 21 core functionality complete, Android UI integration pending!
 
 **Phase 20: Final Testing and Release** (December 2024) - ✅ **COMPLETED**
 - ✅ Task 20.1: Integration Testing - **COMPLETED**
