@@ -55,11 +55,22 @@ std::shared_ptr<std::vector<uint8_t>> AssetCache::loadAsset(const std::string& a
     entry.data = data;
     entry.lastAccess = std::chrono::steady_clock::now();
     
+    // Evict old entries if we exceed memory limit
+    while (currentMemory + fileSize > maxMemory && !lruList.empty()) {
+        // Remove least recently used item (at back of list)
+        std::string lruPath = lruList.back();
+        lruList.pop_back();
+        
+        auto evictIt = cache.find(lruPath);
+        if (evictIt != cache.end()) {
+            currentMemory -= evictIt->second.data->size();
+            cache.erase(evictIt);
+        }
+    }
+    
     cache[assetPath] = entry;
     lruList.push_front(assetPath);
     currentMemory += fileSize;
-    
-    // TODO: Evict old entries if we exceed memory limit
     
     return data;
 }

@@ -66,3 +66,25 @@ TEST_F(AssetCacheTest, LoadAssetIntoCache) {
     EXPECT_EQ(cache.getCacheHits(), 1);
     EXPECT_EQ(cache.getCacheMisses(), 1);
 }
+
+TEST_F(AssetCacheTest, LRUEvictionWhenFull) {
+    AssetCache cache(1024 * 400); // 400KB limit - can fit 2 assets max
+    
+    // Load three assets to trigger eviction
+    auto data1 = cache.loadAsset((testPath / "sprite1.dc6").string()); // 100KB
+    auto data2 = cache.loadAsset((testPath / "sprite2.dc6").string()); // 200KB
+    auto data3 = cache.loadAsset((testPath / "sprite3.dc6").string()); // 150KB
+    
+    // Total would be 450KB, but limit is 400KB
+    // sprite1 should be evicted (oldest)
+    EXPECT_EQ(cache.getCurrentMemory(), 1024 * 350); // 200KB + 150KB
+    EXPECT_EQ(cache.getCacheMisses(), 3);
+    
+    // Access sprite1 again - should be a miss (was evicted)
+    auto data1_again = cache.loadAsset((testPath / "sprite1.dc6").string());
+    EXPECT_EQ(cache.getCacheMisses(), 4);
+    EXPECT_EQ(cache.getCacheHits(), 0);
+    
+    // sprite2 should now be evicted (200KB) to make room for sprite1 (100KB)
+    EXPECT_EQ(cache.getCurrentMemory(), 1024 * 250); // 150KB + 100KB
+}
