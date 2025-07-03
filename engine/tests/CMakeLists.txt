@@ -118,6 +118,7 @@ set(TEST_SOURCES
     onboarding/onboarding_wizard_test.cpp
     onboarding/onboarding_jni_test.cpp
     onboarding/file_format_handler_test.cpp
+    onboarding/asset_validator_test.cpp
     # Tests will be added as we implement features following TDD
     # core/game_state_test.cpp
     # audio/sound_system_test.cpp

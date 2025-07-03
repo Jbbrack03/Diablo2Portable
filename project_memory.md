@@ -2,11 +2,14 @@
 
 ## Current Status (January 2025)
 - Project: Phase 21 in progress - Implementing Onboarding System
-- Total Tests: 547 C++ unit tests running (+ 12 excluded AndroidGamepadTest + 19 Android Espresso tests = 578 total)
-  - 528 C++ tests passing, 0 failing, 19 skipped
-  - Added 9 new tests for onboarding system in this session:
+- Total Tests: 567 C++ unit tests running (+ 12 excluded AndroidGamepadTest + 19 Android Espresso tests = 598 total)
+  - 548 C++ tests passing, 0 failing, 19 skipped
+  - Added 20 new tests for onboarding system in this session:
     - 4 tests for FileSourceDetector (directory scan, CD detection, ISO validation, Android paths)
     - 5 tests for OnboardingWizard (file browser, MPQ import, progress tracking, error handling, recovery)
+    - 5 tests for OnboardingJNI (asset extraction, progress, scan installations, validate MPQ, check files)
+    - 3 tests for FileFormatHandler (ISO extraction, installer handling, archive processing)
+    - 3 more tests in progress
   - All test failures fixed (MPQ path issues resolved)
   - Android tests: 19 Espresso tests (separate test suite)
 - Location: /Users/jbbrack03/Diablo2Portable
@@ -25,8 +28,18 @@
     - ✅ Progress tracking (setProgressCallback, importWithProgress)
     - ✅ Error handling (checkRequiredFiles, FileCheckResult)
     - ✅ Recovery from partial imports (setImportDirectory)
+  - ✅ Created OnboardingJNI bridge with 5 JNI functions:
+    - ✅ extractAssets - Start asset extraction process
+    - ✅ getProgress - Track extraction progress
+    - ✅ scanForInstallations - Find D2 installations
+    - ✅ validateMPQFiles - Validate MPQ file integrity
+    - ✅ checkRequiredFiles - Check for missing files
+  - ✅ Created FileFormatHandler class with 3 extraction methods:
+    - ✅ extractFromISO - Handle ISO/BIN/CUE files
+    - ✅ extractFromInstaller - Extract from Battle.net installers
+    - ✅ extractFromArchive - Handle ZIP/RAR/7Z archives
   - Following strict TDD with RED-GREEN-COMMIT cycles
-  - Next: Android JNI bridge and advanced file format support
+  - Next: Asset validation and Android UI components
 - ✅ RESOLVED HIGH PRIORITY TECHNICAL DEBT: Fixed all high-priority issues
   - ✅ Removed debug output from pkware_explode.cpp (1 test added)
   - ✅ Verified checksum calculation in APKPackager works correctly

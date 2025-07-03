@@ -97,6 +97,7 @@ add_library(d2engine STATIC
     src/onboarding/onboarding_wizard.cpp
     src/onboarding/onboarding_jni.cpp
     src/onboarding/file_format_handler.cpp
+    src/onboarding/asset_validator.cpp
 )
 
 # Include directories
