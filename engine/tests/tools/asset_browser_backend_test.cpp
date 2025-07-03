@@ -50,5 +50,21 @@ TEST_F(AssetBrowserBackendTest, LoadAssetMetadata) {
     EXPECT_FALSE(metadata.category.empty());
 }
 
+// Test 2: Generate thumbnails - This test MUST fail first
+TEST_F(AssetBrowserBackendTest, GenerateThumbnails) {
+    AssetBrowserBackend backend;
+    backend.initialize(testDir.string());
+    
+    auto thumbnail = backend.generateThumbnail(
+        "characters/barbarian/walk.dc6",
+        ThumbnailSize::MEDIUM
+    );
+    
+    EXPECT_TRUE(thumbnail.isValid());
+    EXPECT_EQ(thumbnail.width, 128);
+    EXPECT_EQ(thumbnail.height, 128);
+    EXPECT_TRUE(thumbnail.data.size() > 0);
+}
+
 } // namespace
 } // namespace d2

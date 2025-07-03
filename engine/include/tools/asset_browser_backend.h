@@ -3,8 +3,29 @@
 #include <string>
 #include <vector>
 #include <unordered_map>
+#include <cstdint>
 
 namespace d2 {
+
+/**
+ * ThumbnailSize - Predefined thumbnail sizes for asset browser
+ */
+enum class ThumbnailSize {
+    SMALL = 64,
+    MEDIUM = 128,
+    LARGE = 256
+};
+
+/**
+ * Thumbnail - Generated thumbnail data for an asset
+ */
+struct Thumbnail {
+    uint32_t width = 0;
+    uint32_t height = 0;
+    std::vector<uint8_t> data;
+    
+    bool isValid() const { return width > 0 && height > 0 && !data.empty(); }
+};
 
 /**
  * AssetMetadata - Information about a single game asset
@@ -44,6 +65,14 @@ public:
      * @return AssetMetadata structure with information about the asset
      */
     AssetMetadata getAssetMetadata(const std::string& relativePath) const;
+    
+    /**
+     * Generate a thumbnail for an asset
+     * @param relativePath Relative path to the asset from the root directory
+     * @param size Desired thumbnail size
+     * @return Thumbnail structure with image data
+     */
+    Thumbnail generateThumbnail(const std::string& relativePath, ThumbnailSize size) const;
     
 private:
     std::string rootPath;
