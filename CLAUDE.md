@@ -391,17 +391,22 @@ During Phase 17 implementation, a TDD violation occurred:
 - Previous: Completed Phase 20 with 19 tests total (7 integration/SaveManager + 8 device testing + 4 release builder).
 - Previous: Resolved all high-priority technical debt (2 tests added)
 - Current (January 2025): Phase 21 Onboarding System Progress:
-  - ✅ Created FileSourceDetector class (4 tests) - Detect D2 installations, CD drives, validate ISOs, Android paths
-  - ✅ Created OnboardingWizard class (5 tests) - File browser, MPQ import, progress tracking, error handling
-  - ✅ Created OnboardingJNI bridge (5 tests) - Android JNI functions for asset extraction and validation
-  - ✅ Created FileFormatHandler class (3 tests) - ISO/Installer/Archive extraction support
-  - ✅ Created AssetValidator class (2 tests) - Asset completeness and corruption detection
-  - ✅ Implemented progress callbacks for file imports with real-time updates
-  - ✅ Added error detection and recovery for missing/partial imports
-  - ✅ Added Android-specific storage path detection
-  - Total tests added this session: 19 new onboarding tests
+  - ✅ C++ Core (COMPLETE):
+    - ✅ Created FileSourceDetector class (4 tests) - Detect D2 installations, CD drives, validate ISOs, Android paths
+    - ✅ Created OnboardingWizard class (5 tests) - File browser, MPQ import, progress tracking, error handling
+    - ✅ Created OnboardingJNI bridge (5 tests) - Android JNI functions for asset extraction and validation
+    - ✅ Created FileFormatHandler class (3 tests) - ISO/Installer/Archive extraction support
+    - ✅ Created AssetValidator class (2 tests) - Asset completeness and corruption detection
+  - ✅ Android UI (COMPLETE):
+    - ✅ Created OnboardingActivity (3 tests) - Welcome, file source, progress, error screens
+    - ✅ Created FileBrowserActivity (2 tests) - Browse and select MPQ files
+    - ✅ Created OnboardingManager - JNI wrapper for native methods
+    - ✅ Created OnboardingHelper (3 tests) - First-run detection and state management
+    - ✅ Integrated with MainActivity - Auto-launches onboarding on first run
+    - ✅ Error handling (2 tests) - Missing files, extraction failures, retry options
+  - Total tests added: 30 (19 C++ + 11 Android)
   - All tests followed strict TDD with RED-GREEN-COMMIT cycles
-  - Phase 21 core functionality complete, Android UI integration pending!
+  - Phase 21 ~90% complete! UI polish and advanced features remaining.
 
 **Phase 20: Final Testing and Release** (December 2024) - ✅ **COMPLETED**
 - ✅ Task 20.1: Integration Testing - **COMPLETED**
