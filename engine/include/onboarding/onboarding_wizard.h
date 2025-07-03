@@ -7,6 +7,11 @@
 
 namespace d2 {
 
+struct FileCheckResult {
+    bool allFilesPresent = false;
+    std::vector<std::string> missingFiles;
+};
+
 class OnboardingWizard {
 public:
     using ProgressCallback = std::function<void(float)>;
@@ -23,6 +28,12 @@ public:
     // Progress tracking support
     void setProgressCallback(const ProgressCallback& callback);
     bool importWithProgress(const std::vector<std::string>& files);
+    
+    // Error handling and recovery
+    FileCheckResult checkRequiredFiles() const;
+    
+    // Configuration
+    void setImportDirectory(const std::string& path);
     
 private:
     class Impl;

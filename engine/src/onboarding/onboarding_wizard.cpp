@@ -13,6 +13,8 @@ public:
     bool fileBrowserSupported = true;
     bool mpqSelectionEnabled = true;
     ProgressCallback progressCallback;
+    std::vector<std::string> importedFiles;
+    fs::path importDirectory = "vendor/mpq"; // Default location for imported files
 };
 
 OnboardingWizard::OnboardingWizard() : pImpl(std::make_unique<Impl>()) {}
@@ -97,6 +99,35 @@ bool OnboardingWizard::importWithProgress(const std::vector<std::string>& files)
     }
     
     return true;
+}
+
+FileCheckResult OnboardingWizard::checkRequiredFiles() const {
+    FileCheckResult result;
+    
+    // List of required MPQ files for a complete D2 installation
+    const std::vector<std::string> requiredFiles = {
+        "d2data.mpq",
+        "d2exp.mpq",
+        "d2sfx.mpq",
+        "d2music.mpq",
+        "d2speech.mpq",
+        "d2video.mpq"
+    };
+    
+    // Check which files are present in the import directory
+    for (const auto& file : requiredFiles) {
+        fs::path filePath = pImpl->importDirectory / file;
+        if (!fs::exists(filePath)) {
+            result.missingFiles.push_back(file);
+        }
+    }
+    
+    result.allFilesPresent = result.missingFiles.empty();
+    return result;
+}
+
+void OnboardingWizard::setImportDirectory(const std::string& path) {
+    pImpl->importDirectory = path;
 }
 
 } // namespace d2

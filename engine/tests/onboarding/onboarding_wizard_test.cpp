@@ -3,6 +3,7 @@
 #include <string>
 #include <filesystem>
 #include <fstream>
+#include <algorithm>
 #include "onboarding/onboarding_wizard.h"
 
 namespace fs = std::filesystem;
@@ -90,4 +91,71 @@ TEST_F(OnboardingWizardTest, TrackImportProgress) {
     EXPECT_TRUE(wizard.importWithProgress(files));
     EXPECT_TRUE(progressCalled);
     EXPECT_FLOAT_EQ(lastProgress, 1.0f); // Should reach 100% when done
+}
+
+// STEP 4: Write exactly ONE failing test for error handling and recovery
+TEST_F(OnboardingWizardTest, HandleMissingFiles) {
+    OnboardingWizard wizard;
+    
+    // Set import directory to a test location instead of vendor/mpq
+    fs::path testImportDir = testDir / "test_import";
+    fs::create_directories(testImportDir);
+    wizard.setImportDirectory(testImportDir.string());
+    
+    auto result = wizard.checkRequiredFiles();
+    
+    // Since no files have been imported yet, some should be missing
+    EXPECT_FALSE(result.allFilesPresent);
+    EXPECT_GT(result.missingFiles.size(), 0);
+    
+    // Should include at least the core MPQ files
+    auto& missing = result.missingFiles;
+    EXPECT_TRUE(std::find(missing.begin(), missing.end(), "d2data.mpq") != missing.end());
+    EXPECT_TRUE(std::find(missing.begin(), missing.end(), "d2exp.mpq") != missing.end());
+    EXPECT_TRUE(std::find(missing.begin(), missing.end(), "d2sfx.mpq") != missing.end());
+}
+
+// STEP 5: Write exactly ONE failing test for error recovery
+TEST_F(OnboardingWizardTest, RecoverFromPartialImport) {
+    OnboardingWizard wizard;
+    
+    // Set import directory to test location
+    fs::path testImportDir = testDir / "recover_import";
+    fs::create_directories(testImportDir);
+    wizard.setImportDirectory(testImportDir.string());
+    
+    // Create only some of the required files
+    fs::path mpqDir = testDir / "partial_import";
+    fs::create_directories(mpqDir);
+    
+    std::ofstream(mpqDir / "d2data.mpq").close();
+    // Missing d2exp.mpq and d2sfx.mpq
+    
+    std::vector<std::string> files = {
+        (mpqDir / "d2data.mpq").string()
+    };
+    
+    // First import should succeed but be incomplete
+    EXPECT_TRUE(wizard.importFiles(files));
+    
+    auto result = wizard.checkRequiredFiles();
+    EXPECT_FALSE(result.allFilesPresent);
+    EXPECT_GT(result.missingFiles.size(), 0);
+    
+    // Now add the missing files
+    std::ofstream(mpqDir / "d2exp.mpq").close();
+    std::ofstream(mpqDir / "d2sfx.mpq").close();
+    
+    std::vector<std::string> additionalFiles = {
+        (mpqDir / "d2exp.mpq").string(),
+        (mpqDir / "d2sfx.mpq").string()
+    };
+    
+    // Import the missing files
+    EXPECT_TRUE(wizard.importFiles(additionalFiles));
+    
+    // Now check again - we should still be missing some files (music, speech, video)
+    auto finalResult = wizard.checkRequiredFiles();
+    EXPECT_FALSE(finalResult.allFilesPresent); // Still missing some files
+    EXPECT_GT(finalResult.missingFiles.size(), 0);
 }
