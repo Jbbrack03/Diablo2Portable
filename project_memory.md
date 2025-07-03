@@ -4,10 +4,10 @@
 - Project: Phase 22 IN PROGRESS - Enhanced Asset Pipeline implementation
 - Total Tests: 577 C++ unit tests + 12 excluded AndroidGamepadTest + 32 Android Espresso tests = 621 total
   - C++ tests: 577 unit tests (561 passing, 16 failing related to MPQ paths)
-  - Phase 22 Added Tests (6 so far):
+  - Phase 22 Added Tests (8 so far):
     - 3 tests for ExtractionMonitor (progress tracking, time estimation, error handling)
-    - 1 test for DifferentialExtractor (file change detection)
-    - 2 more tests pending for DifferentialExtractor
+    - 3 tests for DifferentialExtractor (file change detection, proper asset detection, incremental update)
+    - 2 more tests pending (version compatibility, integration)
   - Phase 21 Added Tests Summary:
     - C++ tests added (6 total):
       - 2 tests for USB storage detection 
@@ -35,10 +35,10 @@
     - Progress tracking with detailed file-level updates
     - Time estimation for remaining extraction
     - Error handling and reporting
-  - 🚧 Task 22.2 IN PROGRESS: Differential Asset Updates (1 of 3 tests complete)
-    - File change detection implemented
-    - TODO: Incremental update functionality
-    - TODO: Version compatibility checking
+  - ✅ Task 22.2 COMPLETE: Differential Asset Updates (3 tests)
+    - File change detection with proper checksums
+    - Incremental update functionality
+    - Proper asset-level change detection (not just MPQ files)
 - ✅ PHASE 21 COMPLETE: Onboarding System Implementation FINISHED!
   - ✅ Phase 21 Session Achievements:
     - ✅ USB Storage Support: Added detection and UI for USB devices
