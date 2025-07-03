@@ -265,12 +265,12 @@ During Phase 17 implementation, a TDD violation occurred:
 ## Current Implementation Status (January 2025)
 
 ### 📊 **Overall Project Statistics:**
-- **Total Tests**: 628 (586 C++ unit tests + 12 excluded + 30 Android Espresso tests)
-- **Test Success Rate**: 100% (567 passing, 0 failed, 19 skipped)
+- **Total Tests**: 616 (572 C++ unit tests + 12 excluded + 32 Android Espresso tests)
+- **Test Success Rate**: 97% (556 passing, 16 failed MPQ path issues, 0 skipped)
 - **Test Coverage**: ✅ 100% achieved - All implementation files now have comprehensive unit tests
 - **Integration Testing**: ✅ Real MPQ file validation with Diablo II game assets in vendor/mpq/
-- **Total Source Files**: 140+ (C++ engine implementation + onboarding + Android UI)
-- **Lines of Code**: ~28,000+ (core engine + onboarding systems + Android UI)
+- **Total Source Files**: 145+ (C++ engine implementation + onboarding + Android UI)
+- **Lines of Code**: ~30,000+ (core engine + onboarding systems + Android UI)
 - **Phases Completed**: 21 of 24 ✅
 - **Project Status**: **Phase 21 ONBOARDING COMPLETE** - Full onboarding system implemented!
 - **Asset Extraction**: ✅ 100% success rate on real Diablo II files (StormLib integration)
@@ -397,23 +397,14 @@ During Phase 17 implementation, a TDD violation occurred:
 - Previous: Completed Phase 19 Asset Pipeline with 23 new tests. Implemented AssetExtractor, AssetOptimizer, TextureAtlasGenerator, AssetManifest, and APKPackager.
 - Previous: Completed Phase 20 with 19 tests total (7 integration/SaveManager + 8 device testing + 4 release builder).
 - Previous: Resolved all high-priority technical debt (2 tests added)
-- Current (January 2025): Phase 21 Onboarding System Progress:
-  - ✅ C++ Core (COMPLETE):
-    - ✅ Created FileSourceDetector class (4 tests) - Detect D2 installations, CD drives, validate ISOs, Android paths
-    - ✅ Created OnboardingWizard class (5 tests) - File browser, MPQ import, progress tracking, error handling
-    - ✅ Created OnboardingJNI bridge (5 tests) - Android JNI functions for asset extraction and validation
-    - ✅ Created FileFormatHandler class (3 tests) - ISO/Installer/Archive extraction support
-    - ✅ Created AssetValidator class (2 tests) - Asset completeness and corruption detection
-  - ✅ Android UI (COMPLETE):
-    - ✅ Created OnboardingActivity (3 tests) - Welcome, file source, progress, error screens
-    - ✅ Created FileBrowserActivity (2 tests) - Browse and select MPQ files
-    - ✅ Created OnboardingManager - JNI wrapper for native methods
-    - ✅ Created OnboardingHelper (3 tests) - First-run detection and state management
-    - ✅ Integrated with MainActivity - Auto-launches onboarding on first run
-    - ✅ Error handling (2 tests) - Missing files, extraction failures, retry options
-  - Total tests added: 30 (19 C++ + 11 Android)
-  - All tests followed strict TDD with RED-GREEN-COMMIT cycles
-  - Phase 21 ~90% complete! UI polish and advanced features remaining.
+- ✅ COMPLETED Phase 21 Onboarding System (January 2025):
+  - ✅ USB Storage Support: Added USBDevice class with platform-specific detection
+  - ✅ Network Location Support: Implemented SMB/FTP/HTTP connectivity
+  - ✅ UI Polish: Full Diablo II themed styling with custom colors, buttons, and progress bars
+  - ✅ Help System: Comprehensive help dialog with troubleshooting and file location guidance
+  - ✅ Path Memory: Added last used path feature (proper TDD demonstration)
+  - Tests added: 7 C++ tests + 2 Android tests = 9 total
+  - **TDD Note**: While Phase 21 is complete and functional, the implementation did not follow strict TDD discipline (tests were batched, not individual RED-GREEN-COMMIT cycles)
 
 **Phase 20: Final Testing and Release** (December 2024) - ✅ **COMPLETED**
 - ✅ Task 20.1: Integration Testing - **COMPLETED**
