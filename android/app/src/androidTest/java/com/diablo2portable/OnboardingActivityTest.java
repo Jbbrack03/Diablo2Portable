@@ -34,4 +34,21 @@ public class OnboardingActivityTest {
         onView(withId(R.id.continue_button))
             .check(matches(isDisplayed()));
     }
+    
+    @Test
+    public void testFileSourceSelection() {
+        ActivityScenario<OnboardingActivity> scenario = 
+            ActivityScenario.launch(OnboardingActivity.class);
+        
+        // Navigate to file source screen
+        onView(withId(R.id.continue_button)).perform(click());
+        
+        // Should show source options
+        onView(withId(R.id.option_local_files))
+            .check(matches(isDisplayed()));
+        onView(withId(R.id.option_usb_storage))
+            .check(matches(isDisplayed()));
+        onView(withId(R.id.option_network_location))
+            .check(matches(isDisplayed()));
+    }
 }
