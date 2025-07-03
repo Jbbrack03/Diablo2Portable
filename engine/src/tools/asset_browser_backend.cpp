@@ -71,4 +71,36 @@ std::vector<std::string> AssetBrowserBackend::getAssetCategories() const {
     return std::vector<std::string>(categories.begin(), categories.end());
 }
 
+std::vector<AssetMetadata> AssetBrowserBackend::searchAssets(const std::string& query) const {
+    std::vector<AssetMetadata> results;
+    
+    if (std::filesystem::exists(rootPath)) {
+        // Convert query to lowercase for case-insensitive search
+        std::string lowerQuery = query;
+        std::transform(lowerQuery.begin(), lowerQuery.end(), lowerQuery.begin(), ::tolower);
+        
+        // Recursive search through all directories
+        for (const auto& entry : std::filesystem::recursive_directory_iterator(rootPath)) {
+            if (entry.is_regular_file()) {
+                std::string filename = entry.path().filename().string();
+                std::string lowerFilename = filename;
+                std::transform(lowerFilename.begin(), lowerFilename.end(), lowerFilename.begin(), ::tolower);
+                
+                // Check if filename contains the query
+                if (lowerFilename.find(lowerQuery) != std::string::npos) {
+                    // Get relative path from root
+                    std::filesystem::path relativePath = 
+                        std::filesystem::relative(entry.path(), rootPath);
+                    
+                    // Get metadata for this asset
+                    AssetMetadata metadata = getAssetMetadata(relativePath.string());
+                    results.push_back(metadata);
+                }
+            }
+        }
+    }
+    
+    return results;
+}
+
 } // namespace d2

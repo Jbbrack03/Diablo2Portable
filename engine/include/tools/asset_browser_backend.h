@@ -80,6 +80,13 @@ public:
      */
     std::vector<std::string> getAssetCategories() const;
     
+    /**
+     * Search for assets by name
+     * @param query Search query to match against asset filenames
+     * @return Vector of AssetMetadata for matching assets
+     */
+    std::vector<AssetMetadata> searchAssets(const std::string& query) const;
+    
 private:
     std::string rootPath;
     std::unordered_map<std::string, AssetMetadata> assetCache;

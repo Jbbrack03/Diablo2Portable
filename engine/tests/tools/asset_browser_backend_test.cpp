@@ -81,5 +81,31 @@ TEST_F(AssetBrowserBackendTest, GetAssetCategories) {
     EXPECT_TRUE(std::find(categories.begin(), categories.end(), "ui") != categories.end());
 }
 
+// Test 4: Search assets - This test MUST fail first
+TEST_F(AssetBrowserBackendTest, SearchAssets) {
+    AssetBrowserBackend backend;
+    backend.initialize(testDir.string());
+    
+    // Search for "walk" should find walk animations
+    auto results = backend.searchAssets("walk");
+    
+    EXPECT_EQ(results.size(), 2);
+    
+    // Should find both barbarian and zombie walk animations
+    bool foundBarbarian = false;
+    bool foundZombie = false;
+    for (const auto& result : results) {
+        if (result.fullPath.find("barbarian") != std::string::npos) {
+            foundBarbarian = true;
+        }
+        if (result.fullPath.find("zombie") != std::string::npos) {
+            foundZombie = true;
+        }
+    }
+    
+    EXPECT_TRUE(foundBarbarian);
+    EXPECT_TRUE(foundZombie);
+}
+
 } // namespace
 } // namespace d2
