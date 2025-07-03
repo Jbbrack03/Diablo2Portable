@@ -28,6 +28,28 @@ struct TimeEstimate {
 };
 
 /**
+ * Error types that can occur during extraction
+ */
+enum class ErrorType {
+    CORRUPTED_MPQ,
+    FILE_NOT_FOUND,
+    INSUFFICIENT_SPACE,
+    PERMISSION_DENIED,
+    UNSUPPORTED_FORMAT,
+    NETWORK_ERROR
+};
+
+/**
+ * Extraction error information
+ */
+struct ExtractionError {
+    ErrorType type = ErrorType::CORRUPTED_MPQ;
+    std::string filename;
+    std::string message;
+    bool isRecoverable = false;
+};
+
+/**
  * ExtractionMonitor - Provides real-time monitoring of asset extraction
  * 
  * Features:
@@ -111,8 +133,27 @@ public:
         return estimate;
     }
     
+    /**
+     * Set callback for error notifications
+     * @param callback Function called when errors occur
+     */
+    void setErrorCallback(std::function<void(const ExtractionError&)> callback) {
+        errorCallback = callback;
+    }
+    
+    /**
+     * Report an extraction error
+     * @param error Error information
+     */
+    void reportError(const ExtractionError& error) {
+        if (errorCallback) {
+            errorCallback(error);
+        }
+    }
+    
 private:
     std::function<void(const ProgressUpdate&)> progressCallback;
+    std::function<void(const ExtractionError&)> errorCallback;
     std::chrono::steady_clock::time_point startTime;
     ProgressUpdate lastUpdate;
 };

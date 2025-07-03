@@ -139,6 +139,17 @@ bool AssetExtractor::extractSprites(const fs::path& d2Path, const fs::path& outp
     for (const auto& mpqFile : mpqFiles) {
         if (!mpqLoader.open(mpqFile.string())) {
             std::cerr << "Failed to open MPQ: " << mpqFile << std::endl;
+            
+            // Report error to monitor
+            if (extractionMonitor) {
+                ExtractionError error;
+                error.type = ErrorType::CORRUPTED_MPQ;
+                error.filename = mpqFile.string();
+                error.message = "Failed to open MPQ file - file may be corrupted";
+                error.isRecoverable = false;
+                extractionMonitor->reportError(error);
+            }
+            
             continue;
         }
         

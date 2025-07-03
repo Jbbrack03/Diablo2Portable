@@ -69,3 +69,28 @@ TEST_F(ExtractionMonitorTest, EstimateTimeRemaining) {
     EXPECT_NEAR(estimate.totalSeconds, 30.0, 5.0); // ~30 seconds remaining
     EXPECT_TRUE(estimate.isReliable);
 }
+
+TEST_F(ExtractionMonitorTest, HandleExtractionErrors) {
+    ExtractionMonitor monitor;
+    std::vector<ExtractionError> errors;
+    
+    monitor.setErrorCallback([&](const ExtractionError& error) {
+        errors.push_back(error);
+    });
+    
+    // Simulate extraction with corrupted file
+    AssetExtractor extractor;
+    extractor.setMonitor(&monitor);
+    
+    // Create a corrupted MPQ file for testing
+    fs::path corruptedMPQ = testD2Path / "corrupted.mpq";
+    std::ofstream file(corruptedMPQ, std::ios::binary);
+    file << "CORRUPT_DATA";
+    file.close();
+    
+    extractor.extractFromD2(testD2Path.string(), outputPath.string());
+    
+    EXPECT_GT(errors.size(), 0);
+    EXPECT_EQ(errors[0].type, ErrorType::CORRUPTED_MPQ);
+    EXPECT_FALSE(errors[0].isRecoverable);
+}
