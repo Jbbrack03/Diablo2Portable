@@ -265,14 +265,14 @@ During Phase 17 implementation, a TDD violation occurred:
 ## Current Implementation Status (January 2025)
 
 ### 📊 **Overall Project Statistics:**
-- **Total Tests**: 598 (567 C++ unit tests + 12 excluded + 19 Android Espresso tests)
-- **Test Success Rate**: 100% (548 passing, 0 failed, 19 skipped)
+- **Total Tests**: 628 (586 C++ unit tests + 12 excluded + 30 Android Espresso tests)
+- **Test Success Rate**: 100% (567 passing, 0 failed, 19 skipped)
 - **Test Coverage**: ✅ 100% achieved - All implementation files now have comprehensive unit tests
 - **Integration Testing**: ✅ Real MPQ file validation with Diablo II game assets in vendor/mpq/
-- **Total Source Files**: 125+ (C++ engine implementation + onboarding)
-- **Lines of Code**: ~25,000+ (core engine + onboarding systems)
-- **Phases Completed**: 20 of 24 ✅ + Phase 21 (80% complete) 🚧
-- **Project Status**: **Phase 21 ONBOARDING 80% COMPLETE** - Core systems done, UI pending
+- **Total Source Files**: 140+ (C++ engine implementation + onboarding + Android UI)
+- **Lines of Code**: ~28,000+ (core engine + onboarding systems + Android UI)
+- **Phases Completed**: 20 of 24 ✅ + Phase 21 (90% complete) 🚧
+- **Project Status**: **Phase 21 ONBOARDING 90% COMPLETE** - Core systems and Android UI done!
 - **Asset Extraction**: ✅ 100% success rate on real Diablo II files (StormLib integration)
 - **Test Suite Health**: ✅ 100% tests passing with real-world validation
 - **Performance**: ✅ 160 FPS with 100 entities (exceeds 60 FPS requirement)
@@ -332,6 +332,13 @@ During Phase 17 implementation, a TDD violation occurred:
 51. **DeviceCompatibility** - Device requirements checking (Android version, OpenGL ES, RAM, controllers)
 52. **DeviceTester** - Automated device testing framework with performance and compatibility reports
 53. **ReleaseBuilder** - Automated release preparation with build scripts and installation guides
+54. **FileSourceDetector** - Auto-detect D2 installations, CD drives, ISOs, Android storage paths
+55. **OnboardingWizard** - File browser, MPQ validation, import progress tracking, error recovery
+56. **FileFormatHandler** - Extract from ISO, installer, and archive formats
+57. **AssetValidator** - Validate asset completeness and detect corruption
+58. **OnboardingActivity** - Android UI for guided asset extraction with welcome, file selection, progress screens
+59. **FileBrowserActivity** - Android file browser for MPQ file selection
+60. **OnboardingHelper** - First-run detection and onboarding state management
 
 ### ✅ **Recently Completed:**
 
@@ -619,26 +626,28 @@ During Phase 17 implementation, a TDD violation occurred:
 ### 🎯 **Current Status (January 2025):**
 - ✅ **Core Engine Complete** - All 20 core implementation phases complete!
 - ✅ **Production-ready engine** - Fully playable game with all core systems implemented
-- 🚀 **Phase 21 In Progress** - Onboarding System Implementation Started!
-- ⏳ **Manual Setup Required** - Users must manually copy MPQ files to vendor/mpq/
+- 🚀 **Phase 21 90% Complete** - Onboarding System Implementation Nearly Done!
+- ✅ **User-Friendly Setup** - Automatic onboarding on first run with file browser!
 - ✅ **Technical Features Complete**:
   - 99.99% asset extraction from Diablo II MPQ files
   - D2-accurate game mechanics (life calculation, hit chance caps, strength damage)
-  - 100% test coverage with 559 total tests (540 C++ + 19 Android)
+  - 100% test coverage with 628 total tests (586 C++ + 30 Android + 12 excluded)
   - Android app fully integrated with controller support
   - Performance: 160 FPS with 100 entities
   - Memory: Using 1275 MB of 1536 MB budget
   - Save/Load system with D2S format support
-- 🚧 **Onboarding Features In Development**:
+- ✅ **Onboarding Features Implemented**:
   - ✅ FileSourceDetector - Auto-detect D2 installations, CDs, ISOs, Android paths
   - ✅ OnboardingWizard - File browser, MPQ validation, progress tracking, error handling
-  - ✅ Progress tracking with callbacks
-  - ✅ Error detection and recovery
-  - ⏳ Android JNI integration
-  - ⏳ Advanced file format support (ISO mounting)
-  - ❌ In-app UI components
-  - ❌ Visual asset browser
-  - ❌ Guided setup wizard UI
+  - ✅ Progress tracking with real-time updates
+  - ✅ Error detection and recovery with retry options
+  - ✅ Android JNI integration complete
+  - ✅ In-app UI components - Welcome, file selection, progress, error screens
+  - ✅ Visual file browser for MPQ selection
+  - ✅ Guided setup wizard with first-run detection
+  - ⏳ Advanced file format support (USB, network sources)
+  - ⏳ UI polish and styling
+  - ⏳ Help documentation and tutorials
 
 ### 🚀 **Next Steps - Phase 21: Onboarding System Implementation**
 To make the game accessible to non-technical users, we need to implement:
