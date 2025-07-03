@@ -4,22 +4,29 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:padding="16dp"
-    android:gravity="center">
+    android:gravity="center"
+    android:background="@color/diablo_black">
 
     <TextView
         android:id="@+id/welcome_title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Welcome to Diablo II Portable"
-        android:textSize="24sp"
-        android:textStyle="bold"
+        style="@style/DiabloTitle"
         android:layout_marginBottom="32dp" />
+        
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="The Lord of Terror awaits..."
+        style="@style/DiabloSubtitle"
+        android:layout_marginBottom="48dp" />
 
     <Button
         android:id="@+id/continue_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Continue"
-        android:padding="16dp" />
+        android:text="Enter Sanctuary"
+        style="@style/DiabloButton" />
 
 </LinearLayout>

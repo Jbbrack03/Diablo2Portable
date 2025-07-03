@@ -4,31 +4,40 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:padding="16dp"
-    android:gravity="center">
+    android:gravity="center"
+    android:background="@color/diablo_black">
 
     <TextView
-        android:id="@+id/progress_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Extracting assets..."
-        android:textSize="18sp"
-        android:layout_marginBottom="16dp" />
+        android:text="Summoning the Horadrim..."
+        style="@style/DiabloTitle"
+        android:layout_marginBottom="32dp" />
 
     <ProgressBar
         android:id="@+id/extraction_progress"
         style="?android:attr/progressBarStyleHorizontal"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:progressDrawable="@drawable/diablo_progress"
         android:max="100"
         android:progress="0"
         android:layout_marginBottom="16dp" />
+
+    <TextView
+        android:id="@+id/progress_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Extracting ancient artifacts..."
+        style="@style/DiabloText"
+        android:layout_marginBottom="8dp" />
 
     <TextView
         android:id="@+id/current_file"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text=""
-        android:textSize="14sp"
-        android:textColor="@android:color/darker_gray" />
+        style="@style/DiabloSubtitle"
+        android:textSize="14sp" />
 
 </LinearLayout>

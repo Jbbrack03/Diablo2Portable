@@ -3,43 +3,52 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:padding="16dp">
+    android:padding="16dp"
+    android:background="@color/diablo_black">
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Select Asset Source"
-        android:textSize="20sp"
-        android:textStyle="bold"
-        android:layout_marginBottom="24dp" />
+        android:text="Choose Your Path"
+        style="@style/DiabloTitle"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginBottom="16dp" />
+        
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Where are your Diablo II game files?"
+        style="@style/DiabloText"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginBottom="32dp" />
 
     <Button
         android:id="@+id/option_local_files"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Local Files"
+        android:text="Local Storage"
+        style="@style/DiabloButton"
+        android:layout_marginBottom="16dp"
         android:drawableLeft="@android:drawable/ic_menu_save"
-        android:gravity="start|center_vertical"
-        android:padding="16dp"
-        android:layout_marginBottom="8dp" />
+        android:drawablePadding="8dp" />
 
     <Button
         android:id="@+id/option_usb_storage"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="USB Storage"
-        android:drawableLeft="@android:drawable/ic_menu_preferences"
-        android:gravity="start|center_vertical"
-        android:padding="16dp"
-        android:layout_marginBottom="8dp" />
+        style="@style/DiabloButton"
+        android:layout_marginBottom="16dp"
+        android:drawableLeft="@android:drawable/ic_menu_save"
+        android:drawablePadding="8dp" />
 
     <Button
         android:id="@+id/option_network_location"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Network Location"
+        android:text="Network Share"
+        style="@style/DiabloButton"
         android:drawableLeft="@android:drawable/ic_menu_share"
-        android:gravity="start|center_vertical"
-        android:padding="16dp" />
+        android:drawablePadding="8dp" />
 
 </LinearLayout>
