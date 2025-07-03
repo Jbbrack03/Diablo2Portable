@@ -42,4 +42,10 @@ public class OnboardingManager {
      * @return Array of missing file names
      */
     public static native String[] getMissingFiles();
+    
+    /**
+     * Detect available USB storage devices
+     * @return Array of USB device info strings in format "path|label|totalSpace|freeSpace"
+     */
+    public static native String[] detectUSBStorage();
 }

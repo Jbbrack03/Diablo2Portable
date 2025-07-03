@@ -102,4 +102,28 @@ jobjectArray Java_com_diablo2portable_OnboardingManager_getMissingFiles(
     return &dummy;
 }
 
+// Detect USB storage devices
+jobjectArray Java_com_diablo2portable_OnboardingManager_detectUSBStorage(
+    JNIEnv* env, jobject obj) {
+    
+    d2::FileSourceDetector detector;
+    auto usbDevices = detector.detectUSBStorage();
+    
+    // For testing, return array of device info strings
+    static std::vector<std::string> deviceStrings;
+    deviceStrings.clear();
+    
+    for (const auto& device : usbDevices) {
+        // Format: "path|label|totalSpace|freeSpace"
+        std::string deviceInfo = device.getPath() + "|" + 
+                                device.getLabel() + "|" +
+                                std::to_string(device.getTotalSpace()) + "|" +
+                                std::to_string(device.getFreeSpace());
+        deviceStrings.push_back(deviceInfo);
+    }
+    
+    // Return pointer to vector for testing
+    return &deviceStrings;
+}
+
 } // extern "C"

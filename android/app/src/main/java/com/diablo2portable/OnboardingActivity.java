@@ -47,7 +47,8 @@ public class OnboardingActivity extends Activity {
         Button usbStorage = findViewById(R.id.option_usb_storage);
         if (usbStorage != null) {
             usbStorage.setOnClickListener(v -> {
-                Toast.makeText(this, "USB storage not yet implemented", Toast.LENGTH_SHORT).show();
+                // Show USB device selection screen
+                showUSBDevices();
             });
         }
         
@@ -56,6 +57,72 @@ public class OnboardingActivity extends Activity {
             networkLocation.setOnClickListener(v -> {
                 Toast.makeText(this, "Network location not yet implemented", Toast.LENGTH_SHORT).show();
             });
+        }
+    }
+    
+    private void showUSBDevices() {
+        // Show USB devices screen
+        setContentView(R.layout.fragment_usb_devices);
+        
+        LinearLayout deviceList = findViewById(R.id.usb_device_list);
+        TextView noDevicesText = findViewById(R.id.no_devices_text);
+        Button refreshButton = findViewById(R.id.refresh_button);
+        
+        if (refreshButton != null) {
+            refreshButton.setOnClickListener(v -> refreshUSBDevices());
+        }
+        
+        // Refresh devices on screen load
+        refreshUSBDevices();
+    }
+    
+    private void refreshUSBDevices() {
+        LinearLayout deviceList = findViewById(R.id.usb_device_list);
+        TextView noDevicesText = findViewById(R.id.no_devices_text);
+        
+        if (deviceList == null || noDevicesText == null) return;
+        
+        // Clear existing device list
+        deviceList.removeAllViews();
+        
+        // Get USB devices from native code
+        String[] usbDevices = OnboardingManager.detectUSBStorage();
+        
+        if (usbDevices == null || usbDevices.length == 0) {
+            // No devices found
+            noDevicesText.setVisibility(View.VISIBLE);
+            deviceList.setVisibility(View.GONE);
+        } else {
+            // Show device list
+            noDevicesText.setVisibility(View.GONE);
+            deviceList.setVisibility(View.VISIBLE);
+            
+            // Add each USB device as a clickable item
+            for (String deviceInfo : usbDevices) {
+                // Device info format: "path|label|totalSpace|freeSpace"
+                String[] parts = deviceInfo.split("\\|");
+                if (parts.length >= 2) {
+                    String path = parts[0];
+                    String label = parts[1];
+                    
+                    // Create device button
+                    Button deviceButton = new Button(this);
+                    deviceButton.setText(label + "\n" + path);
+                    deviceButton.setLayoutParams(new LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.MATCH_PARENT,
+                        LinearLayout.LayoutParams.WRAP_CONTENT
+                    ));
+                    deviceButton.setPadding(16, 16, 16, 16);
+                    
+                    deviceButton.setOnClickListener(v -> {
+                        // User selected this USB device
+                        setSelectedSource(path);
+                        startAssetExtraction();
+                    });
+                    
+                    deviceList.addView(deviceButton);
+                }
+            }
         }
     }
     
