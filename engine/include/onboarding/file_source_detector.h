@@ -13,6 +13,27 @@ enum class D2Version {
     UNKNOWN
 };
 
+enum class NetworkType {
+    SMB,
+    FTP,
+    HTTP
+};
+
+struct NetworkLocation {
+    NetworkType type = NetworkType::SMB;
+    std::string host;
+    std::string share;
+    std::string username;
+    std::string password;
+    int port = 0; // 0 means default port
+};
+
+struct NetworkConnectionResult {
+    bool attempted = false;
+    bool connected = false;
+    std::string error;
+};
+
 class D2Installation {
 public:
     D2Installation();
@@ -88,6 +109,10 @@ public:
     std::vector<CDDrive> detectCDDrives();
     ISOValidation validateISOFile(const std::string& isoPath);
     std::vector<USBDevice> detectUSBStorage();
+    
+    // Network location support
+    NetworkConnectionResult connectToNetworkLocation(const NetworkLocation& location);
+    std::vector<D2Installation> scanNetworkPath(const NetworkLocation& location, const std::string& path);
     
     // Platform-specific path helpers
     std::vector<std::string> getAndroidSearchPaths() const;

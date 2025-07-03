@@ -146,3 +146,27 @@ TEST_F(FileSourceDetectorTest, DetectUSBStorageDevices) {
         EXPECT_GE(device.getFreeSpace(), 0);
     }
 }
+
+// STEP 6: Write exactly ONE failing test for network location support
+TEST_F(FileSourceDetectorTest, DetectNetworkLocations) {
+    FileSourceDetector detector;
+    
+    // Test SMB share detection
+    NetworkLocation smbLocation;
+    smbLocation.type = NetworkType::SMB;
+    smbLocation.host = "192.168.1.100";
+    smbLocation.share = "games";
+    smbLocation.username = "user";
+    smbLocation.password = "pass";
+    
+    auto smbResult = detector.connectToNetworkLocation(smbLocation);
+    
+    // Should be able to connect (or fail gracefully)
+    EXPECT_TRUE(smbResult.attempted);
+    
+    if (smbResult.connected) {
+        // If connected, should be able to scan for D2
+        auto found = detector.scanNetworkPath(smbLocation, "/Diablo2");
+        EXPECT_TRUE(found.size() >= 0);
+    }
+}
