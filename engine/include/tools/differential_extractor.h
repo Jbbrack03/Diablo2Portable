@@ -21,6 +21,17 @@ enum class ChangeType {
 };
 
 /**
+ * Result of an incremental update operation
+ */
+struct IncrementalUpdateResult {
+    bool success = false;
+    size_t filesUpdated = 0;
+    double extractionTime = 0.0;  // in seconds
+    double estimatedFullExtractionTime = 0.0;  // estimated time for full extraction
+    std::string errorMessage;
+};
+
+/**
  * Information about file changes between versions
  */
 struct FileChanges {
@@ -102,6 +113,17 @@ public:
      */
     FileChanges detectChangesInExtractedAssets(const std::string& extractedPath,
                                               const AssetManifest& baseManifest);
+    
+    /**
+     * Perform incremental update - only extract changed files
+     * @param sourcePath Path to source assets
+     * @param destPath Path where updated assets will be placed
+     * @param baseManifest Previous extraction manifest
+     * @return Update result information
+     */
+    IncrementalUpdateResult incrementalUpdate(const std::string& sourcePath,
+                                            const std::string& destPath,
+                                            const AssetManifest& baseManifest);
 
 private:
     // Helper methods will be added as needed

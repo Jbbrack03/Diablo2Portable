@@ -64,3 +64,46 @@ TEST_F(DifferentialExtractorTest, DetectChangedFiles) {
     EXPECT_TRUE(changes.hasFile("d2data.mpq"));
     EXPECT_EQ(changes.changeType("d2data.mpq"), ChangeType::MODIFIED);
 }
+
+TEST_F(DifferentialExtractorTest, IncrementalUpdate) {
+    DifferentialExtractor extractor;
+    
+    // Create base extraction with some test files
+    fs::create_directories(outputPath / "sprites");
+    fs::create_directories(outputPath / "sounds");
+    
+    // Create initial files
+    std::ofstream(outputPath / "sprites" / "test1.dc6") << "original_content_1";
+    std::ofstream(outputPath / "sprites" / "test2.dc6") << "original_content_2";
+    std::ofstream(outputPath / "sounds" / "test.wav") << "original_sound";
+    
+    // Generate base manifest
+    auto baseManifest = extractor.generateManifest(outputPath.string());
+    
+    // Modify one file
+    std::ofstream(outputPath / "sprites" / "test1.dc6") << "modified_content_1";
+    
+    // Add a new file
+    std::ofstream(outputPath / "sprites" / "test3.dc6") << "new_content";
+    
+    // Perform incremental update
+    auto result = extractor.incrementalUpdate(
+        outputPath.string(),  // Source path (where modified files are)
+        outputPath.string() + "_updated",  // Destination path
+        *baseManifest
+    );
+    
+    EXPECT_TRUE(result.success);
+    EXPECT_EQ(result.filesUpdated, 2); // 1 modified + 1 new
+    EXPECT_GT(result.extractionTime, 0.0); // Should have taken some time
+    EXPECT_GT(result.estimatedFullExtractionTime, result.extractionTime); // Full extraction should take longer
+    
+    // Verify only changed files were processed
+    fs::path updatedPath = outputPath.string() + "_updated";
+    EXPECT_TRUE(fs::exists(updatedPath / "sprites" / "test1.dc6"));
+    EXPECT_TRUE(fs::exists(updatedPath / "sprites" / "test3.dc6"));
+    
+    // Unchanged file should also exist (copied from base)
+    EXPECT_TRUE(fs::exists(updatedPath / "sprites" / "test2.dc6"));
+    EXPECT_TRUE(fs::exists(updatedPath / "sounds" / "test.wav"));
+}
