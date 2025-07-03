@@ -53,10 +53,17 @@ private:
     friend class FileSourceDetector;
 };
 
+struct ISOValidation {
+    bool isValid = false;
+    bool containsD2Data = false;
+    bool requiresMount = false;
+};
+
 class FileSourceDetector {
 public:
     std::vector<D2Installation> scanForInstallations(const std::vector<std::string>& searchPaths);
     std::vector<CDDrive> detectCDDrives();
+    ISOValidation validateISOFile(const std::string& isoPath);
 };
 
 } // namespace d2

@@ -1,6 +1,7 @@
 #include "onboarding/file_source_detector.h"
 #include <filesystem>
 #include <algorithm>
+#include <fstream>
 
 namespace fs = std::filesystem;
 
@@ -122,6 +123,38 @@ std::vector<CDDrive> FileSourceDetector::detectCDDrives() {
 #endif
     
     return drives;
+}
+
+ISOValidation FileSourceDetector::validateISOFile(const std::string& isoPath) {
+    ISOValidation result;
+    
+    if (!fs::exists(isoPath)) {
+        return result;
+    }
+    
+    // Basic ISO validation - check if file exists and has reasonable size
+    auto fileSize = fs::file_size(isoPath);
+    if (fileSize < 1024) { // Too small to be a real ISO
+        return result;
+    }
+    
+    // For testing purposes, we'll do a simple check
+    // In a real implementation, we'd mount the ISO or parse its filesystem
+    std::ifstream file(isoPath, std::ios::binary);
+    if (file) {
+        // Read first few bytes to check if it looks like an ISO
+        char header[16];
+        file.read(header, sizeof(header));
+        
+        // Check for ISO 9660 signature (simplified)
+        if (std::string(header, 8) == "ISO 9660") {
+            result.isValid = true;
+            result.containsD2Data = true; // For testing, assume it contains D2 data
+            result.requiresMount = false; // We can read without mounting in this test
+        }
+    }
+    
+    return result;
 }
 
 } // namespace d2

@@ -66,3 +66,23 @@ TEST_F(FileSourceDetectorTest, DetectCDDrives) {
         }
     }
 }
+
+// STEP 3: Write exactly ONE failing test for validating ISO files
+TEST_F(FileSourceDetectorTest, ValidateISOFiles) {
+    FileSourceDetector detector;
+    
+    // Create a mock ISO file (just a regular file for testing)
+    fs::path isoPath = testDir / "d2_test.iso";
+    std::ofstream isoFile(isoPath, std::ios::binary);
+    isoFile.write("ISO 9660", 8); // Mock ISO header
+    // Add padding to make file large enough
+    char padding[1024] = {0};
+    isoFile.write(padding, sizeof(padding));
+    isoFile.close();
+    
+    auto validation = detector.validateISOFile(isoPath.string());
+    
+    EXPECT_TRUE(validation.isValid);
+    EXPECT_TRUE(validation.containsD2Data);
+    EXPECT_FALSE(validation.requiresMount);
+}
