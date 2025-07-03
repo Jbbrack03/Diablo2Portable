@@ -94,6 +94,7 @@ add_library(d2engine STATIC
     src/tools/asset_manifest.cpp
     src/tools/apk_packager.cpp
     src/onboarding/file_source_detector.cpp
+    src/onboarding/onboarding_wizard.cpp
 )
 
 # Include directories

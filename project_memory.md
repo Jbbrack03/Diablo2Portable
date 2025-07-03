@@ -1,16 +1,23 @@
 # Diablo II Android Port - Project Memory
 
 ## Current Status (January 2025)
-- Project: 100% complete ✅ - All 20 phases complete!
-- Total Tests: 535 C++ unit tests running (+ 12 excluded AndroidGamepadTest + 19 Android Espresso tests)
-  - 523 C++ tests passing, 0 failing, 12 skipped
+- Project: Phase 21 in progress - Implementing Onboarding System
+- Total Tests: 538 C++ unit tests running (+ 12 excluded AndroidGamepadTest + 19 Android Espresso tests)
+  - 526 C++ tests passing, 0 failing, 12 skipped
+  - Added 3 new tests for FileSourceDetector (onboarding system)
   - All test failures fixed (MPQ path issues resolved)
   - Android tests: 19 Espresso tests (separate test suite)
-  - ✅ COMPLETED: Added 18 tests this session (16 performance + 2 technical debt)
 - Location: /Users/jbbrack03/Diablo2Portable
-- GitHub: Ready to sync with fixes
+- GitHub: Ready to sync with onboarding implementation
 
 ## Recent Updates (January 2025)
+- 🚀 STARTED PHASE 21: Onboarding System Implementation
+  - ✅ Created FileSourceDetector class with 3 features:
+    - ✅ Detect D2 installations in directories (scanForInstallations)
+    - ✅ Detect CD/DVD drives with D2 discs (detectCDDrives)
+    - ✅ Validate ISO files (validateISOFile)
+  - Following strict TDD with RED-GREEN-COMMIT cycles
+  - Next: In-App Setup Wizard for Android
 - ✅ RESOLVED HIGH PRIORITY TECHNICAL DEBT: Fixed all high-priority issues
   - ✅ Removed debug output from pkware_explode.cpp (1 test added)
   - ✅ Verified checksum calculation in APKPackager works correctly
