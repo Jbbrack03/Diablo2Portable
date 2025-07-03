@@ -2,12 +2,13 @@
 
 ## Current Status (January 2025)
 - Project: Phase 22 IN PROGRESS - Enhanced Asset Pipeline implementation
-- Total Tests: 577 C++ unit tests + 12 excluded AndroidGamepadTest + 32 Android Espresso tests = 621 total
-  - C++ tests: 577 unit tests (561 passing, 16 failing related to MPQ paths)
-  - Phase 22 Added Tests (8 so far):
+- Total Tests: 581 C++ unit tests + 12 excluded AndroidGamepadTest + 32 Android Espresso tests = 625 total
+  - C++ tests: 581 unit tests (565 passing, 16 failing related to MPQ paths)
+  - Phase 22 Added Tests (12 so far):
     - 3 tests for ExtractionMonitor (progress tracking, time estimation, error handling)
     - 3 tests for DifferentialExtractor (file change detection, proper asset detection, incremental update)
-    - 2 more tests pending (version compatibility, integration)
+    - 3 tests for AssetCache (LRU eviction, memory limits, thread safety)
+    - 4 tests for MultiFormatProcessor (DC6 to PNG, palette extraction, audio extraction, DC6 to PVR)
   - Phase 21 Added Tests Summary:
     - C++ tests added (6 total):
       - 2 tests for USB storage detection 
@@ -39,6 +40,18 @@
     - File change detection with proper checksums
     - Incremental update functionality
     - Proper asset-level change detection (not just MPQ files)
+  - ✅ Task 22.3 COMPLETE: Intelligent Asset Caching (3 tests)
+    - AssetCache class with LRU (Least Recently Used) eviction policy
+    - Memory-limited cache with automatic eviction when full
+    - Thread-safe implementation with mutex protection
+  - 🚧 Task 22.4 IN PROGRESS: Multi-Format Asset Processing (4 tests so far)
+    - ✅ DC6 to PNG conversion implemented
+    - ✅ Palette extraction from D2 palette files
+    - ✅ Audio file extraction (WAV format)
+    - ✅ DC6 to PVR conversion for mobile GPUs
+    - 🔲 Data table extraction (Excel files) - pending
+    - 🔲 String table processing - pending
+    - 🔲 Font extraction and conversion - pending
 - ✅ PHASE 21 COMPLETE: Onboarding System Implementation FINISHED!
   - ✅ Phase 21 Session Achievements:
     - ✅ USB Storage Support: Added detection and UI for USB devices
