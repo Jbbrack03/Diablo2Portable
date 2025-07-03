@@ -96,6 +96,7 @@ add_library(d2engine STATIC
     src/onboarding/file_source_detector.cpp
     src/onboarding/onboarding_wizard.cpp
     src/onboarding/onboarding_jni.cpp
+    src/onboarding/file_format_handler.cpp
 )
 
 # Include directories
