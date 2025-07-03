@@ -15,6 +15,7 @@ import static androidx.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static androidx.test.espresso.matcher.ViewMatchers.withId;
 import static androidx.test.espresso.matcher.ViewMatchers.withText;
 import static org.hamcrest.Matchers.containsString;
+import static org.junit.Assert.assertTrue;
 
 @RunWith(AndroidJUnit4.class)
 @LargeTest
@@ -50,5 +51,24 @@ public class OnboardingActivityTest {
             .check(matches(isDisplayed()));
         onView(withId(R.id.option_network_location))
             .check(matches(isDisplayed()));
+    }
+    
+    @Test
+    public void testAssetExtractionProgress() {
+        ActivityScenario<OnboardingActivity> scenario = 
+            ActivityScenario.launch(OnboardingActivity.class);
+        
+        scenario.onActivity(activity -> {
+            // Simulate file selection and start extraction
+            activity.setSelectedSource("/storage/emulated/0/d2files");
+            activity.startAssetExtraction();
+        });
+        
+        // Progress should be displayed
+        onView(withId(R.id.extraction_progress))
+            .check(matches(isDisplayed()));
+        
+        onView(withId(R.id.progress_text))
+            .check(matches(withText(containsString("Extracting"))));
     }
 }
