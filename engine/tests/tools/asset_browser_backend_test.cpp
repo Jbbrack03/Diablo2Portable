@@ -1,0 +1,54 @@
+#include <gtest/gtest.h>
+#include "tools/asset_browser_backend.h"
+#include <filesystem>
+#include <fstream>
+#include <vector>
+
+namespace d2 {
+namespace {
+
+class AssetBrowserBackendTest : public ::testing::Test {
+protected:
+    void SetUp() override {
+        // Create test directory structure
+        testDir = std::filesystem::temp_directory_path() / "asset_browser_test";
+        std::filesystem::create_directories(testDir / "characters" / "barbarian");
+        std::filesystem::create_directories(testDir / "monsters" / "zombie");
+        std::filesystem::create_directories(testDir / "items" / "weapons");
+        std::filesystem::create_directories(testDir / "ui" / "panels");
+        
+        // Create dummy test files
+        createTestFile(testDir / "characters" / "barbarian" / "walk.dc6", 1024);
+        createTestFile(testDir / "monsters" / "zombie" / "walk.dc6", 2048);
+        createTestFile(testDir / "items" / "weapons" / "sword.dc6", 512);
+        createTestFile(testDir / "ui" / "panels" / "inventory.dc6", 4096);
+    }
+    
+    void TearDown() override {
+        std::filesystem::remove_all(testDir);
+    }
+    
+    void createTestFile(const std::filesystem::path& path, size_t size) {
+        std::ofstream file(path, std::ios::binary);
+        std::vector<char> data(size, 'A');
+        file.write(data.data(), data.size());
+    }
+    
+    std::filesystem::path testDir;
+};
+
+// Test 1: Load asset metadata - This test MUST fail first
+TEST_F(AssetBrowserBackendTest, LoadAssetMetadata) {
+    AssetBrowserBackend backend;
+    backend.initialize(testDir.string());
+    
+    auto metadata = backend.getAssetMetadata("ui/panels/inventory.dc6");
+    
+    EXPECT_FALSE(metadata.filename.empty());
+    EXPECT_GT(metadata.fileSize, 0);
+    EXPECT_GT(metadata.frameCount, 0);
+    EXPECT_FALSE(metadata.category.empty());
+}
+
+} // namespace
+} // namespace d2

@@ -98,6 +98,7 @@ add_library(d2engine STATIC
     src/tools/texture_atlas_generator.cpp
     src/tools/asset_manifest.cpp
     src/tools/apk_packager.cpp
+    src/tools/asset_browser_backend.cpp
     src/onboarding/file_source_detector.cpp
     src/onboarding/onboarding_wizard.cpp
     src/onboarding/onboarding_jni.cpp

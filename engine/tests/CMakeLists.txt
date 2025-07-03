@@ -117,6 +117,7 @@ set(TEST_SOURCES
     tools/asset_cache_test.cpp
     tools/multi_format_processor_test.cpp
     tools/asset_verifier_test.cpp
+    tools/asset_browser_backend_test.cpp
     device/test_device_compatibility.cpp
     device/test_device_tester.cpp
     release/test_release_builder.cpp
