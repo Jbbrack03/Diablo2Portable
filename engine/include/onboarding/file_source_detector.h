@@ -3,6 +3,7 @@
 #include <vector>
 #include <string>
 #include <memory>
+#include <cstdint>
 
 namespace d2 {
 
@@ -59,11 +60,34 @@ struct ISOValidation {
     bool requiresMount = false;
 };
 
+class USBDevice {
+public:
+    USBDevice();
+    ~USBDevice();
+    USBDevice(USBDevice&&);
+    USBDevice& operator=(USBDevice&&);
+    
+    // Delete copy operations
+    USBDevice(const USBDevice&) = delete;
+    USBDevice& operator=(const USBDevice&) = delete;
+    
+    std::string getPath() const;
+    std::string getLabel() const;
+    uint64_t getTotalSpace() const;
+    uint64_t getFreeSpace() const;
+    
+private:
+    class Impl;
+    std::unique_ptr<Impl> pImpl;
+    friend class FileSourceDetector;
+};
+
 class FileSourceDetector {
 public:
     std::vector<D2Installation> scanForInstallations(const std::vector<std::string>& searchPaths);
     std::vector<CDDrive> detectCDDrives();
     ISOValidation validateISOFile(const std::string& isoPath);
+    std::vector<USBDevice> detectUSBStorage();
     
     // Platform-specific path helpers
     std::vector<std::string> getAndroidSearchPaths() const;

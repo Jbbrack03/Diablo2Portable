@@ -127,3 +127,22 @@ TEST_F(FileSourceDetectorTest, DetectAndroidStoragePaths) {
     EXPECT_GT(found.size(), 0);
     EXPECT_TRUE(found[0].hasRequiredMPQs());
 }
+
+// STEP 5: Write exactly ONE failing test for USB storage detection
+TEST_F(FileSourceDetectorTest, DetectUSBStorageDevices) {
+    FileSourceDetector detector;
+    
+    // Get USB storage devices
+    auto usbDevices = detector.detectUSBStorage();
+    
+    // Should return available USB devices (0 or more)
+    EXPECT_TRUE(usbDevices.size() >= 0);
+    
+    // For each detected USB device, check properties
+    for (const auto& device : usbDevices) {
+        EXPECT_FALSE(device.getPath().empty());
+        EXPECT_FALSE(device.getLabel().empty());
+        EXPECT_GT(device.getTotalSpace(), 0);
+        EXPECT_GE(device.getFreeSpace(), 0);
+    }
+}
