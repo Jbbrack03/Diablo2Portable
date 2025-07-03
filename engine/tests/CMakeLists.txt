@@ -115,6 +115,7 @@ set(TEST_SOURCES
     tools/differential_extractor_test.cpp
     tools/differential_extractor_proper_test.cpp
     tools/asset_cache_test.cpp
+    tools/multi_format_processor_test.cpp
     device/test_device_compatibility.cpp
     device/test_device_tester.cpp
     release/test_release_builder.cpp
