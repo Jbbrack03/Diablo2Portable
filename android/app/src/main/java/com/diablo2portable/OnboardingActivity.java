@@ -10,6 +10,8 @@ import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.LinearLayout;
+import android.widget.ImageView;
 
 public class OnboardingActivity extends Activity {
     private static final int REQUEST_SELECT_MPQ = 1;
@@ -124,8 +126,13 @@ public class OnboardingActivity extends Activity {
                     startActivity(intent);
                     finish();
                 } else {
-                    Toast.makeText(OnboardingActivity.this, 
-                        "Extraction failed!", Toast.LENGTH_LONG).show();
+                    // Check for missing files
+                    String[] missingFiles = OnboardingManager.getMissingFiles();
+                    if (missingFiles != null && missingFiles.length > 0) {
+                        showMissingFilesError(missingFiles);
+                    } else {
+                        simulateExtractionError(new Exception("Asset extraction failed"));
+                    }
                 }
             }
         }.execute();
@@ -146,5 +153,77 @@ public class OnboardingActivity extends Activity {
             }
         };
         handler.postDelayed(progressUpdater, 100);
+    }
+    
+    /**
+     * Show extraction error UI
+     */
+    public void simulateExtractionError(Exception error) {
+        runOnUiThread(() -> {
+            setContentView(R.layout.fragment_extraction_error);
+            
+            TextView errorMessage = findViewById(R.id.error_message);
+            TextView errorDetails = findViewById(R.id.error_details);
+            
+            if (errorMessage != null) {
+                errorMessage.setText("Extraction failed");
+            }
+            
+            if (errorDetails != null && error != null) {
+                errorDetails.setText(error.getMessage());
+            }
+            
+            setupErrorButtons();
+        });
+    }
+    
+    /**
+     * Show missing files error
+     */
+    public void showMissingFilesError(String[] missingFiles) {
+        runOnUiThread(() -> {
+            setContentView(R.layout.fragment_extraction_error);
+            
+            TextView errorMessage = findViewById(R.id.error_message);
+            LinearLayout missingFilesList = findViewById(R.id.missing_files_list);
+            
+            if (errorMessage != null) {
+                errorMessage.setText("Missing required files");
+            }
+            
+            if (missingFilesList != null && missingFiles != null) {
+                missingFilesList.setVisibility(View.VISIBLE);
+                missingFilesList.removeAllViews();
+                
+                for (String file : missingFiles) {
+                    TextView fileText = new TextView(this);
+                    fileText.setText("• " + file);
+                    fileText.setPadding(16, 4, 16, 4);
+                    missingFilesList.addView(fileText);
+                }
+            }
+            
+            setupErrorButtons();
+        });
+    }
+    
+    private void setupErrorButtons() {
+        Button retryButton = findViewById(R.id.retry_button);
+        if (retryButton != null) {
+            retryButton.setOnClickListener(v -> {
+                // Go back to file source selection
+                setContentView(R.layout.fragment_file_source);
+                setupFileSourceButtons();
+            });
+        }
+        
+        Button helpButton = findViewById(R.id.help_button);
+        if (helpButton != null) {
+            helpButton.setOnClickListener(v -> {
+                Toast.makeText(this, 
+                    "Please ensure you have all Diablo II MPQ files in the selected directory", 
+                    Toast.LENGTH_LONG).show();
+            });
+        }
     }
 }
