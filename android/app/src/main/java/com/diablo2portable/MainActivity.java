@@ -1,5 +1,6 @@
 package com.diablo2portable;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.InputDevice;
 import android.view.KeyEvent;
@@ -13,6 +14,16 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        
+        // Check if onboarding is needed
+        OnboardingHelper onboardingHelper = new OnboardingHelper(this);
+        if (onboardingHelper.isFirstRun()) {
+            // Start onboarding
+            Intent intent = new Intent(this, OnboardingActivity.class);
+            startActivity(intent);
+            finish();
+            return;
+        }
         
         // Initialize native engine
         nativeEngine = new NativeEngine();

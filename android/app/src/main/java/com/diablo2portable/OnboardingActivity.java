@@ -113,7 +113,15 @@ public class OnboardingActivity extends Activity {
                 if (success) {
                     Toast.makeText(OnboardingActivity.this, 
                         "Extraction complete!", Toast.LENGTH_SHORT).show();
-                    // TODO: Navigate to main game
+                    
+                    // Mark onboarding as complete
+                    OnboardingHelper helper = new OnboardingHelper(OnboardingActivity.this);
+                    helper.setOnboardingComplete();
+                    helper.setAssetPath(getFilesDir().getAbsolutePath() + "/assets");
+                    
+                    // Start main game
+                    Intent intent = new Intent(OnboardingActivity.this, MainActivity.class);
+                    startActivity(intent);
                     finish();
                 } else {
                     Toast.makeText(OnboardingActivity.this, 
