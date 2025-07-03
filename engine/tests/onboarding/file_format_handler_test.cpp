@@ -67,3 +67,26 @@ TEST_F(FileFormatHandlerTest, ExtractFromISO) {
     EXPECT_GT(result.filesExtracted, 0);
     // Note: We can't check for d2data.mpq in outputDir yet as extraction is not implemented
 }
+
+// STEP 2: Write exactly ONE failing test for handling Battle.net installer
+TEST_F(FileFormatHandlerTest, HandleBattleNetInstaller) {
+    FileFormatHandler handler;
+    
+    fs::path installerPath = testDir / "D2_installer.exe";
+    fs::path outputDir = testDir / "installer_extract";
+    
+    // Create a mock installer file (PE executable header)
+    std::ofstream file(installerPath, std::ios::binary);
+    // PE header signature
+    char mz_header[] = {'M', 'Z'};
+    file.write(mz_header, sizeof(mz_header));
+    // Add some dummy data
+    std::vector<char> data(1024, 0);
+    file.write(data.data(), data.size());
+    file.close();
+    
+    auto result = handler.extractFromInstaller(installerPath.string(), outputDir.string());
+    
+    EXPECT_TRUE(result.success);
+    EXPECT_TRUE(result.foundMPQFiles);
+}
