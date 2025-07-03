@@ -1,6 +1,7 @@
 #include "tools/asset_browser_backend.h"
 #include <filesystem>
 #include <algorithm>
+#include <set>
 
 namespace d2 {
 
@@ -54,6 +55,20 @@ Thumbnail AssetBrowserBackend::generateThumbnail(const std::string& relativePath
     }
     
     return thumbnail;
+}
+
+std::vector<std::string> AssetBrowserBackend::getAssetCategories() const {
+    std::set<std::string> categories;
+    
+    if (std::filesystem::exists(rootPath)) {
+        for (const auto& entry : std::filesystem::directory_iterator(rootPath)) {
+            if (entry.is_directory()) {
+                categories.insert(entry.path().filename().string());
+            }
+        }
+    }
+    
+    return std::vector<std::string>(categories.begin(), categories.end());
 }
 
 } // namespace d2

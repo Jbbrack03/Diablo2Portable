@@ -3,6 +3,7 @@
 #include <filesystem>
 #include <fstream>
 #include <vector>
+#include <algorithm>
 
 namespace d2 {
 namespace {
@@ -64,6 +65,20 @@ TEST_F(AssetBrowserBackendTest, GenerateThumbnails) {
     EXPECT_EQ(thumbnail.width, 128);
     EXPECT_EQ(thumbnail.height, 128);
     EXPECT_TRUE(thumbnail.data.size() > 0);
+}
+
+// Test 3: Get asset categories - This test MUST fail first
+TEST_F(AssetBrowserBackendTest, GetAssetCategories) {
+    AssetBrowserBackend backend;
+    backend.initialize(testDir.string());
+    
+    auto categories = backend.getAssetCategories();
+    
+    EXPECT_EQ(categories.size(), 4);
+    EXPECT_TRUE(std::find(categories.begin(), categories.end(), "characters") != categories.end());
+    EXPECT_TRUE(std::find(categories.begin(), categories.end(), "monsters") != categories.end());
+    EXPECT_TRUE(std::find(categories.begin(), categories.end(), "items") != categories.end());
+    EXPECT_TRUE(std::find(categories.begin(), categories.end(), "ui") != categories.end());
 }
 
 } // namespace

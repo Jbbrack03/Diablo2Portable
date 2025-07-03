@@ -74,6 +74,12 @@ public:
      */
     Thumbnail generateThumbnail(const std::string& relativePath, ThumbnailSize size) const;
     
+    /**
+     * Get list of available asset categories
+     * @return Vector of category names found in the asset directory
+     */
+    std::vector<std::string> getAssetCategories() const;
+    
 private:
     std::string rootPath;
     std::unordered_map<std::string, AssetMetadata> assetCache;
