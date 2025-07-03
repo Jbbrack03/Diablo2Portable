@@ -2,27 +2,31 @@
 
 ## Current Status (January 2025)
 - Project: Phase 21 in progress - Implementing Onboarding System
-- Total Tests: 540 C++ unit tests running (+ 12 excluded AndroidGamepadTest + 19 Android Espresso tests)
-  - 528 C++ tests passing, 0 failing, 12 skipped
-  - Added 5 new tests for onboarding system:
-    - 3 tests for FileSourceDetector (directory scan, CD detection, ISO validation)
-    - 2 tests for OnboardingWizard (file browser, MPQ import)
+- Total Tests: 547 C++ unit tests running (+ 12 excluded AndroidGamepadTest + 19 Android Espresso tests = 578 total)
+  - 528 C++ tests passing, 0 failing, 19 skipped
+  - Added 9 new tests for onboarding system in this session:
+    - 4 tests for FileSourceDetector (directory scan, CD detection, ISO validation, Android paths)
+    - 5 tests for OnboardingWizard (file browser, MPQ import, progress tracking, error handling, recovery)
   - All test failures fixed (MPQ path issues resolved)
   - Android tests: 19 Espresso tests (separate test suite)
 - Location: /Users/jbbrack03/Diablo2Portable
 - GitHub: Ready to sync with onboarding implementation
 
 ## Recent Updates (January 2025)
-- 🚀 STARTED PHASE 21: Onboarding System Implementation
-  - ✅ Created FileSourceDetector class with 3 features:
+- 🚀 PHASE 21 PROGRESS: Onboarding System Implementation
+  - ✅ Created FileSourceDetector class with 4 features:
     - ✅ Detect D2 installations in directories (scanForInstallations)
     - ✅ Detect CD/DVD drives with D2 discs (detectCDDrives)
     - ✅ Validate ISO files (validateISOFile)
-  - ✅ Created OnboardingWizard class with 2 features:
+    - ✅ Android storage path support (getAndroidSearchPaths)
+  - ✅ Created OnboardingWizard class with 5 features:
     - ✅ File browser support (showFileBrowser, canSelectMPQFiles)
     - ✅ MPQ validation and import (validateMPQFiles, importFiles)
+    - ✅ Progress tracking (setProgressCallback, importWithProgress)
+    - ✅ Error handling (checkRequiredFiles, FileCheckResult)
+    - ✅ Recovery from partial imports (setImportDirectory)
   - Following strict TDD with RED-GREEN-COMMIT cycles
-  - Next: Progress tracking and Android integration
+  - Next: Android JNI bridge and advanced file format support
 - ✅ RESOLVED HIGH PRIORITY TECHNICAL DEBT: Fixed all high-priority issues
   - ✅ Removed debug output from pkware_explode.cpp (1 test added)
   - ✅ Verified checksum calculation in APKPackager works correctly
