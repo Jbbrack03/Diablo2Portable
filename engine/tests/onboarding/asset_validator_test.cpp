@@ -70,3 +70,34 @@ TEST_F(AssetValidatorTest, ValidateCompleteness) {
     EXPECT_TRUE(validation.hasExpansion);
     EXPECT_GE(validation.version, D2Version::CLASSIC);
 }
+
+// STEP 2: Write exactly ONE failing test for detecting corrupted files
+TEST_F(AssetValidatorTest, DetectCorruption) {
+    AssetValidator validator;
+    
+    // Create a corrupted MPQ file (invalid header)
+    fs::path corruptedMPQ = testDir / "corrupted.mpq";
+    std::ofstream file(corruptedMPQ, std::ios::binary);
+    // Write invalid header
+    char bad_header[] = {'B', 'A', 'D', 0x00};
+    file.write(bad_header, sizeof(bad_header));
+    std::vector<char> data(1024, 0xFF);
+    file.write(data.data(), data.size());
+    file.close();
+    
+    bool isCorrupted = validator.detectCorruption(corruptedMPQ.string());
+    
+    EXPECT_TRUE(isCorrupted);
+    
+    // Test with valid MPQ
+    fs::path validMPQ = testDir / "valid.mpq";
+    std::ofstream validFile(validMPQ, std::ios::binary);
+    char mpq_header[] = {'M', 'P', 'Q', 0x1A};
+    validFile.write(mpq_header, sizeof(mpq_header));
+    validFile.write(data.data(), data.size());
+    validFile.close();
+    
+    bool isValid = validator.detectCorruption(validMPQ.string());
+    
+    EXPECT_FALSE(isValid); // Should return false for valid files (not corrupted)
+}
