@@ -71,3 +71,14 @@ TEST_F(AssetVerifierTest, ValidateExtractedAssets) {
     EXPECT_GT(verification.validatedFiles, 0);
     EXPECT_TRUE(verification.hasRequiredAssets());
 }
+
+TEST_F(AssetVerifierTest, DetectMissingCriticalFiles) {
+    AssetVerifier verifier;
+    
+    // Use the incomplete assets directory which is missing critical files
+    auto verification = verifier.fullVerification(incompletePath.string());
+    
+    EXPECT_FALSE(verification.isComplete);
+    EXPECT_GT(verification.missingCriticalFiles.size(), 0);
+    EXPECT_TRUE(verification.canAttemptRepair());
+}
