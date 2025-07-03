@@ -33,9 +33,30 @@ private:
     std::unique_ptr<Impl> pImpl;
 };
 
+class CDDrive {
+public:
+    CDDrive();
+    ~CDDrive();
+    CDDrive(CDDrive&&);
+    CDDrive& operator=(CDDrive&&);
+    
+    // Delete copy operations
+    CDDrive(const CDDrive&) = delete;
+    CDDrive& operator=(const CDDrive&) = delete;
+    
+    bool hasD2Disc() const;
+    bool canReadMPQFiles() const;
+    
+private:
+    class Impl;
+    std::unique_ptr<Impl> pImpl;
+    friend class FileSourceDetector;
+};
+
 class FileSourceDetector {
 public:
     std::vector<D2Installation> scanForInstallations(const std::vector<std::string>& searchPaths);
+    std::vector<CDDrive> detectCDDrives();
 };
 
 } // namespace d2

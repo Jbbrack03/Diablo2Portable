@@ -66,4 +66,62 @@ std::vector<D2Installation> FileSourceDetector::scanForInstallations(const std::
     return installations;
 }
 
+// CDDrive implementation
+class CDDrive::Impl {
+public:
+    std::string path;
+    bool hasD2 = false;
+    bool canReadMPQ = false;
+};
+
+CDDrive::CDDrive() : pImpl(std::make_unique<Impl>()) {}
+CDDrive::~CDDrive() = default;
+CDDrive::CDDrive(CDDrive&&) = default;
+CDDrive& CDDrive::operator=(CDDrive&&) = default;
+
+bool CDDrive::hasD2Disc() const {
+    return pImpl->hasD2;
+}
+
+bool CDDrive::canReadMPQFiles() const {
+    return pImpl->canReadMPQ;
+}
+
+std::vector<CDDrive> FileSourceDetector::detectCDDrives() {
+    std::vector<CDDrive> drives;
+    
+    // Platform-specific CD drive detection
+#ifdef __APPLE__
+    // On macOS, check /Volumes for mounted CDs
+    fs::path volumesPath = "/Volumes";
+    if (fs::exists(volumesPath)) {
+        for (const auto& entry : fs::directory_iterator(volumesPath)) {
+            if (entry.is_directory()) {
+                fs::path volumePath = entry.path();
+                
+                // Check if this volume looks like a D2 disc
+                bool hasInstaller = fs::exists(volumePath / "Installer.exe") || 
+                                   fs::exists(volumePath / "Install.exe");
+                bool hasMPQ = fs::exists(volumePath / "d2data.mpq") ||
+                              fs::exists(volumePath / "D2DATA.MPQ");
+                
+                if (hasInstaller || hasMPQ) {
+                    CDDrive drive;
+                    drive.pImpl->path = volumePath.string();
+                    drive.pImpl->hasD2 = true;
+                    drive.pImpl->canReadMPQ = hasMPQ;
+                    drives.push_back(std::move(drive));
+                }
+            }
+        }
+    }
+#elif defined(_WIN32)
+    // Windows CD drive detection would go here
+#elif defined(__linux__)
+    // Linux CD drive detection would go here
+#endif
+    
+    return drives;
+}
+
 } // namespace d2

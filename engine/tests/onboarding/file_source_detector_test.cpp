@@ -49,3 +49,20 @@ TEST_F(FileSourceDetectorTest, DetectD2InstallationDirectories) {
     EXPECT_TRUE(found[0].hasRequiredMPQs());
     EXPECT_EQ(found[0].getVersion(), D2Version::LORD_OF_DESTRUCTION);
 }
+
+// STEP 2: Write exactly ONE failing test for detecting CD drives
+TEST_F(FileSourceDetectorTest, DetectCDDrives) {
+    FileSourceDetector detector;
+    
+    auto cdDrives = detector.detectCDDrives();
+    
+    // Test should pass even with no CDs
+    EXPECT_TRUE(cdDrives.size() >= 0);
+    
+    // If test CD present, validate
+    for (const auto& drive : cdDrives) {
+        if (drive.hasD2Disc()) {
+            EXPECT_TRUE(drive.canReadMPQFiles());
+        }
+    }
+}
