@@ -176,3 +176,18 @@ TEST_F(MultiFormatProcessorTest, ProcessAudioFiles) {
     EXPECT_EQ(audioData.channels, 2); // Stereo
     EXPECT_EQ(audioData.sampleRate, 44100);
 }
+
+TEST_F(MultiFormatProcessorTest, ConvertDC6ToPVR) {
+    MultiFormatProcessor processor;
+    
+    fs::path dc6File = testPath / "test_sprite.dc6";
+    fs::path pvrFile = outputPath / "test_sprite.pvr";
+    
+    ConversionResult result = processor.convertDC6ToPVR(dc6File.string(), pvrFile.string());
+    
+    EXPECT_TRUE(result.success);
+    EXPECT_TRUE(fs::exists(pvrFile));
+    EXPECT_GT(fs::file_size(pvrFile), 0);
+    EXPECT_EQ(result.format, "PVR");
+    EXPECT_GT(result.compressionRatio, 0.0f);
+}

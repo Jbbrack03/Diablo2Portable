@@ -95,6 +95,15 @@ public:
      * @return Extracted audio data
      */
     AudioData extractAudio(const std::string& audioPath);
+    
+    /**
+     * Convert DC6 sprite to PVR format for mobile GPUs
+     * @param dc6Path Input DC6 file path
+     * @param pvrPath Output PVR file path
+     * @return Conversion result
+     */
+    ConversionResult convertDC6ToPVR(const std::string& dc6Path, 
+                                     const std::string& pvrPath);
 };
 
 } // namespace d2
