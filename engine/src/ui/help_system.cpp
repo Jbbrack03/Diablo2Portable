@@ -105,4 +105,17 @@ std::vector<HelpTopic> HelpSystem::searchByKeyword(const std::string& keyword) c
     return results;
 }
 
+std::vector<HelpTopic> HelpSystem::getTopicsByCategory(const std::string& category) const {
+    std::vector<HelpTopic> results;
+    
+    // Find all topics that match the given category
+    for (const auto& [id, topic] : topics_) {
+        if (topic.category == category) {
+            results.push_back(topic);
+        }
+    }
+    
+    return results;
+}
+
 } // namespace d2

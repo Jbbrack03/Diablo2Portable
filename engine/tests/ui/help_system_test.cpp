@@ -57,4 +57,41 @@ TEST_F(HelpSystemTest, SearchByKeywords) {
     EXPECT_TRUE(foundTroubleshooting);
 }
 
+// Test 3: Get topics by category
+TEST_F(HelpSystemTest, GetTopicsByCategory) {
+    helpSystem->loadHelpTopics();
+    
+    // Get all topics in "basics" category
+    auto basicTopics = helpSystem->getTopicsByCategory("basics");
+    EXPECT_GE(basicTopics.size(), 2); // getting-started and controls
+    
+    // Verify we have the expected topics
+    bool foundGettingStarted = false;
+    bool foundControls = false;
+    
+    for (const auto& topic : basicTopics) {
+        if (topic.id == "getting-started") {
+            foundGettingStarted = true;
+        } else if (topic.id == "controls") {
+            foundControls = true;
+        }
+    }
+    
+    EXPECT_TRUE(foundGettingStarted);
+    EXPECT_TRUE(foundControls);
+    
+    // Get support category
+    auto supportTopics = helpSystem->getTopicsByCategory("support");
+    EXPECT_GE(supportTopics.size(), 1); // troubleshooting
+    
+    bool foundTroubleshootingInSupport = false;
+    for (const auto& topic : supportTopics) {
+        if (topic.id == "troubleshooting") {
+            foundTroubleshootingInSupport = true;
+            break;
+        }
+    }
+    EXPECT_TRUE(foundTroubleshootingInSupport);
+}
+
 } // namespace d2
