@@ -137,5 +137,46 @@ TEST_F(TutorialSystemTest, MarkStepsCompleted) {
     EXPECT_EQ(tutorial.getCompletionPercentage(), 100);
 }
 
+// Test 5: Save and load tutorial progress - This test MUST fail first
+TEST_F(TutorialSystemTest, SaveAndLoadProgress) {
+    // Create and setup first tutorial instance
+    {
+        TutorialSystem tutorial;
+        tutorial.initialize(testDir.string());
+        tutorial.loadTutorial("getting_started");
+        
+        // Complete first step and move to second
+        tutorial.markCurrentStepCompleted();
+        tutorial.nextStep();
+        
+        // Save progress
+        EXPECT_TRUE(tutorial.saveProgress());
+    }
+    
+    // Create new instance and load saved progress
+    {
+        TutorialSystem tutorial;
+        tutorial.initialize(testDir.string());
+        tutorial.loadTutorial("getting_started");
+        
+        // Load saved progress
+        EXPECT_TRUE(tutorial.loadProgress());
+        
+        // Verify we're on the second step
+        EXPECT_EQ(tutorial.getCurrentStep(), 1);
+        
+        // Verify first step is completed
+        auto firstStep = tutorial.getStep(0);
+        EXPECT_TRUE(firstStep.completed);
+        
+        // Verify second step is not completed
+        auto secondStep = tutorial.getStep(1);
+        EXPECT_FALSE(secondStep.completed);
+        
+        // Verify completion percentage
+        EXPECT_EQ(tutorial.getCompletionPercentage(), 50);
+    }
+}
+
 } // namespace
 } // namespace d2

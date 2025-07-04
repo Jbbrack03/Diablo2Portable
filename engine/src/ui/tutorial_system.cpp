@@ -117,4 +117,58 @@ int TutorialSystem::getCompletionPercentage() const {
     return (completedCount * 100) / static_cast<int>(steps.size());
 }
 
+bool TutorialSystem::saveProgress() const {
+    if (!initialized || steps.empty()) {
+        return false;
+    }
+    
+    // Save progress to a simple text file
+    std::string progressFile = dataPath + "/tutorial_progress.txt";
+    std::ofstream file(progressFile);
+    if (!file.is_open()) {
+        return false;
+    }
+    
+    // Save current step index
+    file << currentStep << std::endl;
+    
+    // Save completion status for each step
+    for (const auto& step : steps) {
+        file << (step.completed ? "1" : "0") << std::endl;
+    }
+    
+    file.close();
+    return true;
+}
+
+bool TutorialSystem::loadProgress() {
+    if (!initialized || steps.empty()) {
+        return false;
+    }
+    
+    // Load progress from text file
+    std::string progressFile = dataPath + "/tutorial_progress.txt";
+    std::ifstream file(progressFile);
+    if (!file.is_open()) {
+        return false;
+    }
+    
+    // Load current step index
+    size_t savedStep;
+    file >> savedStep;
+    if (savedStep < steps.size()) {
+        currentStep = savedStep;
+    }
+    
+    // Load completion status for each step
+    for (size_t i = 0; i < steps.size() && !file.eof(); ++i) {
+        int completed;
+        file >> completed;
+        steps[i].completed = (completed == 1);
+    }
+    
+    file.close();
+    return true;
+}
+
 } // namespace d2

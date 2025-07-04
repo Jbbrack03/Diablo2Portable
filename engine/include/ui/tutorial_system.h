@@ -103,6 +103,18 @@ public:
      */
     int getCompletionPercentage() const;
     
+    /**
+     * Save tutorial progress to disk
+     * @return true if progress was saved successfully
+     */
+    bool saveProgress() const;
+    
+    /**
+     * Load tutorial progress from disk
+     * @return true if progress was loaded successfully
+     */
+    bool loadProgress();
+    
 private:
     bool initialized = false;
     std::string dataPath;
