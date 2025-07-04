@@ -1,4 +1,6 @@
 #include "ui/help_system.h"
+#include <algorithm>
+#include <cctype>
 
 namespace d2 {
 
@@ -55,6 +57,52 @@ const HelpTopic* HelpSystem::getTopic(const std::string& topicId) const {
         return &it->second;
     }
     return nullptr;
+}
+
+std::vector<HelpTopic> HelpSystem::searchByKeyword(const std::string& keyword) const {
+    std::vector<HelpTopic> results;
+    
+    // Convert keyword to lowercase for case-insensitive search
+    std::string lowerKeyword = keyword;
+    std::transform(lowerKeyword.begin(), lowerKeyword.end(), lowerKeyword.begin(), ::tolower);
+    
+    // Search through all topics
+    for (const auto& [id, topic] : topics_) {
+        bool found = false;
+        
+        // Check if keyword is in the topic's keywords
+        for (const auto& topicKeyword : topic.keywords) {
+            std::string lowerTopicKeyword = topicKeyword;
+            std::transform(lowerTopicKeyword.begin(), lowerTopicKeyword.end(), lowerTopicKeyword.begin(), ::tolower);
+            if (lowerTopicKeyword.find(lowerKeyword) != std::string::npos) {
+                found = true;
+                break;
+            }
+        }
+        
+        // Also check title and content
+        if (!found) {
+            std::string lowerTitle = topic.title;
+            std::transform(lowerTitle.begin(), lowerTitle.end(), lowerTitle.begin(), ::tolower);
+            if (lowerTitle.find(lowerKeyword) != std::string::npos) {
+                found = true;
+            }
+        }
+        
+        if (!found) {
+            std::string lowerContent = topic.content;
+            std::transform(lowerContent.begin(), lowerContent.end(), lowerContent.begin(), ::tolower);
+            if (lowerContent.find(lowerKeyword) != std::string::npos) {
+                found = true;
+            }
+        }
+        
+        if (found) {
+            results.push_back(topic);
+        }
+    }
+    
+    return results;
 }
 
 } // namespace d2

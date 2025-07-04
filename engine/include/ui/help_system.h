@@ -27,6 +27,9 @@ public:
     std::vector<HelpTopic> getAllTopics() const;
     bool hasTopic(const std::string& topicId) const;
     const HelpTopic* getTopic(const std::string& topicId) const;
+    
+    // Search functionality
+    std::vector<HelpTopic> searchByKeyword(const std::string& keyword) const;
 
 private:
     std::unordered_map<std::string, HelpTopic> topics_;

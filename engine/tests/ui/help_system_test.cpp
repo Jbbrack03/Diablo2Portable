@@ -26,4 +26,35 @@ TEST_F(HelpSystemTest, LoadHelpTopics) {
     EXPECT_TRUE(helpSystem->hasTopic("troubleshooting"));
 }
 
+// Test 2: Search help topics by keywords
+TEST_F(HelpSystemTest, SearchByKeywords) {
+    helpSystem->loadHelpTopics();
+    
+    // Search for "controller" should find controls topic
+    auto results = helpSystem->searchByKeyword("controller");
+    EXPECT_GE(results.size(), 1);
+    
+    bool foundControls = false;
+    for (const auto& topic : results) {
+        if (topic.id == "controls") {
+            foundControls = true;
+            break;
+        }
+    }
+    EXPECT_TRUE(foundControls);
+    
+    // Search for "error" should find troubleshooting
+    results = helpSystem->searchByKeyword("error");
+    EXPECT_GE(results.size(), 1);
+    
+    bool foundTroubleshooting = false;
+    for (const auto& topic : results) {
+        if (topic.id == "troubleshooting") {
+            foundTroubleshooting = true;
+            break;
+        }
+    }
+    EXPECT_TRUE(foundTroubleshooting);
+}
+
 } // namespace d2
