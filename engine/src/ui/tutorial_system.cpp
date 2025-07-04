@@ -81,4 +81,40 @@ bool TutorialSystem::previousStep() {
     return true;
 }
 
+bool TutorialSystem::markCurrentStepCompleted() {
+    if (currentStep >= steps.size()) {
+        return false;
+    }
+    steps[currentStep].completed = true;
+    return true;
+}
+
+bool TutorialSystem::isComplete() const {
+    if (steps.empty()) {
+        return false;
+    }
+    
+    for (const auto& step : steps) {
+        if (!step.completed) {
+            return false;
+        }
+    }
+    return true;
+}
+
+int TutorialSystem::getCompletionPercentage() const {
+    if (steps.empty()) {
+        return 0;
+    }
+    
+    int completedCount = 0;
+    for (const auto& step : steps) {
+        if (step.completed) {
+            completedCount++;
+        }
+    }
+    
+    return (completedCount * 100) / static_cast<int>(steps.size());
+}
+
 } // namespace d2

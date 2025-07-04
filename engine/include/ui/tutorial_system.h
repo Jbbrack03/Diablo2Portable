@@ -85,6 +85,24 @@ public:
      */
     bool previousStep();
     
+    /**
+     * Mark the current step as completed
+     * @return true if step was marked completed
+     */
+    bool markCurrentStepCompleted();
+    
+    /**
+     * Check if all tutorial steps are completed
+     * @return true if tutorial is complete
+     */
+    bool isComplete() const;
+    
+    /**
+     * Get the completion percentage of the tutorial
+     * @return Percentage (0-100) of completed steps
+     */
+    int getCompletionPercentage() const;
+    
 private:
     bool initialized = false;
     std::string dataPath;

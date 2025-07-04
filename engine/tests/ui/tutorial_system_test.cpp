@@ -104,5 +104,38 @@ TEST_F(TutorialSystemTest, NavigateTutorialSteps) {
     EXPECT_EQ(tutorial.getCurrentStep(), 0);
 }
 
+// Test 4: Mark tutorial steps as completed - This test MUST fail first
+TEST_F(TutorialSystemTest, MarkStepsCompleted) {
+    TutorialSystem tutorial;
+    tutorial.initialize(testDir.string());
+    tutorial.loadTutorial("getting_started");
+    
+    // Initially step is not completed
+    auto step = tutorial.getCurrentStepInfo();
+    EXPECT_FALSE(step.completed);
+    
+    // Mark current step as completed
+    EXPECT_TRUE(tutorial.markCurrentStepCompleted());
+    
+    // Verify step is now completed
+    step = tutorial.getCurrentStepInfo();
+    EXPECT_TRUE(step.completed);
+    
+    // Move to next step
+    tutorial.nextStep();
+    step = tutorial.getCurrentStepInfo();
+    EXPECT_FALSE(step.completed);
+    
+    // Check if tutorial is complete
+    EXPECT_FALSE(tutorial.isComplete());
+    
+    // Mark last step as completed
+    tutorial.markCurrentStepCompleted();
+    EXPECT_TRUE(tutorial.isComplete());
+    
+    // Get completion percentage
+    EXPECT_EQ(tutorial.getCompletionPercentage(), 100);
+}
+
 } // namespace
 } // namespace d2
