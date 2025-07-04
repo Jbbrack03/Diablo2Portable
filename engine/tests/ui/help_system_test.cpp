@@ -118,4 +118,29 @@ TEST_F(HelpSystemTest, GetAllCategories) {
     EXPECT_TRUE(foundSupport);
 }
 
+// Test 5: Verify comprehensive help content
+TEST_F(HelpSystemTest, ComprehensiveHelpContent) {
+    helpSystem->loadHelpTopics();
+    
+    // Check we have help for all major game features
+    EXPECT_TRUE(helpSystem->hasTopic("asset-extraction"));
+    EXPECT_TRUE(helpSystem->hasTopic("performance-tips"));
+    EXPECT_TRUE(helpSystem->hasTopic("multiplayer-setup"));
+    EXPECT_TRUE(helpSystem->hasTopic("save-management"));
+    
+    // Verify asset extraction help has proper content
+    const auto* assetHelp = helpSystem->getTopic("asset-extraction");
+    EXPECT_NE(assetHelp, nullptr);
+    EXPECT_EQ(assetHelp->category, "setup");
+    EXPECT_FALSE(assetHelp->content.empty());
+    
+    // Search for performance-related help
+    auto perfResults = helpSystem->searchByKeyword("performance");
+    EXPECT_GE(perfResults.size(), 1);
+    
+    // Verify we have at least 3 categories now
+    auto categories = helpSystem->getAllCategories();
+    EXPECT_GE(categories.size(), 3); // basics, support, setup
+}
+
 } // namespace d2
