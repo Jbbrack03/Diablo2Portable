@@ -53,6 +53,20 @@ public:
      */
     size_t getCurrentStep() const { return currentStep; }
     
+    /**
+     * Load a tutorial by name
+     * @param tutorialName Name of the tutorial to load
+     * @return true if tutorial was loaded successfully
+     */
+    bool loadTutorial(const std::string& tutorialName);
+    
+    /**
+     * Get a specific tutorial step
+     * @param index Step index
+     * @return Tutorial step at the given index
+     */
+    const TutorialStep& getStep(size_t index) const;
+    
 private:
     bool initialized = false;
     std::string dataPath;
