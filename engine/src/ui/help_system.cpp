@@ -1,6 +1,7 @@
 #include "ui/help_system.h"
 #include <algorithm>
 #include <cctype>
+#include <unordered_set>
 
 namespace d2 {
 
@@ -116,6 +117,24 @@ std::vector<HelpTopic> HelpSystem::getTopicsByCategory(const std::string& catego
     }
     
     return results;
+}
+
+std::vector<std::string> HelpSystem::getAllCategories() const {
+    std::vector<std::string> categories;
+    std::unordered_set<std::string> uniqueCategories;
+    
+    // Collect unique categories from all topics
+    for (const auto& [id, topic] : topics_) {
+        uniqueCategories.insert(topic.category);
+    }
+    
+    // Convert set to vector
+    categories.reserve(uniqueCategories.size());
+    for (const auto& category : uniqueCategories) {
+        categories.push_back(category);
+    }
+    
+    return categories;
 }
 
 } // namespace d2

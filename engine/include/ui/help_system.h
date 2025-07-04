@@ -31,6 +31,7 @@ public:
     // Search functionality
     std::vector<HelpTopic> searchByKeyword(const std::string& keyword) const;
     std::vector<HelpTopic> getTopicsByCategory(const std::string& category) const;
+    std::vector<std::string> getAllCategories() const;
 
 private:
     std::unordered_map<std::string, HelpTopic> topics_;

@@ -94,4 +94,28 @@ TEST_F(HelpSystemTest, GetTopicsByCategory) {
     EXPECT_TRUE(foundTroubleshootingInSupport);
 }
 
+// Test 4: Get all available categories
+TEST_F(HelpSystemTest, GetAllCategories) {
+    helpSystem->loadHelpTopics();
+    
+    // Get all categories
+    auto categories = helpSystem->getAllCategories();
+    EXPECT_GE(categories.size(), 2); // At least "basics" and "support"
+    
+    // Verify we have the expected categories
+    bool foundBasics = false;
+    bool foundSupport = false;
+    
+    for (const auto& category : categories) {
+        if (category == "basics") {
+            foundBasics = true;
+        } else if (category == "support") {
+            foundSupport = true;
+        }
+    }
+    
+    EXPECT_TRUE(foundBasics);
+    EXPECT_TRUE(foundSupport);
+}
+
 } // namespace d2
