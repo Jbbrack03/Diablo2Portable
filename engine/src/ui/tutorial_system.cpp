@@ -61,4 +61,24 @@ const TutorialStep& TutorialSystem::getStep(size_t index) const {
     return steps[index];
 }
 
+const TutorialStep& TutorialSystem::getCurrentStepInfo() const {
+    return getStep(currentStep);
+}
+
+bool TutorialSystem::nextStep() {
+    if (currentStep + 1 >= steps.size()) {
+        return false;
+    }
+    currentStep++;
+    return true;
+}
+
+bool TutorialSystem::previousStep() {
+    if (currentStep == 0) {
+        return false;
+    }
+    currentStep--;
+    return true;
+}
+
 } // namespace d2

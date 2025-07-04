@@ -74,5 +74,35 @@ TEST_F(TutorialSystemTest, LoadTutorialSteps) {
     EXPECT_FALSE(step.completed);
 }
 
+// Test 3: Navigate between tutorial steps - This test MUST fail first
+TEST_F(TutorialSystemTest, NavigateTutorialSteps) {
+    TutorialSystem tutorial;
+    tutorial.initialize(testDir.string());
+    tutorial.loadTutorial("getting_started");
+    
+    // Initially at step 0
+    EXPECT_EQ(tutorial.getCurrentStep(), 0);
+    auto currentStep = tutorial.getCurrentStepInfo();
+    EXPECT_EQ(currentStep.id, "welcome");
+    
+    // Move to next step
+    EXPECT_TRUE(tutorial.nextStep());
+    EXPECT_EQ(tutorial.getCurrentStep(), 1);
+    currentStep = tutorial.getCurrentStepInfo();
+    EXPECT_EQ(currentStep.id, "controls");
+    
+    // Can't go beyond last step
+    EXPECT_FALSE(tutorial.nextStep());
+    EXPECT_EQ(tutorial.getCurrentStep(), 1);
+    
+    // Move to previous step
+    EXPECT_TRUE(tutorial.previousStep());
+    EXPECT_EQ(tutorial.getCurrentStep(), 0);
+    
+    // Can't go before first step
+    EXPECT_FALSE(tutorial.previousStep());
+    EXPECT_EQ(tutorial.getCurrentStep(), 0);
+}
+
 } // namespace
 } // namespace d2

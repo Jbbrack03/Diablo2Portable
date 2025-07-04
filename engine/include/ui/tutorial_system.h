@@ -67,6 +67,24 @@ public:
      */
     const TutorialStep& getStep(size_t index) const;
     
+    /**
+     * Get the current step information
+     * @return Current tutorial step
+     */
+    const TutorialStep& getCurrentStepInfo() const;
+    
+    /**
+     * Move to the next tutorial step
+     * @return true if moved to next step, false if already at last step
+     */
+    bool nextStep();
+    
+    /**
+     * Move to the previous tutorial step
+     * @return true if moved to previous step, false if already at first step
+     */
+    bool previousStep();
+    
 private:
     bool initialized = false;
     std::string dataPath;
