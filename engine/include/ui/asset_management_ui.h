@@ -21,6 +21,13 @@ struct ValidationStatus {
     std::vector<std::string> missingFiles;
 };
 
+struct StorageInfo {
+    size_t totalSpace = 0;
+    size_t usedSpace = 0;
+    size_t availableSpace = 0;
+    float usagePercentage = 0.0f;
+};
+
 class AssetManagementUI {
 public:
     AssetManagementUI() : initialized_(true) {}
@@ -60,10 +67,28 @@ public:
         return validationStatus_;
     }
     
+    void updateStorageInfo(size_t totalSpace, size_t usedSpace) {
+        storageInfo_.totalSpace = totalSpace;
+        storageInfo_.usedSpace = usedSpace;
+        storageInfo_.availableSpace = totalSpace - usedSpace;
+        storageInfo_.usagePercentage = (totalSpace > 0) 
+            ? (static_cast<float>(usedSpace) / static_cast<float>(totalSpace) * 100.0f) 
+            : 0.0f;
+    }
+    
+    StorageInfo getStorageInfo() const {
+        return storageInfo_;
+    }
+    
+    bool hasEnoughSpaceForExtraction(size_t requiredSpace) const {
+        return storageInfo_.availableSpace >= requiredSpace;
+    }
+    
 private:
     bool initialized_ = false;
     ExtractionProgress progress_;
     ValidationStatus validationStatus_;
+    StorageInfo storageInfo_;
 };
 
 } // namespace ui

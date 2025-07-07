@@ -49,5 +49,23 @@ TEST(AssetManagementUITest, AssetValidationInterface) {
     EXPECT_EQ(status.missingFiles[0], "missing_file1.dc6");
 }
 
+// Test 4: Storage management tools
+TEST(AssetManagementUITest, StorageManagementTools) {
+    AssetManagementUI ui;
+    
+    // Set storage information
+    ui.updateStorageInfo(1024 * 1024 * 1024, 512 * 1024 * 1024); // 1GB total, 512MB used
+    
+    auto storage = ui.getStorageInfo();
+    EXPECT_EQ(storage.totalSpace, 1024 * 1024 * 1024);
+    EXPECT_EQ(storage.usedSpace, 512 * 1024 * 1024);
+    EXPECT_EQ(storage.availableSpace, 512 * 1024 * 1024);
+    EXPECT_FLOAT_EQ(storage.usagePercentage, 50.0f);
+    
+    // Check if enough space for extraction
+    EXPECT_TRUE(ui.hasEnoughSpaceForExtraction(256 * 1024 * 1024)); // 256MB needed
+    EXPECT_FALSE(ui.hasEnoughSpaceForExtraction(600 * 1024 * 1024)); // 600MB needed
+}
+
 } // namespace ui
 } // namespace d2
