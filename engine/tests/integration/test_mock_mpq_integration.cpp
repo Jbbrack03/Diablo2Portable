@@ -142,3 +142,39 @@ TEST_F(MockMPQIntegrationTest, ExtractDC6FromMockMPQ) {
     EXPECT_EQ(frame.width, 16);
     EXPECT_EQ(frame.height, 16);
 }
+
+// Test 3: Validate compression type handling with mock MPQ
+TEST_F(MockMPQIntegrationTest, ValidateCompressionTypes) {
+    // Create a mock MPQ builder
+    MockMPQBuilder builder;
+    
+    // Add an uncompressed text file (without null terminator for exact string comparison)
+    std::vector<uint8_t> text_data = {'H', 'e', 'l', 'l', 'o', ' ', 'W', 'o', 'r', 'l', 'd', '!'};
+    builder.addFile("data\\global\\excel\\test.txt", text_data);
+    
+    // Add a simple binary file that would normally be compressed
+    std::vector<uint8_t> binary_data(1024, 0xAA); // 1KB of repeated data - good for compression
+    builder.addFile("data\\global\\test\\binary.dat", binary_data);
+    
+    // Build the mock MPQ file
+    ASSERT_TRUE(builder.build(mock_mpq_path.string()));
+    
+    // Load it with AssetManager
+    ASSERT_TRUE(asset_manager.initializeWithMPQ(mock_mpq_path.string()));
+    
+    // Extract the text file and verify content
+    auto text_content = asset_manager.loadFileData("data\\global\\excel\\test.txt");
+    ASSERT_FALSE(text_content.empty());
+    std::string extracted_text(text_content.begin(), text_content.end());
+    EXPECT_EQ(extracted_text, "Hello World!");
+    
+    // Extract the binary file and verify size
+    auto binary_content = asset_manager.loadFileData("data\\global\\test\\binary.dat");
+    ASSERT_FALSE(binary_content.empty());
+    EXPECT_EQ(binary_content.size(), 1024);
+    
+    // Verify that all bytes in binary content are correct
+    for (size_t i = 0; i < binary_content.size(); i++) {
+        EXPECT_EQ(binary_content[i], 0xAA) << "Byte at index " << i << " is incorrect";
+    }
+}
