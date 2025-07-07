@@ -154,3 +154,35 @@ TEST(SaveManagerTest, SaveCharacterWithInventory) {
         fs::remove(fullPath);
     }
 }
+
+// TEST 7: Load character with inventory
+TEST(SaveManagerTest, LoadCharacterWithInventory) {
+    SaveManager saveManager("test_saves");
+    Character character(CharacterClass::DRUID);
+    character.setLevel(15);
+    
+    // Create inventory
+    Inventory inventory(10, 4);
+    
+    std::string filename = "test_load_inventory.d2s";
+    std::string fullPath = "test_saves/" + filename;
+    
+    // Save character with inventory
+    saveManager.saveCharacterWithInventory(character, inventory, filename);
+    
+    // Load character with inventory
+    auto result = saveManager.loadCharacterWithInventory(filename);
+    
+    // Verify character loaded
+    ASSERT_NE(result.character, nullptr);
+    EXPECT_EQ(result.character->getCharacterClass(), CharacterClass::DRUID);
+    EXPECT_EQ(result.character->getLevel(), 15);
+    
+    // Verify inventory loaded
+    ASSERT_NE(result.inventory, nullptr);
+    EXPECT_EQ(result.inventory->getWidth(), 10);
+    EXPECT_EQ(result.inventory->getHeight(), 4);
+    
+    // Clean up
+    fs::remove(fullPath);
+}
