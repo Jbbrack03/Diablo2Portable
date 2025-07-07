@@ -227,3 +227,85 @@ TEST_F(MockMPQIntegrationTest, AnalyzePKWARECompressedData) {
     }
     EXPECT_EQ(pattern_count, 20) << "Expected 20 occurrences of the pattern in decompressed data";
 }
+
+// Test 5: PKWARE decompression validation with specific compression scenarios
+TEST_F(MockMPQIntegrationTest, ValidatePKWAREDecompressionProcess) {
+    // Create a mock MPQ builder
+    MockMPQBuilder builder;
+    
+    // Create test data with different patterns that exercise PKWARE decompression
+    
+    // Pattern 1: Dictionary references (repeated words)
+    std::vector<uint8_t> dictionary_test;
+    std::string base_word = "DICTIONARY_REFERENCE_TEST ";
+    for (int i = 0; i < 15; i++) {
+        dictionary_test.insert(dictionary_test.end(), base_word.begin(), base_word.end());
+    }
+    builder.addFile("data\\\\global\\\\test\\\\dictionary.txt", dictionary_test);
+    
+    // Pattern 2: Distance/length pairs (sequential repetition)
+    std::vector<uint8_t> distance_test;
+    std::string sequence = "ABCDEFGHIJ";
+    // Create pattern where PKWARE can use distance/length pairs
+    for (int i = 0; i < 10; i++) {
+        distance_test.insert(distance_test.end(), sequence.begin(), sequence.end());
+        sequence += "K"; // Slight variation to test different distance patterns
+    }
+    builder.addFile("data\\\\global\\\\test\\\\distance_pairs.txt", distance_test);
+    
+    // Pattern 3: Huffman coding test (character frequency patterns)
+    std::vector<uint8_t> huffman_test;
+    // Create data with specific character frequency for Huffman optimization
+    std::string frequent_chars = "AAAAAAAA"; // High frequency
+    std::string medium_chars = "BBBB";       // Medium frequency
+    std::string rare_chars = "C";            // Low frequency
+    for (int i = 0; i < 20; i++) {
+        huffman_test.insert(huffman_test.end(), frequent_chars.begin(), frequent_chars.end());
+        huffman_test.insert(huffman_test.end(), medium_chars.begin(), medium_chars.end());
+        huffman_test.insert(huffman_test.end(), rare_chars.begin(), rare_chars.end());
+    }
+    builder.addFile("data\\\\global\\\\test\\\\huffman_pattern.txt", huffman_test);
+    
+    // Build the mock MPQ file
+    ASSERT_TRUE(builder.build(mock_mpq_path.string()));
+    
+    // Load it with AssetManager
+    ASSERT_TRUE(asset_manager.initializeWithMPQ(mock_mpq_path.string()));
+    
+    // Test 1: Dictionary reference decompression
+    auto dict_result = asset_manager.loadFileData("data\\\\global\\\\test\\\\dictionary.txt");
+    ASSERT_FALSE(dict_result.empty());
+    std::string dict_content(dict_result.begin(), dict_result.end());
+    EXPECT_EQ(dict_content.size(), dictionary_test.size());
+    // Verify the pattern is correctly reconstructed
+    EXPECT_TRUE(dict_content.find("DICTIONARY_REFERENCE_TEST") != std::string::npos);
+    size_t dict_count = 0;
+    size_t dict_pos = 0;
+    while ((dict_pos = dict_content.find("DICTIONARY_REFERENCE_TEST", dict_pos)) != std::string::npos) {
+        dict_count++;
+        dict_pos += 1;
+    }
+    EXPECT_EQ(dict_count, 15) << "Dictionary reference pattern not correctly decompressed";
+    
+    // Test 2: Distance/length pair decompression
+    auto distance_result = asset_manager.loadFileData("data\\\\global\\\\test\\\\distance_pairs.txt");
+    ASSERT_FALSE(distance_result.empty());
+    std::string distance_content(distance_result.begin(), distance_result.end());
+    EXPECT_EQ(distance_content.size(), distance_test.size());
+    // Verify sequential patterns are correctly decompressed
+    EXPECT_TRUE(distance_content.find("ABCDEFGHIJ") != std::string::npos);
+    EXPECT_TRUE(distance_content.find("ABCDEFGHIJK") != std::string::npos);
+    
+    // Test 3: Huffman coding decompression
+    auto huffman_result = asset_manager.loadFileData("data\\\\global\\\\test\\\\huffman_pattern.txt");
+    ASSERT_FALSE(huffman_result.empty());
+    std::string huffman_content(huffman_result.begin(), huffman_result.end());
+    EXPECT_EQ(huffman_content.size(), huffman_test.size());
+    // Verify character frequencies are preserved
+    size_t a_count = std::count(huffman_content.begin(), huffman_content.end(), 'A');
+    size_t b_count = std::count(huffman_content.begin(), huffman_content.end(), 'B');
+    size_t c_count = std::count(huffman_content.begin(), huffman_content.end(), 'C');
+    EXPECT_EQ(a_count, 160) << "High-frequency character 'A' count incorrect after decompression";
+    EXPECT_EQ(b_count, 80) << "Medium-frequency character 'B' count incorrect after decompression";
+    EXPECT_EQ(c_count, 20) << "Low-frequency character 'C' count incorrect after decompression";
+}
