@@ -36,4 +36,28 @@ TEST_F(InputRemapperTest, RemapButtons) {
     EXPECT_EQ(remapper->getMappedButton(GamepadButton::Y), GamepadButton::Y);
 }
 
+// Test 3: Save and load button mappings
+TEST_F(InputRemapperTest, SaveAndLoadMappings) {
+    // Set custom mappings
+    remapper->setButtonMapping(GamepadButton::X, GamepadButton::Y);
+    remapper->setButtonMapping(GamepadButton::Y, GamepadButton::X);
+    remapper->setButtonMapping(GamepadButton::START, GamepadButton::SELECT);
+    
+    // Save mappings
+    EXPECT_TRUE(remapper->saveMappings("/tmp/test_button_mappings.cfg"));
+    
+    // Create new remapper and load mappings
+    auto newRemapper = std::make_unique<InputRemapper>();
+    EXPECT_TRUE(newRemapper->loadMappings("/tmp/test_button_mappings.cfg"));
+    
+    // Verify loaded mappings
+    EXPECT_EQ(newRemapper->getMappedButton(GamepadButton::X), GamepadButton::Y);
+    EXPECT_EQ(newRemapper->getMappedButton(GamepadButton::Y), GamepadButton::X);
+    EXPECT_EQ(newRemapper->getMappedButton(GamepadButton::START), GamepadButton::SELECT);
+    
+    // Other buttons should remain default
+    EXPECT_EQ(newRemapper->getMappedButton(GamepadButton::A), GamepadButton::A);
+    EXPECT_EQ(newRemapper->getMappedButton(GamepadButton::B), GamepadButton::B);
+}
+
 } // namespace d2
