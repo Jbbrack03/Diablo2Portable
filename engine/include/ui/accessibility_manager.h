@@ -7,6 +7,7 @@ public:
     AccessibilityManager() : textScale_(1.0f) {}
 
     float getTextScale() const { return textScale_; }
+    void setTextScale(float scale) { textScale_ = scale; }
 
 private:
     float textScale_;

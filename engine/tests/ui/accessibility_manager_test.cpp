@@ -17,4 +17,13 @@ TEST_F(AccessibilityManagerTest, CreateManagerWithDefaultTextScale) {
     EXPECT_EQ(manager->getTextScale(), 1.0f);
 }
 
+// Test 2: Set and get text scale
+TEST_F(AccessibilityManagerTest, SetAndGetTextScale) {
+    manager->setTextScale(1.5f);
+    EXPECT_EQ(manager->getTextScale(), 1.5f);
+    
+    manager->setTextScale(2.0f);
+    EXPECT_EQ(manager->getTextScale(), 2.0f);
+}
+
 } // namespace d2
