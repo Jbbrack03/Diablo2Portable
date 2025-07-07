@@ -93,6 +93,7 @@ set(TEST_SOURCES
     ui/test_ui_layout.cpp
     ui/tutorial_system_test.cpp
     ui/help_system_test.cpp
+    ui/accessibility_manager_test.cpp
     save/test_save_manager.cpp
     android/test_android_structure.cpp
     android/test_jni_bridge.cpp
