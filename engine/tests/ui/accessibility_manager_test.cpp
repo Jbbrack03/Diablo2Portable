@@ -26,4 +26,9 @@ TEST_F(AccessibilityManagerTest, SetAndGetTextScale) {
     EXPECT_EQ(manager->getTextScale(), 2.0f);
 }
 
+// Test 3: Default colorblind mode is None
+TEST_F(AccessibilityManagerTest, DefaultColorblindModeIsNone) {
+    EXPECT_EQ(manager->getColorblindMode(), ColorblindMode::None);
+}
+
 } // namespace d2
