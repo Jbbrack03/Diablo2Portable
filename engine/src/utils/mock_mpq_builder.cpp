@@ -8,7 +8,28 @@ namespace d2portable {
 namespace utils {
 
 void MockMPQBuilder::addFile(const std::string& filename, const std::vector<uint8_t>& data) {
-    pending_files_.push_back({filename, data});
+    pending_files_.push_back({filename, data, CompressionType::ZLIB});
+    used_compression_types_.insert("ZLIB");
+}
+
+void MockMPQBuilder::addFileWithCompression(const std::string& filename, const std::vector<uint8_t>& data, CompressionType compression) {
+    pending_files_.push_back({filename, data, compression});
+    
+    // Record the compression type used
+    switch (compression) {
+        case CompressionType::NONE:
+            used_compression_types_.insert("NONE");
+            break;
+        case CompressionType::ZLIB:
+            used_compression_types_.insert("ZLIB");
+            break;
+        case CompressionType::PKWARE:
+            used_compression_types_.insert("PKWARE");
+            break;
+        case CompressionType::BZIP2:
+            used_compression_types_.insert("BZIP2");
+            break;
+    }
 }
 
 bool MockMPQBuilder::build(const std::string& outputPath) {
@@ -44,12 +65,31 @@ bool MockMPQBuilder::build(const std::string& outputPath) {
             tempFile.write(reinterpret_cast<const char*>(entry.data.data()), entry.data.size());
         }
         
-        // Add the file to the MPQ
-        // Use default compression (zlib) and no special flags
-        constexpr DWORD dwFlags = MPQ_FILE_COMPRESS | MPQ_FILE_REPLACEEXISTING;
+        // Add the file to the MPQ with specified compression
+        DWORD dwFlags = MPQ_FILE_REPLACEEXISTING;
+        DWORD dwCompression = MPQ_COMPRESSION_ZLIB;
+        
+        // Set compression based on file entry
+        switch (entry.compression) {
+            case CompressionType::NONE:
+                // No compression flag
+                break;
+            case CompressionType::ZLIB:
+                dwFlags |= MPQ_FILE_COMPRESS;
+                dwCompression = MPQ_COMPRESSION_ZLIB;
+                break;
+            case CompressionType::PKWARE:
+                dwFlags |= MPQ_FILE_COMPRESS;
+                dwCompression = MPQ_COMPRESSION_PKWARE;
+                break;
+            case CompressionType::BZIP2:
+                dwFlags |= MPQ_FILE_COMPRESS;
+                dwCompression = MPQ_COMPRESSION_BZIP2;
+                break;
+        }
         
         if (!SFileAddFileEx(hMpq, tempPath.c_str(), entry.filename.c_str(), 
-                           dwFlags, MPQ_COMPRESSION_ZLIB, MPQ_COMPRESSION_NEXT_SAME)) {
+                           dwFlags, dwCompression, MPQ_COMPRESSION_NEXT_SAME)) {
             std::cerr << "Failed to add file to MPQ: " << entry.filename << std::endl;
             std::filesystem::remove(tempPath);
             SFileCloseArchive(hMpq);
@@ -78,6 +118,11 @@ bool MockMPQBuilder::build(const std::string& outputPath) {
 
 void MockMPQBuilder::clear() {
     pending_files_.clear();
+    used_compression_types_.clear();
+}
+
+std::set<std::string> MockMPQBuilder::getCompressionInfo() const {
+    return used_compression_types_;
 }
 
 } // namespace utils

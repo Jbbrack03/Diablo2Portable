@@ -426,3 +426,75 @@ TEST_F(MockMPQIntegrationTest, ValidateCompressionAlgorithmSupport) {
     size_t zero_count = std::count(sparse_result.begin(), sparse_result.end(), 0x00);
     EXPECT_EQ(zero_count, 508) << "Sparse data zero padding not preserved";
 }
+
+// Test 7: Compression algorithm detection and selection
+TEST_F(MockMPQIntegrationTest, ValidateCompressionAlgorithmDetection) {
+    // Create a mock MPQ builder with different compression algorithms
+    MockMPQBuilder builder;
+    
+    // Test data that would benefit from different algorithms
+    std::vector<uint8_t> test_data;
+    std::string pattern = "ALGORITHM_DETECTION_TEST ";
+    for (int i = 0; i < 10; i++) {
+        test_data.insert(test_data.end(), pattern.begin(), pattern.end());
+    }
+    
+    // Add files with different compression algorithms
+    builder.addFileWithCompression("data\\\\test\\\\zlib_compressed.txt", test_data, MockMPQBuilder::CompressionType::ZLIB);
+    builder.addFileWithCompression("data\\\\test\\\\pkware_compressed.txt", test_data, MockMPQBuilder::CompressionType::PKWARE);
+    builder.addFileWithCompression("data\\\\test\\\\bzip2_compressed.txt", test_data, MockMPQBuilder::CompressionType::BZIP2);
+    builder.addFileWithCompression("data\\\\test\\\\uncompressed.txt", test_data, MockMPQBuilder::CompressionType::NONE);
+    
+    // Build the MPQ
+    ASSERT_TRUE(builder.build(mock_mpq_path.string()));
+    
+    // Load with AssetManager
+    ASSERT_TRUE(asset_manager.initializeWithMPQ(mock_mpq_path.string()));
+    
+    // Verify all files can be extracted correctly regardless of compression algorithm
+    auto zlib_result = asset_manager.loadFileData("data\\\\test\\\\zlib_compressed.txt");
+    auto pkware_result = asset_manager.loadFileData("data\\\\test\\\\pkware_compressed.txt");
+    auto bzip2_result = asset_manager.loadFileData("data\\\\test\\\\bzip2_compressed.txt");
+    auto uncompressed_result = asset_manager.loadFileData("data\\\\test\\\\uncompressed.txt");
+    
+    // All should succeed
+    ASSERT_FALSE(zlib_result.empty());
+    ASSERT_FALSE(pkware_result.empty());
+    ASSERT_FALSE(bzip2_result.empty());
+    ASSERT_FALSE(uncompressed_result.empty());
+    
+    // All should have same content
+    std::string original_content(test_data.begin(), test_data.end());
+    std::string zlib_content(zlib_result.begin(), zlib_result.end());
+    std::string pkware_content(pkware_result.begin(), pkware_result.end());
+    std::string bzip2_content(bzip2_result.begin(), bzip2_result.end());
+    std::string uncompressed_content(uncompressed_result.begin(), uncompressed_result.end());
+    
+    EXPECT_EQ(zlib_content, original_content) << "ZLIB decompression failed";
+    EXPECT_EQ(pkware_content, original_content) << "PKWARE decompression failed";
+    EXPECT_EQ(bzip2_content, original_content) << "BZIP2 decompression failed";
+    EXPECT_EQ(uncompressed_content, original_content) << "Uncompressed content mismatch";
+    
+    // Verify pattern preservation across all compression types
+    for (const auto& [name, content] : std::vector<std::pair<std::string, std::string>>{
+        {"ZLIB", zlib_content},
+        {"PKWARE", pkware_content},
+        {"BZIP2", bzip2_content},
+        {"UNCOMPRESSED", uncompressed_content}
+    }) {
+        size_t pattern_count = 0;
+        size_t pos = 0;
+        while ((pos = content.find("ALGORITHM_DETECTION_TEST", pos)) != std::string::npos) {
+            pattern_count++;
+            pos += 1;
+        }
+        EXPECT_EQ(pattern_count, 10) << name << " compression did not preserve pattern correctly";
+    }
+    
+    // Verify that the builder can report which compression algorithms were used
+    auto compression_info = builder.getCompressionInfo();
+    EXPECT_TRUE(compression_info.find("ZLIB") != compression_info.end()) << "ZLIB compression not recorded";
+    EXPECT_TRUE(compression_info.find("PKWARE") != compression_info.end()) << "PKWARE compression not recorded";
+    EXPECT_TRUE(compression_info.find("BZIP2") != compression_info.end()) << "BZIP2 compression not recorded";
+    EXPECT_TRUE(compression_info.find("NONE") != compression_info.end()) << "No compression not recorded";
+}
