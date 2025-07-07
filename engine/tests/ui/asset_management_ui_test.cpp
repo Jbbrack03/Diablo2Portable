@@ -26,5 +26,28 @@ TEST(AssetManagementUITest, TrackExtractionProgress) {
     EXPECT_EQ(progress.currentFile, "d2data.mpq");
 }
 
+// Test 3: Asset validation interface
+TEST(AssetManagementUITest, AssetValidationInterface) {
+    AssetManagementUI ui;
+    
+    // Start validation
+    ui.startAssetValidation("/path/to/assets");
+    
+    // Check validation status
+    auto status = ui.getValidationStatus();
+    EXPECT_TRUE(status.isValidating);
+    EXPECT_EQ(status.assetPath, "/path/to/assets");
+    
+    // Set validation results
+    ui.setValidationResult(1000, 5, {"missing_file1.dc6", "missing_file2.dc6"});
+    
+    status = ui.getValidationStatus();
+    EXPECT_FALSE(status.isValidating);
+    EXPECT_EQ(status.totalAssets, 1000);
+    EXPECT_EQ(status.missingAssets, 5);
+    EXPECT_EQ(status.missingFiles.size(), 2);
+    EXPECT_EQ(status.missingFiles[0], "missing_file1.dc6");
+}
+
 } // namespace ui
 } // namespace d2

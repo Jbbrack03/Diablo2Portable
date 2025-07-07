@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <vector>
 
 namespace d2 {
 namespace ui {
@@ -10,6 +11,14 @@ struct ExtractionProgress {
     float percentage = 0.0f;
     int filesExtracted = 0;
     int totalFiles = 0;
+};
+
+struct ValidationStatus {
+    bool isValidating = false;
+    std::string assetPath;
+    int totalAssets = 0;
+    int missingAssets = 0;
+    std::vector<std::string> missingFiles;
 };
 
 class AssetManagementUI {
@@ -31,9 +40,30 @@ public:
         return progress_;
     }
     
+    void startAssetValidation(const std::string& assetPath) {
+        validationStatus_.isValidating = true;
+        validationStatus_.assetPath = assetPath;
+        validationStatus_.totalAssets = 0;
+        validationStatus_.missingAssets = 0;
+        validationStatus_.missingFiles.clear();
+    }
+    
+    void setValidationResult(int totalAssets, int missingAssets, 
+                            const std::vector<std::string>& missingFiles) {
+        validationStatus_.isValidating = false;
+        validationStatus_.totalAssets = totalAssets;
+        validationStatus_.missingAssets = missingAssets;
+        validationStatus_.missingFiles = missingFiles;
+    }
+    
+    ValidationStatus getValidationStatus() const {
+        return validationStatus_;
+    }
+    
 private:
     bool initialized_ = false;
     ExtractionProgress progress_;
+    ValidationStatus validationStatus_;
 };
 
 } // namespace ui
