@@ -2,6 +2,7 @@
 #include <StormLib.h>
 #include <cstring>
 #include <algorithm>
+#include <filesystem>
 
 namespace d2portable {
 namespace utils {
@@ -59,6 +60,14 @@ StormLibMPQLoader& StormLibMPQLoader::operator=(StormLibMPQLoader&& other) noexc
 bool StormLibMPQLoader::open(const std::string& filepath) {
     // Close any existing archive
     close();
+    
+    // Check file size first to prevent stack overflow (error 1000) on empty files
+    std::error_code ec;
+    auto file_size = std::filesystem::file_size(filepath, ec);
+    if (ec || file_size < 32) { // MPQ header is at least 32 bytes
+        pImpl->lastError = "File too small or inaccessible to be a valid MPQ archive";
+        return false;
+    }
     
     // Open the MPQ archive - use read-only mode for Diablo II MPQs
     if (!SFileOpenArchive(filepath.c_str(), 0, MPQ_OPEN_READ_ONLY, &pImpl->hMpq)) {

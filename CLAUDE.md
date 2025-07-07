@@ -2,16 +2,31 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## 🚨 **CRITICAL STATUS UPDATE (January 2025)**
+
+**PROJECT STATUS: NOT FUNCTIONAL - CRITICAL BUGS FOUND**
+
+Recent quality assurance testing revealed that despite extensive implementation work, the project has **critical system failures** that make it completely non-functional:
+
+- ❌ **MPQ Asset Loading BROKEN** - Cannot access Diablo II game data (19 failing tests)
+- ❌ **Save System BROKEN** - Cannot save/load game progress  
+- ❌ **Core Integration FAILING** - Asset extraction from MPQ files fails consistently
+- ⚠️ **96.9% Test Success** - 596/615 tests pass, 19 critical failures block functionality
+
+**IMMEDIATE ACTION REQUIRED: Phases 25-28 must fix core systems before any release consideration.**
+
 ## Project Overview
 
 This is a Diablo II Android port project targeting the Retroid Pocket Flip 2 device. The project aims to create a native ARM implementation without emulation, featuring full controller support and modern UI improvements while maintaining LAN multiplayer compatibility.
 
+**Current Reality**: While extensive framework code exists, the game cannot actually run due to broken asset loading and save systems.
+
 ## Build Commands
 
-### Initial Setup (Current - Manual Process)
+### Initial Setup (Current - BROKEN)
 ```bash
-# IMPORTANT: Game is fully functional but requires manual setup!
-# Users must manually copy their Diablo II MPQ files to vendor/mpq/
+# CRITICAL: Game is NOT functional due to broken core systems!
+# Even with MPQ files in place, asset loading fails completely
 
 # Step 1: Copy your legally owned D2 files
 cp /path/to/diablo2/*.mpq vendor/mpq/
@@ -31,24 +46,37 @@ cmake --build build
 ```
 
 ### What Works Now:
-- ✅ Full game engine with all D2 mechanics
-- ✅ Android app with controller support
-- ✅ Asset extraction from MPQ files
-- ✅ Save/Load game functionality
-- ✅ Multiplayer LAN support
-- ✅ 60+ FPS performance on target devices
+- ✅ Game engine framework (unit tests pass)
+- ✅ Android app framework with controller support
+- ✅ 60+ FPS performance on target devices (when functional)
+- ✅ Network system framework 
+- ✅ UI rendering system
+- ✅ Character/combat/item system logic
 
-### What Doesn't Work Yet:
+### What Is BROKEN (Critical Issues):
+- ❌ MPQ file loading - Cannot access game assets (ALL MPQ tests fail)
+- ❌ Save/Load system - Cannot persist game progress (SaveManager tests fail)
+- ❌ Asset extraction from MPQ files - Core functionality non-functional
+- ❌ Game cannot actually run due to asset loading failures
+
+### What Doesn't Work Yet (Lower Priority):
 - ❌ Automatic asset import from D2 installation
 - ❌ User-friendly setup wizard
 - ❌ In-app file browser for MPQ selection
 - ❌ CD/ISO/ZIP file support
 - ❌ Progress tracking during extraction
 
-### Future: Automated Onboarding (Phases 21-24)
-The planned onboarding system will provide:
+### URGENT: Critical Bug Fixes Required (Phases 25-28)
+Before any onboarding system can work, core systems must be repaired:
+- Fix MPQ asset loading system (Phase 25 - CRITICAL)
+- Repair save/load functionality (Phase 26 - CRITICAL) 
+- Restore integration testing (Phase 27 - HIGH)
+- Complete quality assurance (Phase 28 - MEDIUM)
+
+### Future: Automated Onboarding (Phase 21-24 - BLOCKED)
+The planned onboarding system exists but cannot function until core repairs complete:
 - One-tap asset detection from any D2 installation source
-- In-app guided setup wizard for Android devices
+- In-app guided setup wizard for Android devices  
 - Support for CD, ISO, ZIP, installer files
 - Real-time progress tracking and error recovery
 
@@ -70,8 +98,8 @@ cmake --build build
 ### Testing with Real Game Files
 The project includes real Diablo II MPQ files in `vendor/mpq/` for integration testing:
 - d2data.mpq, d2exp.mpq, d2sfx.mpq, etc. (lowercase naming)
-- Run `./run_all_tests.sh` to execute all 529 tests including MPQ integration tests
-- All tests should pass (505 passing, 12 excluded AndroidGamepadTest, 12 skipped integration tests)
+- Run `./run_all_tests.sh` to execute all 615 tests including MPQ integration tests
+- ⚠️ **CURRENTLY FAILING**: 19 tests fail, 596 pass (96.9% success rate)
 
 ### Deployment
 ```bash
@@ -265,27 +293,29 @@ During Phase 17 implementation, a TDD violation occurred:
 ## Current Implementation Status (January 2025)
 
 ### 📊 **Overall Project Statistics:**
-- **Total Tests**: 669 (622 C++ unit tests + 12 excluded + 35 Android Espresso tests)
-- **Test Success Rate**: 100% (all tests passing)
-- **Test Coverage**: ✅ 100% achieved - All implementation files now have comprehensive unit tests
-- **Integration Testing**: ✅ Real MPQ file validation with Diablo II game assets in vendor/mpq/
-- **Total Source Files**: 170+ (C++ engine implementation + onboarding + Android UI + UX features)
+- **Total Tests**: 615 C++ unit tests (12 AndroidGamepadTest excluded due to segfault)
+- **Test Success Rate**: 96.9% (596 passing, 19 failing)
+- **Test Coverage**: ✅ 95%+ achieved - Most implementation files have comprehensive unit tests
+- **Integration Testing**: ❌ MPQ integration tests failing - Core asset loading broken
+- **Total Source Files**: 170+ (C++ engine implementation + onboarding + Android UI + UX features)  
 - **Lines of Code**: ~37,000+ (core engine + onboarding systems + Android UI + enhanced asset pipeline + UX)
-- **Phases Completed**: 24 of 24 ✅ (Phase 24 COMPLETE)
-- **Project Status**: **🚀 PROJECT COMPLETE** - All 24 phases successfully implemented and ready for distribution
-- **Asset Extraction**: ✅ 100% success rate on real Diablo II files (StormLib integration)
-- **Test Suite Health**: ✅ 100% tests passing with real-world validation
+- **Phases Completed**: 24 of 28 ⚠️ (Phase 24 had critical issues, additional phases needed)
+- **Project Status**: **⚠️ CRITICAL ISSUES FOUND** - Core functionality broken, requires immediate fixes
+- **Asset Extraction**: ❌ BROKEN - All MPQ integration tests failing, AssetManager initialization fails
+- **Test Suite Health**: ❌ 19 failing tests including core MPQ and save system functionality
 - **Performance**: ✅ 160 FPS with 100 entities (exceeds 60 FPS requirement)
 - **Memory Usage**: ✅ 1275 MB of 1536 MB budget (within 1.5GB limit)
 
-### ✅ **Completed Features (Production Ready):**
-1. **MPQ Archive System** - Full support for game asset extraction (StormLib integration)
-2. **Sprite Rendering** - DC6 format with palette support
-3. **Asset Management** - Efficient caching and loading
-4. **OpenGL ES Rendering** - Mobile-optimized graphics pipeline
-5. **Gamepad Input** - Full controller support with mapping
-6. **Character System** - Stats, leveling, and progression
-7. **Combat Engine** - Damage calculation and resistances
+### 🔴 **CRITICAL ISSUES FOUND:**
+1. **MPQ Archive System** - ❌ BROKEN: All MPQ integration tests failing, cannot load game assets
+2. **Save/Load System** - ❌ BROKEN: SaveManager tests failing, D2S format implementation non-functional
+3. **Asset Management** - ❌ BROKEN: AssetManager MPQ initialization fails consistently
+
+### ✅ **Working Features:**
+2. **OpenGL ES Rendering** - Mobile-optimized graphics pipeline
+3. **Gamepad Input** - Full controller support with mapping
+4. **Character System** - Stats, leveling, and progression
+5. **Combat Engine** - Damage calculation and resistances
 8. **Item System** - Complete with affixes and rarity
 9. **Skill System** - Prerequisites and synergies
 10. **Monster System** - AI behaviors and group mechanics
@@ -726,21 +756,21 @@ During Phase 17 implementation, a TDD violation occurred:
 - **TDD Compliance**: All features implemented with strict RED-GREEN cycles
 
 ### 🎯 **Current Status (January 2025):**
-- ✅ **Core Engine Complete** - All 20 core implementation phases complete!
-- ✅ **Production-ready engine** - Fully playable game with all core systems implemented
+- ✅ **Core Engine Partially Complete** - Most core implementation phases complete
+- ❌ **NOT Production-ready** - Critical core functionality broken, game non-functional
 - ✅ **Phase 21 COMPLETE** - Onboarding System fully implemented!
 - ✅ **Phase 22 COMPLETE** - Enhanced Asset Pipeline fully implemented!
 - ✅ **Phase 23 COMPLETE** - User Experience Enhancement fully implemented!
-- 🚀 **Phase 24 READY** - Final Polish and Optimization (final phase)
-- ✅ **User-Friendly Setup** - Automatic onboarding on first run with comprehensive file browser!
-- ✅ **Technical Features Complete**:
-  - 99.99% asset extraction from Diablo II MPQ files
-  - D2-accurate game mechanics (life calculation, hit chance caps, strength damage)
-  - 100% test coverage with 632 total tests (588 C++ + 32 Android + 12 excluded)
-  - Android app fully integrated with controller support
-  - Performance: 160 FPS with 100 entities
+- ⚠️ **Phase 24 ISSUES FOUND** - Quality assurance revealed critical bugs
+- 🚨 **URGENT: Phase 25-28 Required** - Critical bug fixes needed before any release
+- ❌ **Technical Issues Identified**:
+  - 0% asset extraction success - MPQ integration completely broken
+  - Save/Load system non-functional - SaveManager tests failing
+  - 96.9% test coverage with 615 total tests (596 passing, 19 failing)
+  - Android app framework complete but asset loading broken
+  - Performance: 160 FPS with 100 entities (when working)
   - Memory: Using 1275 MB of 1536 MB budget
-  - Save/Load system with D2S format support
+  - Core game systems implemented but cannot access game data
 - ✅ **Onboarding Features Implemented** (Phase 21 COMPLETE):
   - ✅ FileSourceDetector - Auto-detect D2 installations, CDs, ISOs, Android paths
   - ✅ OnboardingWizard - File browser, MPQ validation, progress tracking, error handling
@@ -761,49 +791,103 @@ During Phase 17 implementation, a TDD violation occurred:
   - ✅ MultiFormatProcessor - DC6 to PNG/PVR conversion, palette/audio extraction
   - ✅ AssetVerifier - Asset validation, missing file detection, checksum manifests
 
-### 🚀 **Next Steps - Phase 24: Final Polish and Optimization**
+### 🚨 **URGENT: Critical Bug Fix Phases (25-28)**
 
-With Phase 23 complete, the final phase focuses on:
+**Phase 24 revealed critical issues that must be resolved before any release:**
 
-1. **Performance Profiling** (Phase 24.1)
-   - Profile and optimize critical paths
-   - Memory usage optimization
-   - Battery life improvements
+## Phase 25: MPQ Integration Repair (CRITICAL)
+**Priority: IMMEDIATE - Core game functionality broken**
 
-2. **Final Bug Fixes** (Phase 24.2)
-   - Address any remaining issues
-   - Edge case handling
-   - Stability improvements
+### 25.1: Diagnose MPQ Loading Failures
+- Investigate why AssetManager.initializeWithMPQ() fails consistently
+- Check StormLib integration and linking issues
+- Verify MPQ file integrity and access permissions
+- Debug test failures in AssetManagerMPQTest
 
-3. **Release Preparation** (Phase 24.3)
-   - Create release builds
-   - Generate documentation
-   - Prepare distribution packages
+### 25.2: Fix StormLib Integration
+- Repair StormLibMPQLoader implementation
+- Ensure proper MPQ file opening and access
+- Fix file extraction from real Diablo II MPQ files
+- Restore MPQ integration test functionality
 
-4. **Testing on Target Devices** (Phase 24.4)
-   - Test on Retroid Pocket Flip 2
-   - Performance validation
-   - User experience testing
+### 25.3: Restore Asset Loading Pipeline
+- Fix AssetManager MPQ initialization
+- Repair DC6 sprite loading from MPQ files
+- Restore text file extraction (armor.txt, etc.)
+- Ensure compression handling works correctly
 
-5. **Launch Preparation** (Phase 24.5)
-   - Final release checklist
-   - Installation guides
-   - Community preparation
+## Phase 26: Save System Repair (CRITICAL)
+**Priority: HIGH - Essential for playable game**
+
+### 26.1: Fix SaveManager Implementation
+- Diagnose SaveManager test failures
+- Repair D2S file format writing
+- Fix checksum validation and file permissions
+- Restore character save/load functionality
+
+### 26.2: Validate Save System Integration
+- Test save/load with real character data
+- Verify inventory persistence
+- Ensure save file integrity and tamper detection
+- Fix any remaining SaveManager test failures
+
+## Phase 27: Integration Testing Restoration (HIGH)
+**Priority: HIGH - Validate complete functionality**
+
+### 27.1: Fix Real MPQ Integration Tests
+- Repair RealMPQIntegrationTest failures
+- Fix performance testing with real assets
+- Restore DC6 extraction validation
+- Ensure compression type testing works
+
+### 27.2: Restore PKWARE Analysis
+- Fix PKWAREFormatAnalysisTest failures
+- Repair real PKWARE file analysis
+- Validate compression algorithms
+
+## Phase 28: Quality Assurance and Validation (MEDIUM)
+**Priority: MEDIUM - Ensure stability before release**
+
+### 28.1: Complete Test Suite Repair
+- Fix AndroidGamepadTest segmentation fault
+- Achieve true 100% test pass rate
+- Update test documentation to match reality
+- Validate all integration tests
+
+### 28.2: Final System Integration
+- End-to-end testing with repaired systems
+- Performance validation with working MPQ loading
+- Memory usage testing with real assets
+- Complete gameplay loop validation
+
+### 28.3: Release Readiness Assessment
+- Verify all critical systems are functional
+- Validate claims in documentation match reality
+- Prepare actual release builds
+- Create accurate installation guides
 
 ### 📖 **Documentation:**
 - **Development History**: See `Docs/DEVELOPMENT_HISTORY.md` for detailed phase summaries
-- **Technical Implementation**: See `Docs/TDD_IMPLEMENTATION_PLAN.md` for complete implementation plan (Phases 0-24)
-- **Onboarding System**: Phases 21-24 provide comprehensive user-friendly asset extraction and setup
+- **Technical Implementation**: See `Docs/TDD_IMPLEMENTATION_PLAN.md` for complete implementation plan (Phases 0-28)
+- **Critical Bug Fixes**: Phases 25-28 address essential system repairs before release
+- **Onboarding System**: Phases 21-24 provide user-friendly asset extraction (when MPQ loading works)
 - **All Documentation**: Available in `Docs/` directory
 
-## Onboarding System Design (Phases 21-24) - NOT YET IMPLEMENTED
+## Current System Status and Limitations
 
-### ⚠️ Current Limitations
-**The game is fully playable but requires technical knowledge to set up:**
+### 🚨 **CRITICAL ISSUES - Game Non-Functional**
+**The game is NOT playable due to critical system failures:**
+- MPQ asset loading completely broken - cannot access Diablo II game data
+- Save/Load system non-functional - cannot save progress
+- Core asset extraction fails consistently
+- 19 critical tests failing, blocking basic functionality
+
+### ⚠️ **Additional Setup Limitations** 
+**Even if core systems worked, setup would still require:**
 - Users must manually copy MPQ files to `vendor/mpq/` directory
-- No automatic detection of Diablo II installations
+- No automatic detection of Diablo II installations  
 - Command-line only setup process
-- No in-app guidance or help
+- Technical knowledge required for configuration
 
 ### 🎯 Priority Implementation Order for Phase 21
 

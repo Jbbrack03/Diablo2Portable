@@ -18,6 +18,10 @@ set(TEST_SOURCES
     main.cpp
     mpq/stormlib_mpq_loader_test.cpp
     mpq/test_file_encryption.cpp
+    mpq/test_stormlib_direct.cpp
+    mpq/test_stormlib_stack_fix.cpp
+    mpq/test_stormlib_thread_stack.cpp
+    mpq/test_empty_mpq_detection.cpp
     sprites/dc6_parser_test.cpp
     core/asset_manager_test.cpp
     core/test_asset_manager_mpq.cpp
