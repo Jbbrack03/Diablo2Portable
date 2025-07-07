@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 #include "save/save_manager.h"
 #include "game/character.h"
+#include "game/inventory.h"
 #include <filesystem>
 #include <fstream>
 
@@ -122,4 +123,34 @@ TEST(SaveManagerTest, LoadCharacterFromFile) {
     
     // Clean up
     fs::remove(fullPath);
+}
+
+// TEST 6: Save character with inventory
+TEST(SaveManagerTest, SaveCharacterWithInventory) {
+    SaveManager saveManager("test_saves");
+    Character character(CharacterClass::PALADIN);
+    character.setLevel(10);
+    
+    // Create inventory with 10x4 grid (40 slots)
+    Inventory inventory(10, 4);
+    
+    std::string filename = "test_character_inventory.d2s";
+    std::string fullPath = "test_saves/" + filename;
+    
+    // Clean up any existing file
+    if (fs::exists(fullPath)) {
+        fs::remove(fullPath);
+    }
+    
+    // Save should succeed
+    bool result = saveManager.saveCharacterWithInventory(character, inventory, filename);
+    EXPECT_TRUE(result);
+    
+    // File should exist
+    EXPECT_TRUE(fs::exists(fullPath));
+    
+    // Clean up
+    if (fs::exists(fullPath)) {
+        fs::remove(fullPath);
+    }
 }
