@@ -4,6 +4,7 @@
 #include "game/character.h"
 #include "game/player.h"
 #include "game/game_state.h"
+#include "game/inventory.h"
 #include "save/save_manager.h"
 #include <glm/glm.hpp>
 #include <thread>
@@ -128,6 +129,55 @@ TEST_F(EndToEndTest, LongTermGameplayStability) {
     
     // Engine should still be responsive
     EXPECT_TRUE(engine.isRunning());
+    
+    engine.stop();
+}
+
+// Task 28.2: End-to-end testing with repaired systems
+// Test: Validate save system integration with character progression
+TEST_F(EndToEndTest, ValidateRepairedSaveSystemProgression) {
+    // Test that the repaired save system properly handles character progression
+    d2::GameEngine engine;
+    EXPECT_TRUE(engine.initialize("vendor/mpq"));
+    
+    // Create character with initial stats
+    d2::game::Character character(d2::game::CharacterClass::PALADIN);
+    character.setLevel(1);
+    
+    auto player = std::make_shared<d2::game::Player>(character);
+    player->setPosition({50.0f, 50.0f});
+    
+    engine.start();
+    engine.getGameState()->setPlayer(player);
+    
+    // Simulate character progression
+    engine.processInput({1.0f, 1.0f}); // Move diagonally
+    engine.update(0.016f); // One frame
+    
+    // Level up the character
+    character.setLevel(2);
+    character.addExperience(1000);
+    
+    // Test save with progression
+    d2::save::SaveManager saves(testSaveDir_.string());
+    EXPECT_TRUE(saves.saveCharacter(character, "ProgressedPaladin.d2s"));
+    
+    // Simulate game restart - load character
+    auto loadedChar = saves.loadCharacter("ProgressedPaladin.d2s");
+    ASSERT_NE(loadedChar, nullptr);
+    
+    // Validate progression was preserved
+    EXPECT_EQ(loadedChar->getLevel(), 2);
+    EXPECT_EQ(loadedChar->getCharacterClass(), d2::game::CharacterClass::PALADIN);
+    
+    // Test inventory integration
+    d2::game::Inventory inventory(10, 4); // 10x4 grid as per SaveManager spec
+    auto result = saves.loadCharacterWithInventory("ProgressedPaladin.d2s");
+    
+    EXPECT_NE(result.character, nullptr);
+    EXPECT_NE(result.inventory, nullptr);
+    EXPECT_EQ(result.inventory->getWidth(), 10);
+    EXPECT_EQ(result.inventory->getHeight(), 4);
     
     engine.stop();
 }
