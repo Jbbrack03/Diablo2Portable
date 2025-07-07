@@ -186,3 +186,35 @@ TEST(SaveManagerTest, LoadCharacterWithInventory) {
     // Clean up
     fs::remove(fullPath);
 }
+
+// TEST 8: Load character from backup
+TEST(SaveManagerTest, LoadCharacterFromBackup) {
+    SaveManager saveManager("test_saves");
+    Character character(CharacterClass::ASSASSIN);
+    character.setLevel(20);
+    
+    std::string filename = "test_backup.d2s";
+    std::string backupFilename = "test_backup.bak";
+    std::string fullPath = "test_saves/" + filename;
+    std::string backupPath = "test_saves/" + backupFilename;
+    
+    // Save character (this creates the original file)
+    saveManager.saveCharacter(character, filename);
+    
+    // Manually create a backup file by copying the original
+    if (fs::exists(fullPath)) {
+        fs::copy_file(fullPath, backupPath);
+    }
+    
+    // Load character from backup
+    auto loaded = saveManager.loadCharacterFromBackup(backupFilename);
+    
+    // Verify it loaded
+    ASSERT_NE(loaded, nullptr);
+    EXPECT_EQ(loaded->getCharacterClass(), CharacterClass::ASSASSIN);
+    EXPECT_EQ(loaded->getLevel(), 20);
+    
+    // Clean up
+    fs::remove(fullPath);
+    fs::remove(backupPath);
+}

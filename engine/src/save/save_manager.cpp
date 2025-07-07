@@ -133,4 +133,10 @@ SaveManager::LoadResult SaveManager::loadCharacterWithInventory(const std::strin
     return result;
 }
 
+std::unique_ptr<d2::game::Character> SaveManager::loadCharacterFromBackup(const std::string& filename) {
+    // For now, just use the regular loadCharacter method
+    // Backup files should have the same format as regular save files
+    return loadCharacter(filename);
+}
+
 } // namespace d2::save
