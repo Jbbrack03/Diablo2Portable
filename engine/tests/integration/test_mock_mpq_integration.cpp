@@ -309,3 +309,120 @@ TEST_F(MockMPQIntegrationTest, ValidatePKWAREDecompressionProcess) {
     EXPECT_EQ(b_count, 80) << "Medium-frequency character 'B' count incorrect after decompression";
     EXPECT_EQ(c_count, 20) << "Low-frequency character 'C' count incorrect after decompression";
 }
+
+// Test 6: Compression algorithm validation with different compression scenarios
+TEST_F(MockMPQIntegrationTest, ValidateCompressionAlgorithmSupport) {
+    // Create a mock MPQ builder
+    MockMPQBuilder builder;
+    
+    // Test different types of data that would benefit from different compression algorithms
+    
+    // Type 1: Highly compressible text data (good for any algorithm)
+    std::vector<uint8_t> text_data;
+    std::string repeated_text = "COMPRESSION_TEST_DATA_REPEATED_PATTERN ";
+    for (int i = 0; i < 25; i++) {
+        text_data.insert(text_data.end(), repeated_text.begin(), repeated_text.end());
+    }
+    builder.addFile("data\\\\global\\\\test\\\\text_compression.txt", text_data);
+    
+    // Type 2: Binary data with patterns (good for PKWARE/LZ77)
+    std::vector<uint8_t> binary_data;
+    // Create a pattern of bytes that would compress well
+    std::vector<uint8_t> pattern = {0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08};
+    for (int i = 0; i < 64; i++) {
+        binary_data.insert(binary_data.end(), pattern.begin(), pattern.end());
+        // Add some variation to test different compression scenarios
+        if (i % 8 == 0) {
+            binary_data.push_back(0xFF); // Marker byte
+        }
+    }
+    builder.addFile("data\\\\global\\\\test\\\\binary_compression.dat", binary_data);
+    
+    // Type 3: Mixed content that tests multiple algorithms
+    std::vector<uint8_t> mixed_data;
+    // Add text portion
+    std::string text_portion = "Mixed content test: ";
+    mixed_data.insert(mixed_data.end(), text_portion.begin(), text_portion.end());
+    // Add binary portion
+    for (int i = 0; i < 100; i++) {
+        mixed_data.push_back(static_cast<uint8_t>(i % 256));
+    }
+    // Add repeated pattern
+    std::string repeat_portion = "REPEAT";
+    for (int i = 0; i < 20; i++) {
+        mixed_data.insert(mixed_data.end(), repeat_portion.begin(), repeat_portion.end());
+    }
+    builder.addFile("data\\\\global\\\\test\\\\mixed_compression.bin", mixed_data);
+    
+    // Type 4: Sparse data (mostly zeros - good for RLE)
+    std::vector<uint8_t> sparse_data(512, 0x00); // 512 zeros
+    // Add some non-zero data at specific positions
+    sparse_data[100] = 0xAA;
+    sparse_data[200] = 0xBB;
+    sparse_data[300] = 0xCC;
+    sparse_data[400] = 0xDD;
+    builder.addFile("data\\\\global\\\\test\\\\sparse_compression.dat", sparse_data);
+    
+    // Build the mock MPQ file
+    ASSERT_TRUE(builder.build(mock_mpq_path.string()));
+    
+    // Load it with AssetManager
+    ASSERT_TRUE(asset_manager.initializeWithMPQ(mock_mpq_path.string()));
+    
+    // Test 1: Text compression algorithm validation
+    auto text_result = asset_manager.loadFileData("data\\\\global\\\\test\\\\text_compression.txt");
+    ASSERT_FALSE(text_result.empty());
+    EXPECT_EQ(text_result.size(), text_data.size());
+    std::string extracted_text(text_result.begin(), text_result.end());
+    std::string original_text(text_data.begin(), text_data.end());
+    EXPECT_EQ(extracted_text, original_text) << "Text compression/decompression failed";
+    // Verify pattern count
+    size_t text_pattern_count = 0;
+    size_t text_pos = 0;
+    while ((text_pos = extracted_text.find("COMPRESSION_TEST_DATA", text_pos)) != std::string::npos) {
+        text_pattern_count++;
+        text_pos += 1;
+    }
+    EXPECT_EQ(text_pattern_count, 25) << "Text pattern not correctly preserved after compression";
+    
+    // Test 2: Binary compression algorithm validation
+    auto binary_result = asset_manager.loadFileData("data\\\\global\\\\test\\\\binary_compression.dat");
+    ASSERT_FALSE(binary_result.empty());
+    EXPECT_EQ(binary_result.size(), binary_data.size());
+    // Verify the binary pattern is preserved
+    for (size_t i = 0; i < std::min(binary_result.size(), binary_data.size()); i++) {
+        EXPECT_EQ(binary_result[i], binary_data[i]) << "Binary data mismatch at position " << i;
+    }
+    // Count marker bytes to verify structure preservation
+    size_t marker_count = std::count(binary_result.begin(), binary_result.end(), 0xFF);
+    EXPECT_EQ(marker_count, 8) << "Binary structure not preserved after compression";
+    
+    // Test 3: Mixed content compression algorithm validation
+    auto mixed_result = asset_manager.loadFileData("data\\\\global\\\\test\\\\mixed_compression.bin");
+    ASSERT_FALSE(mixed_result.empty());
+    EXPECT_EQ(mixed_result.size(), mixed_data.size());
+    std::string mixed_content(mixed_result.begin(), mixed_result.end());
+    // Verify text portion
+    EXPECT_TRUE(mixed_content.find("Mixed content test:") != std::string::npos);
+    // Verify repeat portion
+    size_t repeat_count = 0;
+    size_t repeat_pos = 0;
+    while ((repeat_pos = mixed_content.find("REPEAT", repeat_pos)) != std::string::npos) {
+        repeat_count++;
+        repeat_pos += 1;
+    }
+    EXPECT_EQ(repeat_count, 20) << "Mixed content repeat pattern not preserved";
+    
+    // Test 4: Sparse data compression algorithm validation
+    auto sparse_result = asset_manager.loadFileData("data\\\\global\\\\test\\\\sparse_compression.dat");
+    ASSERT_FALSE(sparse_result.empty());
+    EXPECT_EQ(sparse_result.size(), sparse_data.size());
+    // Verify sparse structure is preserved
+    EXPECT_EQ(sparse_result[100], 0xAA) << "Sparse data marker 1 not preserved";
+    EXPECT_EQ(sparse_result[200], 0xBB) << "Sparse data marker 2 not preserved";
+    EXPECT_EQ(sparse_result[300], 0xCC) << "Sparse data marker 3 not preserved";
+    EXPECT_EQ(sparse_result[400], 0xDD) << "Sparse data marker 4 not preserved";
+    // Verify zero padding is preserved
+    size_t zero_count = std::count(sparse_result.begin(), sparse_result.end(), 0x00);
+    EXPECT_EQ(zero_count, 508) << "Sparse data zero padding not preserved";
+}
