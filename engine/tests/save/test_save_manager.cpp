@@ -21,22 +21,23 @@ TEST(SaveManagerTest, SaveCharacterCreatesFile) {
     Character character(CharacterClass::BARBARIAN);
     
     std::string filename = "test_character.d2s";
+    std::string fullPath = "test_saves/" + filename;
     
     // Clean up any existing file
-    if (fs::exists(filename)) {
-        fs::remove(filename);
+    if (fs::exists(fullPath)) {
+        fs::remove(fullPath);
     }
     
     // Save should succeed
     bool result = saveManager.saveCharacter(character, filename);
     EXPECT_TRUE(result);
     
-    // File should exist
-    EXPECT_TRUE(fs::exists(filename));
+    // File should exist in the save directory
+    EXPECT_TRUE(fs::exists(fullPath));
     
     // Clean up
-    if (fs::exists(filename)) {
-        fs::remove(filename);
+    if (fs::exists(fullPath)) {
+        fs::remove(fullPath);
     }
 }
 
@@ -46,12 +47,13 @@ TEST(SaveManagerTest, SavedFileHasD2SSignature) {
     Character character(CharacterClass::SORCERESS);
     
     std::string filename = "test_signature.d2s";
+    std::string fullPath = "test_saves/" + filename;
     
     // Save character
     saveManager.saveCharacter(character, filename);
     
     // Read file and check signature
-    std::ifstream file(filename, std::ios::binary);
+    std::ifstream file(fullPath, std::ios::binary);
     ASSERT_TRUE(file.is_open());
     
     uint32_t signature;
@@ -63,7 +65,7 @@ TEST(SaveManagerTest, SavedFileHasD2SSignature) {
     file.close();
     
     // Clean up
-    fs::remove(filename);
+    fs::remove(fullPath);
 }
 
 // TEST 4: Save character level
@@ -73,12 +75,13 @@ TEST(SaveManagerTest, SaveCharacterLevel) {
     character.setLevel(42);
     
     std::string filename = "test_level.d2s";
+    std::string fullPath = "test_saves/" + filename;
     
     // Save character
     saveManager.saveCharacter(character, filename);
     
     // Read file and check level
-    std::ifstream file(filename, std::ios::binary);
+    std::ifstream file(fullPath, std::ios::binary);
     ASSERT_TRUE(file.is_open());
     
     // Skip signature (4 bytes), version (4 bytes), filesize (4 bytes), 
@@ -92,7 +95,7 @@ TEST(SaveManagerTest, SaveCharacterLevel) {
     EXPECT_EQ(level, 42);
     
     file.close();
-    fs::remove(filename);
+    fs::remove(fullPath);
 }
 
 // TEST 5: Load character from file
@@ -104,6 +107,7 @@ TEST(SaveManagerTest, LoadCharacterFromFile) {
     original.setLevel(25);
     
     std::string filename = "test_load.d2s";
+    std::string fullPath = "test_saves/" + filename;
     saveManager.saveCharacter(original, filename);
     
     // Load the character
@@ -117,5 +121,5 @@ TEST(SaveManagerTest, LoadCharacterFromFile) {
     EXPECT_EQ(loaded->getLevel(), 25);
     
     // Clean up
-    fs::remove(filename);
+    fs::remove(fullPath);
 }
