@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 #include <StormLib.h>
 #include <filesystem>
+#include <fstream>
 
 /**
  * Direct StormLib Integration Test
@@ -17,6 +18,25 @@ protected:
         // Skip test if file doesn't exist
         if (!std::filesystem::exists(mpq_path)) {
             GTEST_SKIP() << "Test MPQ file not found: " << mpq_path;
+        }
+        
+        // Skip test if file is empty
+        auto file_size = std::filesystem::file_size(mpq_path);
+        if (file_size == 0) {
+            GTEST_SKIP() << "MPQ file is empty (0 bytes). Please copy valid Diablo II MPQ files to vendor/mpq/";
+        }
+        
+        // Check if file has valid MPQ header
+        std::ifstream file(mpq_path, std::ios::binary);
+        if (file.is_open()) {
+            uint32_t signature;
+            file.read(reinterpret_cast<char*>(&signature), sizeof(signature));
+            file.close();
+            
+            // MPQ files start with 'MPQ\x1a' (0x1A51504D in little-endian)
+            if (signature != 0x1A51504D) {
+                GTEST_SKIP() << "File is not a valid MPQ (invalid header). Please copy valid Diablo II MPQ files to vendor/mpq/";
+            }
         }
     }
     

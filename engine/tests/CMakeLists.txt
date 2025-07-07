@@ -77,6 +77,8 @@ set(TEST_SOURCES
     integration/test_real_mpq_files.cpp
     integration/gameplay_integration_test.cpp
     integration/end_to_end_test.cpp
+    integration/test_empty_mpq_handling.cpp
+    integration/test_mpq_file_validation.cpp
     test_pkware_real_format.cpp
     ui/test_ui_element.cpp
     ui/test_ui_button.cpp
@@ -139,6 +141,12 @@ set(TEST_SOURCES
     onboarding/file_format_handler_test.cpp
     onboarding/asset_validator_test.cpp
     security/security_privacy_test.cpp
+    integration/gameplay_integration_test.cpp
+    integration/end_to_end_test.cpp
+    integration/test_real_mpq_files.cpp
+    integration/test_empty_mpq_handling.cpp
+    integration/test_mpq_file_validation.cpp
+    integration/test_mock_mpq_integration.cpp
     # Tests will be added as we implement features following TDD
     # core/game_state_test.cpp
     # audio/sound_system_test.cpp

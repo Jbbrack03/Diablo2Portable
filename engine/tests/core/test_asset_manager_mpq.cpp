@@ -34,6 +34,22 @@ protected:
             // Skip tests if MPQ files are not available
             GTEST_SKIP() << "Test MPQ files not available at " << test_mpq_path;
         }
+        
+        // Check if MPQ file is valid (not empty)
+        auto file_size = std::filesystem::file_size(test_mpq_path);
+        if (file_size == 0) {
+            GTEST_SKIP() << "MPQ file is empty (0 bytes). Please copy valid Diablo II MPQ files to " << vendor_mpq_dir;
+        }
+        
+        // Check MPQ header signature
+        std::ifstream file(test_mpq_path.string(), std::ios::binary);
+        if (file.is_open()) {
+            uint32_t signature;
+            file.read(reinterpret_cast<char*>(&signature), sizeof(signature));
+            if (signature != 0x1A51504D) { // 'MPQ\x1A'
+                GTEST_SKIP() << "Invalid MPQ file format. Please copy valid Diablo II MPQ files to " << vendor_mpq_dir;
+            }
+        }
     }
     
     std::filesystem::path test_dir;

@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 #include <vector>
 #include <cstdint>
+#include <fstream>
 #include "utils/stormlib_mpq_loader.h"
 
 using namespace d2portable::utils;
@@ -15,6 +16,19 @@ TEST_F(MPQFileEncryptionTest, DetectEncryptedListfile) {
     const char* mpq_path = std::getenv("TEST_MPQ_PATH");
     if (!mpq_path) {
         GTEST_SKIP() << "Set TEST_MPQ_PATH to test with real MPQ file";
+    }
+    
+    // Check if file has valid MPQ header
+    std::ifstream file(mpq_path, std::ios::binary);
+    if (file.is_open()) {
+        uint32_t signature;
+        file.read(reinterpret_cast<char*>(&signature), sizeof(signature));
+        file.close();
+        
+        // MPQ files start with 'MPQ\x1a' (0x1A51504D in little-endian)
+        if (signature != 0x1A51504D) {
+            GTEST_SKIP() << "File is not a valid MPQ (invalid header). Please provide a valid MPQ file.";
+        }
     }
     
     ASSERT_TRUE(loader.open(mpq_path));

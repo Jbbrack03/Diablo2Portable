@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 #include "core/asset_manager.h"
 #include <filesystem>
+#include <fstream>
 
 using namespace d2portable::core;
 
@@ -9,6 +10,29 @@ TEST(AssetManagerMPQFixTest, InitializeWithUppercaseMPQExtensions) {
     
     // The vendor directory has .MPQ files (uppercase)
     std::string mpq_dir = "/Users/jbbrack03/Diablo2Portable/vendor/mpq";
+    
+    // First check if we have the critical d2data.mpq file
+    std::string d2data_path = mpq_dir + "/d2data.mpq";
+    bool has_valid_d2data = false;
+    
+    if (std::filesystem::exists(d2data_path)) {
+        auto file_size = std::filesystem::file_size(d2data_path);
+        if (file_size > 0) {
+            // Check MPQ header
+            std::ifstream file(d2data_path, std::ios::binary);
+            if (file.is_open()) {
+                uint32_t signature;
+                file.read(reinterpret_cast<char*>(&signature), sizeof(signature));
+                if (signature == 0x1A51504D) { // 'MPQ\x1A'
+                    has_valid_d2data = true;
+                }
+            }
+        }
+    }
+    
+    if (!has_valid_d2data) {
+        GTEST_SKIP() << "Valid d2data.mpq not found in " << mpq_dir << ". This file is required for armor.txt. Please copy valid Diablo II MPQ files.";
+    }
     
     // This should work with uppercase .MPQ extensions
     bool success = asset_manager.initializeWithMPQs(mpq_dir);
