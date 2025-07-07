@@ -17,6 +17,7 @@ public:
     void setTextScale(float scale) { textScale_ = scale; }
     
     ColorblindMode getColorblindMode() const { return colorblindMode_; }
+    void setColorblindMode(ColorblindMode mode) { colorblindMode_ = mode; }
 
 private:
     float textScale_;

@@ -31,4 +31,16 @@ TEST_F(AccessibilityManagerTest, DefaultColorblindModeIsNone) {
     EXPECT_EQ(manager->getColorblindMode(), ColorblindMode::None);
 }
 
+// Test 4: Set and get colorblind mode
+TEST_F(AccessibilityManagerTest, SetAndGetColorblindMode) {
+    manager->setColorblindMode(ColorblindMode::Protanopia);
+    EXPECT_EQ(manager->getColorblindMode(), ColorblindMode::Protanopia);
+    
+    manager->setColorblindMode(ColorblindMode::Deuteranopia);
+    EXPECT_EQ(manager->getColorblindMode(), ColorblindMode::Deuteranopia);
+    
+    manager->setColorblindMode(ColorblindMode::Tritanopia);
+    EXPECT_EQ(manager->getColorblindMode(), ColorblindMode::Tritanopia);
+}
+
 } // namespace d2
