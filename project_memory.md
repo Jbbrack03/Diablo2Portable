@@ -2,13 +2,15 @@
 
 ## Current Status (January 2025)
 - Project: Phase 23 IN PROGRESS - User Experience Enhancement
-- Total Tests: 602 C++ unit tests + 12 excluded AndroidGamepadTest + 33 Android Espresso tests = 647 total
-  - C++ tests: 602 unit tests (all passing)
-  - Phase 23 Added Tests (20 so far):
+- Total Tests: 605 C++ unit tests + 12 excluded AndroidGamepadTest + 34 Android Espresso tests = 651 total
+  - C++ tests: 605 unit tests (all passing)
+  - Phase 23 Added Tests (24 so far):
     - 5 tests for AssetBrowserBackend (metadata, thumbnails, categories, search)
     - 5 tests for TutorialSystem (step navigation, progress tracking, persistence)
     - 5 tests for HelpSystem (topic management, search, categories)
     - 5 tests for AccessibilityManager (text scale, colorblind modes, save/load)
+    - 3 tests for InputRemapper (default mapping, custom remapping, save/load)
+    - 1 Android test for AccessibilityActivity (UI display test)
   - Phase 22 Added Tests (16 so far):
     - 3 tests for ExtractionMonitor (progress tracking, time estimation, error handling)
     - 3 tests for DifferentialExtractor (file change detection, proper asset detection, incremental update)
