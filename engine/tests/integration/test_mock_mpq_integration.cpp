@@ -178,3 +178,52 @@ TEST_F(MockMPQIntegrationTest, ValidateCompressionTypes) {
         EXPECT_EQ(binary_content[i], 0xAA) << "Byte at index " << i << " is incorrect";
     }
 }
+
+// Test 4: PKWARE format analysis with mock compressed data
+TEST_F(MockMPQIntegrationTest, AnalyzePKWARECompressedData) {
+    // Create a mock MPQ builder
+    MockMPQBuilder builder;
+    
+    // Create test data that would benefit from PKWARE compression
+    // PKWARE works well with repetitive patterns and text
+    std::vector<uint8_t> pkware_test_data;
+    std::string repeated_text = "This is a test string for PKWARE compression analysis. ";
+    
+    // Repeat the text 20 times to create a pattern good for compression
+    for (int i = 0; i < 20; i++) {
+        pkware_test_data.insert(pkware_test_data.end(), 
+                               repeated_text.begin(), repeated_text.end());
+    }
+    
+    builder.addFile("data\\global\\excel\\compressed.txt", pkware_test_data);
+    
+    // Build the mock MPQ file with compression enabled
+    ASSERT_TRUE(builder.build(mock_mpq_path.string()));
+    
+    // Load it with AssetManager
+    ASSERT_TRUE(asset_manager.initializeWithMPQ(mock_mpq_path.string()));
+    
+    // Extract the file
+    auto extracted_data = asset_manager.loadFileData("data\\global\\excel\\compressed.txt");
+    ASSERT_FALSE(extracted_data.empty());
+    
+    // Verify the extracted data matches original
+    EXPECT_EQ(extracted_data.size(), pkware_test_data.size());
+    
+    // Convert extracted data to string for comparison
+    std::string extracted_text(extracted_data.begin(), extracted_data.end());
+    std::string original_text(pkware_test_data.begin(), pkware_test_data.end());
+    EXPECT_EQ(extracted_text, original_text);
+    
+    // Verify the repetitive pattern is correctly restored
+    EXPECT_TRUE(extracted_text.find("This is a test string for PKWARE compression analysis.") != std::string::npos);
+    
+    // Count occurrences of the pattern to ensure decompression worked correctly
+    size_t pattern_count = 0;
+    size_t pos = 0;
+    while ((pos = extracted_text.find("This is a test string", pos)) != std::string::npos) {
+        pattern_count++;
+        pos += 1;
+    }
+    EXPECT_EQ(pattern_count, 20) << "Expected 20 occurrences of the pattern in decompressed data";
+}
