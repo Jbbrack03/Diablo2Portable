@@ -1,12 +1,22 @@
-#include "game/save_manager.h"
+#include "save/save_manager.h"
 #include "game/character.h"
 #include <fstream>
+#include <filesystem>
 
-namespace d2::game {
+namespace d2::save {
 
-bool SaveManager::saveCharacter(const Character& character, const std::string& filename) {
+SaveManager::SaveManager(const std::string& saveDirectory) 
+    : m_saveDirectory(saveDirectory) {
+    // Create directory if it doesn't exist
+    std::filesystem::create_directories(saveDirectory);
+}
+
+bool SaveManager::saveCharacter(const d2::game::Character& character, const std::string& filename) {
+    // Create full path
+    std::filesystem::path fullPath = std::filesystem::path(m_saveDirectory) / filename;
+    
     // Open file in binary mode
-    std::ofstream file(filename, std::ios::binary);
+    std::ofstream file(fullPath, std::ios::binary);
     if (!file.is_open()) {
         return false;
     }
@@ -54,12 +64,20 @@ bool SaveManager::saveCharacter(const Character& character, const std::string& f
     
     file.close();
     
+    // Set proper file permissions (owner read/write only)
+    std::filesystem::permissions(fullPath,
+        std::filesystem::perms::owner_read | std::filesystem::perms::owner_write,
+        std::filesystem::perm_options::replace);
+    
     return true;
 }
 
-std::unique_ptr<Character> SaveManager::loadCharacter(const std::string& filename) {
+std::unique_ptr<d2::game::Character> SaveManager::loadCharacter(const std::string& filename) {
+    // Create full path
+    std::filesystem::path fullPath = std::filesystem::path(m_saveDirectory) / filename;
+    
     // Open file in binary mode
-    std::ifstream file(filename, std::ios::binary);
+    std::ifstream file(fullPath, std::ios::binary);
     if (!file.is_open()) {
         return nullptr;
     }
@@ -84,7 +102,7 @@ std::unique_ptr<Character> SaveManager::loadCharacter(const std::string& filenam
     file.read(reinterpret_cast<char*>(&level), sizeof(level));
     
     // Create character
-    auto character = std::make_unique<Character>(static_cast<CharacterClass>(charClass));
+    auto character = std::make_unique<d2::game::Character>(static_cast<d2::game::CharacterClass>(charClass));
     character->setLevel(level);
     
     file.close();
@@ -92,4 +110,4 @@ std::unique_ptr<Character> SaveManager::loadCharacter(const std::string& filenam
     return character;
 }
 
-} // namespace d2::game
+} // namespace d2::save

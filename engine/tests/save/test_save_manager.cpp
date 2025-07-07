@@ -1,22 +1,23 @@
 #include <gtest/gtest.h>
-#include "game/save_manager.h"
+#include "save/save_manager.h"
 #include "game/character.h"
 #include <filesystem>
 #include <fstream>
 
 using namespace d2::game;
+using namespace d2::save;
 namespace fs = std::filesystem;
 
 // Phase 20: Save System - Following strict TDD
 // TEST 1: Can we create a SaveManager?
 TEST(SaveManagerTest, CreateSaveManager) {
-    SaveManager saveManager;
+    SaveManager saveManager("test_saves");
     // A save manager should exist - that's all we test for now
 }
 
 // TEST 2: Can we save a character to a file?
 TEST(SaveManagerTest, SaveCharacterCreatesFile) {
-    SaveManager saveManager;
+    SaveManager saveManager("test_saves");
     Character character(CharacterClass::BARBARIAN);
     
     std::string filename = "test_character.d2s";
@@ -41,7 +42,7 @@ TEST(SaveManagerTest, SaveCharacterCreatesFile) {
 
 // TEST 3: Saved file should have D2S signature
 TEST(SaveManagerTest, SavedFileHasD2SSignature) {
-    SaveManager saveManager;
+    SaveManager saveManager("test_saves");
     Character character(CharacterClass::SORCERESS);
     
     std::string filename = "test_signature.d2s";
@@ -67,7 +68,7 @@ TEST(SaveManagerTest, SavedFileHasD2SSignature) {
 
 // TEST 4: Save character level
 TEST(SaveManagerTest, SaveCharacterLevel) {
-    SaveManager saveManager;
+    SaveManager saveManager("test_saves");
     Character character(CharacterClass::NECROMANCER);
     character.setLevel(42);
     
@@ -96,7 +97,7 @@ TEST(SaveManagerTest, SaveCharacterLevel) {
 
 // TEST 5: Load character from file
 TEST(SaveManagerTest, LoadCharacterFromFile) {
-    SaveManager saveManager;
+    SaveManager saveManager("test_saves");
     
     // Create and save a character
     Character original(CharacterClass::AMAZON);

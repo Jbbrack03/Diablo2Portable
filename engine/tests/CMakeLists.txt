@@ -72,6 +72,7 @@ set(TEST_SOURCES
     utils/bzip2_test.cpp
     integration/test_real_mpq_files.cpp
     integration/gameplay_integration_test.cpp
+    integration/end_to_end_test.cpp
     test_pkware_real_format.cpp
     ui/test_ui_element.cpp
     ui/test_ui_button.cpp
@@ -110,6 +111,7 @@ set(TEST_SOURCES
     performance/memory_profiling_test.cpp
     performance/test_performance_monitor.cpp
     performance/test_optimized_update_system.cpp
+    performance/performance_validation_test.cpp
     rendering/test_optimized_world_renderer.cpp
     tools/asset_extractor_test.cpp
     tools/asset_optimizer_test.cpp
@@ -125,12 +127,14 @@ set(TEST_SOURCES
     tools/asset_browser_backend_test.cpp
     device/test_device_compatibility.cpp
     device/test_device_tester.cpp
+    device/device_compatibility_validation_test.cpp
     release/test_release_builder.cpp
     onboarding/file_source_detector_test.cpp
     onboarding/onboarding_wizard_test.cpp
     onboarding/onboarding_jni_test.cpp
     onboarding/file_format_handler_test.cpp
     onboarding/asset_validator_test.cpp
+    security/security_privacy_test.cpp
     # Tests will be added as we implement features following TDD
     # core/game_state_test.cpp
     # audio/sound_system_test.cpp

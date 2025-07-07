@@ -108,8 +108,30 @@ ChecksumManifest AssetVerifier::generateChecksumManifest(const std::string& asse
 }
 
 bool AssetVerifier::validateManifest(const ChecksumManifest& manifest) {
-    // For now, just check that it has content
-    return manifest.fileCount > 0 && !manifest.manifestChecksum.empty();
+    // Check basic validity
+    if (manifest.fileCount == 0 || manifest.manifestChecksum.empty()) {
+        return false;
+    }
+    
+    // Recalculate manifest checksum to verify integrity
+    std::stringstream manifestData;
+    for (const auto& [path, checksum] : manifest.fileChecksums) {
+        manifestData << path << ":" << checksum << "\n";
+    }
+    
+    // Calculate checksum of the manifest data
+    unsigned long calculatedChecksum = 0;
+    std::string data = manifestData.str();
+    for (char c : data) {
+        calculatedChecksum += static_cast<unsigned char>(c);
+    }
+    
+    std::stringstream ss;
+    ss << std::hex << calculatedChecksum;
+    std::string expectedChecksum = ss.str();
+    
+    // Compare with stored checksum
+    return manifest.manifestChecksum == expectedChecksum;
 }
 
 } // namespace d2
