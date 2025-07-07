@@ -22,6 +22,10 @@ public:
         }
         return physicalButton;
     }
+    
+    void setButtonMapping(GamepadButton physicalButton, GamepadButton logicalButton) {
+        buttonMap_[physicalButton] = logicalButton;
+    }
 
 private:
     std::unordered_map<GamepadButton, GamepadButton> buttonMap_;

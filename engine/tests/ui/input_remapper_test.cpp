@@ -22,4 +22,18 @@ TEST_F(InputRemapperTest, DefaultMappingReturnsOriginalButton) {
     EXPECT_EQ(remapper->getMappedButton(GamepadButton::Y), GamepadButton::Y);
 }
 
+// Test 2: Remap buttons
+TEST_F(InputRemapperTest, RemapButtons) {
+    // Swap A and B buttons
+    remapper->setButtonMapping(GamepadButton::A, GamepadButton::B);
+    remapper->setButtonMapping(GamepadButton::B, GamepadButton::A);
+    
+    EXPECT_EQ(remapper->getMappedButton(GamepadButton::A), GamepadButton::B);
+    EXPECT_EQ(remapper->getMappedButton(GamepadButton::B), GamepadButton::A);
+    
+    // X and Y should remain unchanged
+    EXPECT_EQ(remapper->getMappedButton(GamepadButton::X), GamepadButton::X);
+    EXPECT_EQ(remapper->getMappedButton(GamepadButton::Y), GamepadButton::Y);
+}
+
 } // namespace d2
