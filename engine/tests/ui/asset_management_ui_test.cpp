@@ -67,5 +67,26 @@ TEST(AssetManagementUITest, StorageManagementTools) {
     EXPECT_FALSE(ui.hasEnoughSpaceForExtraction(600 * 1024 * 1024)); // 600MB needed
 }
 
+// Test 5: Multiple file progress tracking
+TEST(AssetManagementUITest, MultipleFileProgressTracking) {
+    AssetManagementUI ui;
+    
+    // Set progress for multiple files
+    ui.setExtractionProgress("d2data.mpq", 1.0f, 100, 100);
+    ui.setExtractionProgress("d2exp.mpq", 0.5f, 50, 100);
+    ui.setExtractionProgress("d2sfx.mpq", 0.25f, 25, 100);
+    
+    // Get overall progress
+    auto overall = ui.getOverallProgress();
+    EXPECT_EQ(overall.totalFiles, 300);
+    EXPECT_EQ(overall.filesExtracted, 175);
+    EXPECT_FLOAT_EQ(overall.percentage, 175.0f / 300.0f);
+    
+    // Get progress for specific file
+    auto d2exp = ui.getExtractionProgress("d2exp.mpq");
+    EXPECT_FLOAT_EQ(d2exp.percentage, 0.5f);
+    EXPECT_EQ(d2exp.filesExtracted, 50);
+}
+
 } // namespace ui
 } // namespace d2

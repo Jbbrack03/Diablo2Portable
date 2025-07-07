@@ -2,6 +2,7 @@
 
 #include <string>
 #include <vector>
+#include <unordered_map>
 
 namespace d2 {
 namespace ui {
@@ -37,14 +38,38 @@ public:
     
     void setExtractionProgress(const std::string& filename, float percentage, 
                               int filesExtracted, int totalFiles) {
-        progress_.currentFile = filename;
-        progress_.percentage = percentage;
-        progress_.filesExtracted = filesExtracted;
-        progress_.totalFiles = totalFiles;
+        ExtractionProgress prog;
+        prog.currentFile = filename;
+        prog.percentage = percentage;
+        prog.filesExtracted = filesExtracted;
+        prog.totalFiles = totalFiles;
+        fileProgress_[filename] = prog;
     }
     
     ExtractionProgress getExtractionProgress(const std::string& filename) const {
-        return progress_;
+        auto it = fileProgress_.find(filename);
+        if (it != fileProgress_.end()) {
+            return it->second;
+        }
+        return ExtractionProgress();
+    }
+    
+    ExtractionProgress getOverallProgress() const {
+        ExtractionProgress overall;
+        overall.currentFile = "Overall";
+        overall.totalFiles = 0;
+        overall.filesExtracted = 0;
+        
+        for (const auto& [filename, progress] : fileProgress_) {
+            overall.totalFiles += progress.totalFiles;
+            overall.filesExtracted += progress.filesExtracted;
+        }
+        
+        overall.percentage = (overall.totalFiles > 0) 
+            ? static_cast<float>(overall.filesExtracted) / static_cast<float>(overall.totalFiles)
+            : 0.0f;
+            
+        return overall;
     }
     
     void startAssetValidation(const std::string& assetPath) {
@@ -86,7 +111,7 @@ public:
     
 private:
     bool initialized_ = false;
-    ExtractionProgress progress_;
+    std::unordered_map<std::string, ExtractionProgress> fileProgress_;
     ValidationStatus validationStatus_;
     StorageInfo storageInfo_;
 };
