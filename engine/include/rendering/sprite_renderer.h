@@ -30,6 +30,12 @@ public:
     void enableAlphaBlending();
     void disableAlphaBlending();
     
+    // Depth testing support
+    void enableDepthTesting();
+    void disableDepthTesting();
+    void enableDepthWrites();
+    void disableDepthWrites();
+    
     uint32_t getDrawCallCount() const;
     uint32_t getSpriteCount() const;
     

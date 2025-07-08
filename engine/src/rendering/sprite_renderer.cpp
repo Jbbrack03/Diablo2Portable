@@ -18,6 +18,8 @@
 #define GL_BLEND 0x0BE2
 #define GL_SRC_ALPHA 0x0302
 #define GL_ONE_MINUS_SRC_ALPHA 0x0303
+#define GL_DEPTH_TEST 0x0B71
+#define GL_LEQUAL 0x0203
 
 extern "C" {
     void glUseProgram(uint32_t program);
@@ -28,6 +30,8 @@ extern "C" {
     void glEnable(uint32_t cap);
     void glDisable(uint32_t cap);
     void glBlendFunc(uint32_t src, uint32_t dst);
+    void glDepthFunc(uint32_t func);
+    void glDepthMask(uint8_t flag);
 }
 #endif
 
@@ -236,6 +240,23 @@ void SpriteRenderer::enableAlphaBlending() {
 
 void SpriteRenderer::disableAlphaBlending() {
     glDisable(GL_BLEND);
+}
+
+void SpriteRenderer::enableDepthTesting() {
+    glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LEQUAL);
+}
+
+void SpriteRenderer::disableDepthTesting() {
+    glDisable(GL_DEPTH_TEST);
+}
+
+void SpriteRenderer::enableDepthWrites() {
+    glDepthMask(1);  // GL_TRUE
+}
+
+void SpriteRenderer::disableDepthWrites() {
+    glDepthMask(0);  // GL_FALSE
 }
 
 } // namespace d2::rendering
