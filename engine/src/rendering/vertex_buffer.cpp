@@ -2,10 +2,6 @@
 #ifdef __ANDROID__
 #include <GLES3/gl3.h>
 #else
-// Mock OpenGL implementation for testing
-#include <random>
-#include <cstdint>
-
 // Mock OpenGL constants
 #define GL_ARRAY_BUFFER 0x8892
 #define GL_STATIC_DRAW 0x88E4
@@ -19,37 +15,14 @@ typedef void GLvoid;
 typedef ptrdiff_t GLsizeiptr;
 typedef ptrdiff_t GLintptr;
 
-// Mock OpenGL functions that return realistic buffer IDs
+// External mock OpenGL functions
 extern "C" {
-    static std::random_device rd;
-    static std::mt19937 gen(rd());
-    static std::uniform_int_distribution<uint32_t> dis(1000, 999999);
-    
-    void glGenBuffers(GLsizei n, GLuint* buffers) {
-        for (int i = 0; i < n; i++) {
-            buffers[i] = dis(gen);  // Random buffer ID
-        }
-    }
-    
-    void glBindBuffer(GLenum target, GLuint buffer) {
-        (void)target; (void)buffer;
-    }
-    
-    void glBufferData(GLenum target, GLsizeiptr size, const GLvoid* data, GLenum usage) {
-        (void)target; (void)size; (void)data; (void)usage;
-    }
-    
-    void glBufferSubData(GLenum target, GLintptr offset, GLsizeiptr size, const GLvoid* data) {
-        (void)target; (void)offset; (void)size; (void)data;
-    }
-    
-    void glDeleteBuffers(GLsizei n, const GLuint* buffers) {
-        (void)n; (void)buffers;
-    }
-    
-    GLenum glGetError() {
-        return GL_NO_ERROR;
-    }
+    void glGenBuffers(GLsizei n, GLuint* buffers);
+    void glBindBuffer(GLenum target, GLuint buffer);
+    void glBufferData(GLenum target, GLsizeiptr size, const GLvoid* data, GLenum usage);
+    void glBufferSubData(GLenum target, GLintptr offset, GLsizeiptr size, const GLvoid* data);
+    void glDeleteBuffers(GLsizei n, const GLuint* buffers);
+    GLenum glGetError();
 }
 #endif
 
