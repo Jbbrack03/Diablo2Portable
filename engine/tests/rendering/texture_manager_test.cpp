@@ -38,4 +38,19 @@ TEST_F(TextureManagerTest, UploadSpriteToTexture) {
     EXPECT_TRUE(manager.isTextureValid(texture_id));
 }
 
+// RED PHASE: This test MUST fail - testing raw RGBA data to OpenGL texture upload
+TEST_F(TextureManagerTest, UploadRGBADataTexture) {
+    TextureManager manager;
+    
+    // Create texture from raw RGBA data (2x2 pixels)
+    uint32_t texture_id = manager.createTexture(test_sprite_data.data(), 2, 2);
+    
+    EXPECT_NE(texture_id, 0u) << "Texture should be created successfully from RGBA data";
+    EXPECT_TRUE(manager.isTextureValid(texture_id)) << "Created texture should be valid";
+    
+    // Verify texture properties
+    EXPECT_EQ(manager.getTextureWidth(texture_id), 2u) << "Texture width should match input";
+    EXPECT_EQ(manager.getTextureHeight(texture_id), 2u) << "Texture height should match input";
+}
+
 } // namespace d2::rendering
