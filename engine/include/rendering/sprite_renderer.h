@@ -26,6 +26,10 @@ public:
     virtual void drawSprite(uint32_t texture_id, const glm::vec2& position, const glm::vec2& size);
     virtual void endFrame();
     
+    // Alpha blending support
+    void enableAlphaBlending();
+    void disableAlphaBlending();
+    
     uint32_t getDrawCallCount() const;
     uint32_t getSpriteCount() const;
     

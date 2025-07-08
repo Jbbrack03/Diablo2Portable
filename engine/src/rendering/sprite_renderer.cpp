@@ -15,6 +15,9 @@
 #define GL_FLOAT 0x1406
 #define GL_FALSE 0
 #define GL_TEXTURE_2D 0x0DE1
+#define GL_BLEND 0x0BE2
+#define GL_SRC_ALPHA 0x0302
+#define GL_ONE_MINUS_SRC_ALPHA 0x0303
 
 extern "C" {
     void glUseProgram(uint32_t program);
@@ -22,6 +25,9 @@ extern "C" {
     void glEnableVertexAttribArray(uint32_t index);
     void glVertexAttribPointer(uint32_t index, int size, uint32_t type, bool normalized, int stride, const void* pointer);
     void glBindTexture(uint32_t target, uint32_t texture);
+    void glEnable(uint32_t cap);
+    void glDisable(uint32_t cap);
+    void glBlendFunc(uint32_t src, uint32_t dst);
 }
 #endif
 
@@ -221,6 +227,15 @@ uint32_t SpriteRenderer::getVAOId() const {
 
 uint32_t SpriteRenderer::getVertexBufferId() const {
     return vertex_buffer_ ? vertex_buffer_->getBufferId() : 0;
+}
+
+void SpriteRenderer::enableAlphaBlending() {
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+}
+
+void SpriteRenderer::disableAlphaBlending() {
+    glDisable(GL_BLEND);
 }
 
 } // namespace d2::rendering
