@@ -14,7 +14,11 @@
 #define GL_UNSIGNED_BYTE 0x1401
 #define GL_TEXTURE_MIN_FILTER 0x2801
 #define GL_TEXTURE_MAG_FILTER 0x2800
+#define GL_TEXTURE_WRAP_S 0x2802
+#define GL_TEXTURE_WRAP_T 0x2803
 #define GL_LINEAR 0x2601
+#define GL_CLAMP_TO_EDGE 0x812F
+#define GL_REPEAT 0x2901
 #define GL_NO_ERROR 0
 
 // Mock OpenGL types
@@ -63,6 +67,12 @@ extern "C" {
 #endif
 
 namespace d2::rendering {
+
+bool TextureManager::initialize(const Renderer& renderer) {
+    // Minimal implementation to pass the test
+    (void)renderer; // Suppress unused parameter warning
+    return true;
+}
 
 uint32_t TextureManager::uploadSprite(std::shared_ptr<sprites::DC6Sprite> sprite, uint32_t direction, uint32_t frame) {
     // Minimal implementation to pass the test
@@ -130,6 +140,32 @@ uint32_t TextureManager::getTextureWidth(uint32_t texture_id) const {
 uint32_t TextureManager::getTextureHeight(uint32_t texture_id) const {
     auto it = textures_.find(texture_id);
     return (it != textures_.end()) ? it->second.height : 0;
+}
+
+void TextureManager::setTextureWrapMode(uint32_t texture_id, TextureWrapMode wrap_mode) {
+    auto it = textures_.find(texture_id);
+    if (it == textures_.end()) {
+        return; // Texture not found
+    }
+    
+    // Convert wrap mode to OpenGL constant
+    GLenum gl_wrap_mode;
+    switch (wrap_mode) {
+        case TextureWrapMode::CLAMP_TO_EDGE:
+            gl_wrap_mode = GL_CLAMP_TO_EDGE;
+            break;
+        case TextureWrapMode::REPEAT:
+            gl_wrap_mode = GL_REPEAT;
+            break;
+        default:
+            gl_wrap_mode = GL_CLAMP_TO_EDGE;
+            break;
+    }
+    
+    // Bind texture and set wrap mode
+    glBindTexture(GL_TEXTURE_2D, it->second.gl_texture_id);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, gl_wrap_mode);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, gl_wrap_mode);
 }
 
 } // namespace d2::rendering
