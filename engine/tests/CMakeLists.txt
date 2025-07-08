@@ -46,6 +46,7 @@ set(TEST_SOURCES
     rendering/opengl_draw_commands_test.cpp
     rendering/opengl_draw_implementation_test.cpp
     rendering/opengl_draw_arrays_test.cpp
+    rendering/vertex_attribute_setup_test.cpp
     rendering/world_renderer_test.cpp
     rendering/camera_test.cpp
     input/gamepad_manager_test.cpp
