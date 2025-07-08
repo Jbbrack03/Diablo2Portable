@@ -27,6 +27,8 @@ public:
     
     // Uniform management
     int getUniformLocation(uint32_t program_id, const std::string& name) const;
+    bool setUniformMatrix4fv(uint32_t program_id, const std::string& name, const float* value);
+    bool setUniform4f(uint32_t program_id, const std::string& name, float v0, float v1, float v2, float v3);
 
 private:
     struct ProgramInfo {

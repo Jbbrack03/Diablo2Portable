@@ -56,3 +56,22 @@ TEST_F(ShaderUniformTest, GetUniformLocation) {
     int invalid_location = shader_manager_->getUniformLocation(program_id_, "u_doesnt_exist");
     EXPECT_EQ(-1, invalid_location);
 }
+
+// Test 2: Setting uniform values
+TEST_F(ShaderUniformTest, SetUniformValues) {
+    ASSERT_NE(0, program_id_);
+    
+    // Test setting a matrix uniform
+    glm::mat4 projection = glm::mat4(1.0f); // Identity matrix
+    EXPECT_TRUE(shader_manager_->setUniformMatrix4fv(program_id_, "u_projection", glm::value_ptr(projection)));
+    
+    // Test setting a vec4 uniform
+    glm::vec4 color(1.0f, 0.5f, 0.0f, 1.0f);
+    EXPECT_TRUE(shader_manager_->setUniform4f(program_id_, "u_color", color.r, color.g, color.b, color.a));
+    
+    // Test setting uniform on invalid program
+    EXPECT_FALSE(shader_manager_->setUniformMatrix4fv(9999, "u_projection", glm::value_ptr(projection)));
+    
+    // Test setting non-existent uniform
+    EXPECT_FALSE(shader_manager_->setUniform4f(program_id_, "u_doesnt_exist", 1.0f, 1.0f, 1.0f, 1.0f));
+}

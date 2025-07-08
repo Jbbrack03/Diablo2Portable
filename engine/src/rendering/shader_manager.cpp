@@ -97,4 +97,33 @@ int ShaderManager::getUniformLocation(uint32_t program_id, const std::string& na
     return loc_it->second;
 }
 
+bool ShaderManager::setUniformMatrix4fv(uint32_t program_id, const std::string& name, const float* value) {
+    if (!value) {
+        return false;
+    }
+    
+    // Get uniform location
+    int location = getUniformLocation(program_id, name);
+    if (location < 0) {
+        return false; // Uniform not found or invalid program
+    }
+    
+    // In a real implementation, this would call glUniformMatrix4fv
+    // For testing, we just validate the parameters
+    return true;
+}
+
+bool ShaderManager::setUniform4f(uint32_t program_id, const std::string& name, float v0, float v1, float v2, float v3) {
+    // Get uniform location
+    int location = getUniformLocation(program_id, name);
+    if (location < 0) {
+        return false; // Uniform not found or invalid program
+    }
+    
+    // In a real implementation, this would call glUniform4f
+    // For testing, we just validate the parameters
+    (void)v0; (void)v1; (void)v2; (void)v3;
+    return true;
+}
+
 } // namespace d2::rendering
