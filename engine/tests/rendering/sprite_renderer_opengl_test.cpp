@@ -64,4 +64,31 @@ TEST_F(SpriteRendererOpenGLTest, CompilesVertexShader) {
         << "SpriteRenderer should compile a vertex shader for sprite rendering";
 }
 
+// RED PHASE: This test MUST fail - testing real shader program usage
+TEST_F(SpriteRendererOpenGLTest, UsesShaderProgramForRendering) {
+    // Initialize SpriteRenderer
+    ASSERT_TRUE(spriteRenderer->initialize(*renderer, *textureManager));
+    
+    // Create a test texture
+    std::vector<uint8_t> rgba_data(16, 255); // 2x2 white pixels
+    uint32_t texture_id = textureManager->createTexture(rgba_data.data(), 2, 2);
+    ASSERT_NE(texture_id, 0u);
+    
+    // SpriteRenderer should have a valid shader program after initialization
+    uint32_t shader_program = spriteRenderer->getShaderProgram();
+    EXPECT_NE(shader_program, 0u) << "SpriteRenderer should create a valid shader program";
+    
+    // Begin frame should bind the shader program
+    spriteRenderer->beginFrame();
+    EXPECT_TRUE(spriteRenderer->isShaderProgramActive()) << "Shader program should be active after beginFrame";
+    
+    // Draw a sprite - this should use the shader program
+    spriteRenderer->drawSprite(texture_id, glm::vec2(100, 100), glm::vec2(64, 64));
+    
+    // Verify that the sprite was rendered using OpenGL calls
+    EXPECT_GT(spriteRenderer->getSpriteCount(), 0u) << "Should have rendered at least one sprite";
+    
+    spriteRenderer->endFrame();
+}
+
 } // namespace d2::rendering

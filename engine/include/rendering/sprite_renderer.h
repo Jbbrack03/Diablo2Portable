@@ -2,17 +2,19 @@
 
 #include <cstdint>
 #include <unordered_set>
+#include <memory>
 #include <glm/vec2.hpp>
 
 namespace d2::rendering {
 
 class Renderer;
 class TextureManager;
+class ShaderManager;
 
 class SpriteRenderer {
 public:
-    SpriteRenderer() = default;
-    ~SpriteRenderer() = default;
+    SpriteRenderer(); // Custom constructor needed for unique_ptr with forward declaration
+    ~SpriteRenderer(); // Custom destructor needed for unique_ptr with forward declaration
 
     bool initialize(const Renderer& renderer, const TextureManager& texture_manager);
     virtual void beginFrame();
@@ -21,12 +23,21 @@ public:
     
     uint32_t getDrawCallCount() const;
     uint32_t getSpriteCount() const;
+    
+    // Shader management
+    uint32_t getShaderProgram() const;
+    bool isShaderProgramActive() const;
 
 private:
     bool initialized_ = false;
     uint32_t draw_call_count_ = 0;
     uint32_t sprite_count_ = 0;
     std::unordered_set<uint32_t> textures_used_;
+    
+    // Shader management
+    std::unique_ptr<ShaderManager> shader_manager_;
+    uint32_t shader_program_ = 0;
+    bool shader_program_active_ = false;
 };
 
 } // namespace d2::rendering
