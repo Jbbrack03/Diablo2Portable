@@ -10,6 +10,8 @@ namespace d2::rendering {
 class Renderer;
 class TextureManager;
 class ShaderManager;
+class VertexBuffer;
+class VertexArrayObject;
 
 class SpriteRenderer {
 public:
@@ -27,6 +29,10 @@ public:
     // Shader management
     uint32_t getShaderProgram() const;
     bool isShaderProgramActive() const;
+    
+    // OpenGL resource access (for testing)
+    uint32_t getVAOId() const;
+    uint32_t getVertexBufferId() const;
 
 private:
     bool initialized_ = false;
@@ -38,6 +44,10 @@ private:
     std::unique_ptr<ShaderManager> shader_manager_;
     uint32_t shader_program_ = 0;
     bool shader_program_active_ = false;
+    
+    // OpenGL resources
+    std::unique_ptr<VertexBuffer> vertex_buffer_;
+    std::unique_ptr<VertexArrayObject> vao_;
 };
 
 } // namespace d2::rendering

@@ -2,6 +2,8 @@
 #include "rendering/renderer.h"
 #include "rendering/texture_manager.h"
 #include "rendering/shader_manager.h"
+#include "rendering/vertex_buffer.h"
+#include "rendering/vertex_array_object.h"
 #include <unordered_set>
 
 namespace d2::rendering {
@@ -61,6 +63,25 @@ bool SpriteRenderer::initialize(const Renderer& renderer, const TextureManager& 
     shader_manager_->deleteShader(vertex_shader);
     shader_manager_->deleteShader(fragment_shader);
     
+    // Create VAO for sprite rendering
+    vao_ = std::make_unique<VertexArrayObject>();
+    if (!vao_->create()) {
+        return false;
+    }
+    
+    // Create vertex buffer for sprite batching
+    vertex_buffer_ = std::make_unique<VertexBuffer>();
+    // Initialize with empty data - will be filled during rendering
+    std::vector<SpriteVertex> initial_vertices;
+    initial_vertices.reserve(1000); // Reserve space for batching
+    if (!vertex_buffer_->create(initial_vertices)) {
+        // Create with at least one vertex to make it valid
+        initial_vertices.push_back({{0, 0}, {0, 0}});
+        if (!vertex_buffer_->create(initial_vertices)) {
+            return false;
+        }
+    }
+    
     initialized_ = true;
     return true;
 }
@@ -109,6 +130,14 @@ uint32_t SpriteRenderer::getShaderProgram() const {
 
 bool SpriteRenderer::isShaderProgramActive() const {
     return shader_program_active_;
+}
+
+uint32_t SpriteRenderer::getVAOId() const {
+    return vao_ ? vao_->getVAOId() : 0;
+}
+
+uint32_t SpriteRenderer::getVertexBufferId() const {
+    return vertex_buffer_ ? vertex_buffer_->getBufferId() : 0;
 }
 
 } // namespace d2::rendering
