@@ -49,6 +49,7 @@ set(TEST_SOURCES
     rendering/vertex_attribute_setup_test.cpp
     rendering/asset_texture_integration_test.cpp
     rendering/sprite_to_texture_test.cpp
+    rendering/texture_binding_test.cpp
     rendering/world_renderer_test.cpp
     rendering/camera_test.cpp
     input/gamepad_manager_test.cpp

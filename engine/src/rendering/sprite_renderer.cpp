@@ -14,12 +14,14 @@
 #define GL_TRIANGLES 0x0004
 #define GL_FLOAT 0x1406
 #define GL_FALSE 0
+#define GL_TEXTURE_2D 0x0DE1
 
 extern "C" {
     void glUseProgram(uint32_t program);
     void glDrawArrays(uint32_t mode, int first, int count);
     void glEnableVertexAttribArray(uint32_t index);
     void glVertexAttribPointer(uint32_t index, int size, uint32_t type, bool normalized, int stride, const void* pointer);
+    void glBindTexture(uint32_t target, uint32_t texture);
 }
 #endif
 
@@ -176,8 +178,8 @@ void SpriteRenderer::endFrame() {
             vertex_buffer_->update(batch.vertices);
             vertex_buffer_->bind();
             
-            // TODO: Bind texture here when texture binding is implemented
-            // glBindTexture(GL_TEXTURE_2D, texture_id);
+            // Bind texture for this batch
+            glBindTexture(GL_TEXTURE_2D, texture_id);
             
             // Make the actual draw call
             glDrawArrays(GL_TRIANGLES, 0, static_cast<int>(batch.vertices.size()));
