@@ -5,6 +5,7 @@
 #include <unordered_map>
 #include <vector>
 #include <memory>
+#include <string>
 #include <glm/vec2.hpp>
 #include "rendering/vertex_buffer.h"
 
@@ -36,6 +37,13 @@ public:
     void enableDepthWrites();
     void disableDepthWrites();
     
+    // Alpha testing support
+    void enableAlphaTesting(float threshold);
+    void disableAlphaTesting();
+    bool isAlphaTestingEnabled() const;
+    float getAlphaTestThreshold() const;
+    std::string getFragmentShaderSource() const;
+    
     uint32_t getDrawCallCount() const;
     uint32_t getSpriteCount() const;
     
@@ -52,6 +60,10 @@ private:
     uint32_t draw_call_count_ = 0;
     uint32_t sprite_count_ = 0;
     std::unordered_set<uint32_t> textures_used_;
+    
+    // Alpha testing state
+    bool alpha_testing_enabled_ = false;
+    float alpha_test_threshold_ = 0.5f;
     
     // Shader management
     std::unique_ptr<ShaderManager> shader_manager_;

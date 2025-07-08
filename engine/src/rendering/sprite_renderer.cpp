@@ -259,4 +259,52 @@ void SpriteRenderer::disableDepthWrites() {
     glDepthMask(0);  // GL_FALSE
 }
 
+void SpriteRenderer::enableAlphaTesting(float threshold) {
+    alpha_testing_enabled_ = true;
+    alpha_test_threshold_ = threshold;
+}
+
+void SpriteRenderer::disableAlphaTesting() {
+    alpha_testing_enabled_ = false;
+}
+
+bool SpriteRenderer::isAlphaTestingEnabled() const {
+    return alpha_testing_enabled_;
+}
+
+float SpriteRenderer::getAlphaTestThreshold() const {
+    return alpha_test_threshold_;
+}
+
+std::string SpriteRenderer::getFragmentShaderSource() const {
+    if (alpha_testing_enabled_) {
+        return R"(
+        #version 300 es
+        precision mediump float;
+        in vec2 v_texcoord;
+        uniform sampler2D u_texture;
+        uniform float u_alphaThreshold;
+        out vec4 fragColor;
+        void main() {
+            vec4 texColor = texture(u_texture, v_texcoord);
+            if (texColor.a < u_alphaThreshold) {
+                discard;
+            }
+            fragColor = texColor;
+        }
+        )";
+    } else {
+        return R"(
+        #version 300 es
+        precision mediump float;
+        in vec2 v_texcoord;
+        uniform sampler2D u_texture;
+        out vec4 fragColor;
+        void main() {
+            fragColor = texture(u_texture, v_texcoord);
+        }
+        )";
+    }
+}
+
 } // namespace d2::rendering

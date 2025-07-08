@@ -52,6 +52,7 @@ set(TEST_SOURCES
     rendering/texture_binding_test.cpp
     rendering/alpha_blending_test.cpp
     rendering/depth_testing_test.cpp
+    rendering/alpha_testing_test.cpp
     rendering/world_renderer_test.cpp
     rendering/camera_test.cpp
     input/gamepad_manager_test.cpp
