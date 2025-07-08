@@ -3575,6 +3575,1016 @@ TEST(SecurityTest, ValidateAssetIntegrity) {
 
 ---
 
+---
+
+## Phase 25: Critical Core Functionality Repair (Week 41)
+
+### Objectives
+- Fix JNI bridge to enable Android app functionality
+- Implement actual OpenGL ES rendering pipeline
+- Connect input systems (gamepad and touch)
+- Fix asset loading to use correct MPQ methods
+
+### Context
+Code review revealed that the Android app is completely non-functional due to a null JNI bridge and missing OpenGL implementation. These are critical blockers that prevent any gameplay.
+
+### Tasks
+
+#### Task 25.1: Fix JNI Bridge Implementation
+**Tests First:**
+```cpp
+TEST(JNIBridgeTest, CreateGameEngine) {
+    JNIEnv* env = getTestJNIEnv();
+    jobject thiz = createTestObject();
+    
+    jlong enginePtr = Java_com_d2portable_NativeEngine_createEngine(env, thiz);
+    
+    EXPECT_NE(enginePtr, 0);
+    GameEngine* engine = reinterpret_cast<GameEngine*>(enginePtr);
+    EXPECT_NE(engine, nullptr);
+}
+
+TEST(JNIBridgeTest, InitializeEngine) {
+    JNIEnv* env = getTestJNIEnv();
+    jobject thiz = createTestObject();
+    
+    jlong enginePtr = Java_com_d2portable_NativeEngine_createEngine(env, thiz);
+    jboolean result = Java_com_d2portable_NativeEngine_initialize(
+        env, thiz, enginePtr, 800, 600);
+    
+    EXPECT_TRUE(result);
+}
+
+TEST(JNIBridgeTest, RenderFrame) {
+    JNIEnv* env = getTestJNIEnv();
+    jobject thiz = createTestObject();
+    
+    jlong enginePtr = Java_com_d2portable_NativeEngine_createEngine(env, thiz);
+    Java_com_d2portable_NativeEngine_initialize(env, thiz, enginePtr, 800, 600);
+    
+    // Should not crash
+    Java_com_d2portable_NativeEngine_renderFrame(env, thiz, enginePtr);
+}
+```
+
+**Implementation:**
+- Replace nullptr return with actual GameEngine creation
+- Implement proper initialization with AssetManager
+- Connect render pipeline to OpenGL context
+- Add proper error handling and logging
+
+#### Task 25.2: Implement OpenGL ES Rendering
+**Tests First:**
+```cpp
+TEST(RendererTest, CreateOpenGLContext) {
+    Renderer renderer;
+    MockOpenGLContext context;
+    
+    EXPECT_TRUE(renderer.initialize(context));
+    EXPECT_TRUE(renderer.isInitialized());
+}
+
+TEST(RendererTest, CompileShaders) {
+    Renderer renderer;
+    MockOpenGLContext context;
+    renderer.initialize(context);
+    
+    const char* vertexShader = R"(
+        attribute vec4 position;
+        attribute vec2 texCoord;
+        varying vec2 v_texCoord;
+        uniform mat4 mvpMatrix;
+        void main() {
+            gl_Position = mvpMatrix * position;
+            v_texCoord = texCoord;
+        }
+    )";
+    
+    const char* fragmentShader = R"(
+        precision mediump float;
+        varying vec2 v_texCoord;
+        uniform sampler2D texture;
+        void main() {
+            gl_FragColor = texture2D(texture, v_texCoord);
+        }
+    )";
+    
+    uint32_t program = renderer.compileShaderProgram(vertexShader, fragmentShader);
+    EXPECT_NE(program, 0);
+}
+
+TEST(RendererTest, RenderSprite) {
+    Renderer renderer;
+    MockOpenGLContext context;
+    renderer.initialize(context);
+    
+    // Create a test texture
+    uint32_t textureId = renderer.createTexture(32, 32, pixels);
+    EXPECT_NE(textureId, 0);
+    
+    // Render the sprite
+    glm::mat4 mvp = glm::mat4(1.0f);
+    renderer.beginFrame();
+    renderer.renderSprite(textureId, glm::vec2(100, 100), glm::vec2(32, 32), mvp);
+    renderer.endFrame();
+    
+    // Verify draw calls were made
+    EXPECT_GT(context.getDrawCallCount(), 0);
+}
+```
+
+**Implementation:**
+- Create shader compilation system
+- Implement vertex buffer management
+- Add texture uploading and binding
+- Create sprite batching for performance
+- Implement proper OpenGL state management
+
+#### Task 25.3: Connect Input Systems
+**Tests First:**
+```cpp
+TEST(InputJNITest, ForwardGamepadInput) {
+    JNIEnv* env = getTestJNIEnv();
+    jobject thiz = createTestObject();
+    
+    jlong enginePtr = Java_com_d2portable_NativeEngine_createEngine(env, thiz);
+    
+    // Send gamepad input
+    jfloat leftX = 0.5f, leftY = -0.3f;
+    jfloat rightX = 0.0f, rightY = 0.0f;
+    jboolean aButton = JNI_TRUE;
+    
+    Java_com_d2portable_NativeEngine_onGamepadInput(
+        env, thiz, enginePtr, leftX, leftY, rightX, rightY, aButton, 
+        JNI_FALSE, JNI_FALSE, JNI_FALSE);
+    
+    // Verify input was received by engine
+    GameEngine* engine = reinterpret_cast<GameEngine*>(enginePtr);
+    auto inputState = engine->getInputManager()->getCurrentState();
+    
+    EXPECT_FLOAT_EQ(inputState.leftStick.x, 0.5f);
+    EXPECT_FLOAT_EQ(inputState.leftStick.y, -0.3f);
+    EXPECT_TRUE(inputState.buttons[BUTTON_A]);
+}
+
+TEST(InputJNITest, ForwardTouchInput) {
+    JNIEnv* env = getTestJNIEnv();
+    jobject thiz = createTestObject();
+    
+    jlong enginePtr = Java_com_d2portable_NativeEngine_createEngine(env, thiz);
+    
+    // Send touch input
+    jint action = 0; // ACTION_DOWN
+    jfloat x = 400.0f, y = 300.0f;
+    
+    Java_com_d2portable_NativeEngine_onTouchEvent(
+        env, thiz, enginePtr, action, x, y);
+    
+    // Verify touch was processed
+    GameEngine* engine = reinterpret_cast<GameEngine*>(enginePtr);
+    auto touchState = engine->getTouchInput()->getCurrentTouch();
+    
+    EXPECT_TRUE(touchState.isActive);
+    EXPECT_FLOAT_EQ(touchState.position.x, 400.0f);
+    EXPECT_FLOAT_EQ(touchState.position.y, 300.0f);
+}
+```
+
+**Implementation:**
+- Add native methods to NativeEngine for input
+- Implement MainActivity gamepad forwarding
+- Connect TouchInput to JNI onTouchEvent
+- Add proper input state management
+
+#### Task 25.4: Fix Asset Loading
+**Tests First:**
+```cpp
+TEST(GameEngineTest, InitializeWithMPQs) {
+    GameEngine engine;
+    
+    // Should use initializeWithMPQs for proper MPQ loading
+    EXPECT_TRUE(engine.initialize(800, 600));
+    
+    // Verify AssetManager was initialized with MPQs
+    auto* assetManager = engine.getAssetManager();
+    EXPECT_TRUE(assetManager->isInitializedWithMPQs());
+    EXPECT_TRUE(assetManager->canLoadSprites());
+}
+
+TEST(AssetManagerTest, LoadFromMPQArchive) {
+    AssetManager manager;
+    
+    // Initialize with MPQ files
+    EXPECT_TRUE(manager.initializeWithMPQs("vendor/mpq"));
+    
+    // Should be able to load assets from MPQ
+    auto sprite = manager.loadSprite("data/global/ui/panel/invchar6.dc6");
+    EXPECT_NE(sprite, nullptr);
+    
+    // Should extract from MPQ, not file system
+    EXPECT_TRUE(manager.wasLoadedFromMPQ("data/global/ui/panel/invchar6.dc6"));
+}
+```
+
+**Implementation:**
+- Change GameEngine::initialize to use initializeWithMPQs
+- Ensure AssetManager properly opens MPQ archives
+- Fix sprite loading to extract from MPQ files
+- Add fallback for missing MPQ files
+
+**Deliverables:**
+- Working JNI bridge that creates GameEngine
+- Basic OpenGL ES rendering pipeline
+- Connected input systems (gamepad and touch)
+- Proper MPQ asset loading
+
+---
+
+## Phase 26: Core Game Loop Implementation (Week 42)
+
+### Objectives
+- Implement actual game loop with entity updates
+- Add real collision detection and physics
+- Implement proper save system with inventory
+- Create functional audio system
+
+### Context
+The game loop exists but doesn't actually update entities or process collisions. The save system is a stub that doesn't persist inventory data.
+
+### Tasks
+
+#### Task 26.1: Implement Game Loop Updates
+**Tests First:**
+```cpp
+TEST(GameEngineTest, UpdateEntities) {
+    GameEngine engine;
+    engine.initialize(800, 600);
+    
+    // Add a moving entity
+    auto player = engine.getGameState()->getPlayer();
+    player->setVelocity(glm::vec2(100, 0)); // 100 units/sec
+    
+    // Update for 1 second
+    engine.update(1.0f);
+    
+    // Player should have moved
+    EXPECT_FLOAT_EQ(player->getPosition().x, 100.0f);
+}
+
+TEST(GameEngineTest, ProcessCollisions) {
+    GameEngine engine;
+    engine.initialize(800, 600);
+    
+    // Create two colliding entities
+    auto player = engine.getGameState()->getPlayer();
+    player->setPosition(glm::vec2(100, 100));
+    
+    auto monster = std::make_shared<Monster>();
+    monster->setPosition(glm::vec2(105, 100)); // 5 units away
+    engine.getGameState()->addMonster(monster);
+    
+    // Update should detect collision
+    engine.update(0.016f); // One frame
+    
+    // Verify collision was processed
+    EXPECT_TRUE(player->hasCollidedThisFrame());
+    EXPECT_TRUE(monster->hasCollidedThisFrame());
+}
+
+TEST(GameEngineTest, CombatProcessing) {
+    GameEngine engine;
+    engine.initialize(800, 600);
+    
+    auto player = engine.getGameState()->getPlayer();
+    auto monster = std::make_shared<Monster>();
+    
+    // Set up combat scenario
+    player->setPosition(glm::vec2(100, 100));
+    monster->setPosition(glm::vec2(110, 100));
+    monster->setLife(100);
+    
+    engine.getGameState()->addMonster(monster);
+    
+    // Simulate attack
+    player->attack(monster);
+    engine.update(0.016f);
+    
+    // Monster should take damage
+    EXPECT_LT(monster->getLife(), 100);
+}
+```
+
+**Implementation:**
+- Add velocity and physics to Entity base class
+- Implement collision detection in update loop
+- Process combat interactions
+- Update all entity positions each frame
+
+#### Task 26.2: Implement Inventory Persistence
+**Tests First:**
+```cpp
+TEST(SaveManagerTest, SaveInventoryItems) {
+    SaveManager manager;
+    Character character;
+    character.setName("TestHero");
+    
+    // Add items to inventory
+    auto sword = std::make_shared<Item>("Sword", ItemType::WEAPON);
+    auto potion = std::make_shared<Item>("Healing Potion", ItemType::CONSUMABLE);
+    
+    character.getInventory().addItem(sword, 0, 0);
+    character.getInventory().addItem(potion, 2, 1);
+    
+    // Save with inventory
+    EXPECT_TRUE(manager.saveCharacterWithInventory(character, "test_inventory.d2s"));
+    
+    // Load and verify
+    Character loaded;
+    auto inventory = manager.loadCharacterWithInventory(loaded, "test_inventory.d2s");
+    
+    EXPECT_EQ(loaded.getName(), "TestHero");
+    EXPECT_NE(inventory, nullptr);
+    
+    auto loadedSword = inventory->getItem(0, 0);
+    EXPECT_NE(loadedSword, nullptr);
+    EXPECT_EQ(loadedSword->getName(), "Sword");
+    
+    auto loadedPotion = inventory->getItem(2, 1);
+    EXPECT_NE(loadedPotion, nullptr);
+    EXPECT_EQ(loadedPotion->getName(), "Healing Potion");
+}
+
+TEST(SaveManagerTest, SaveEquippedItems) {
+    SaveManager manager;
+    Character character;
+    
+    // Equip items
+    auto helm = std::make_shared<Item>("Iron Helm", ItemType::HELM);
+    auto armor = std::make_shared<Item>("Leather Armor", ItemType::ARMOR);
+    
+    character.equipItem(EquipmentSlot::HEAD, helm);
+    character.equipItem(EquipmentSlot::BODY, armor);
+    
+    // Save and load
+    EXPECT_TRUE(manager.saveCharacterWithInventory(character, "test_equipped.d2s"));
+    
+    Character loaded;
+    manager.loadCharacterWithInventory(loaded, "test_equipped.d2s");
+    
+    // Verify equipped items
+    auto loadedHelm = loaded.getEquippedItem(EquipmentSlot::HEAD);
+    EXPECT_NE(loadedHelm, nullptr);
+    EXPECT_EQ(loadedHelm->getName(), "Iron Helm");
+}
+```
+
+**Implementation:**
+- Extend D2S format to include inventory data
+- Serialize item properties and positions
+- Handle equipped items separately
+- Maintain backward compatibility
+
+#### Task 26.3: Implement Audio System
+**Tests First:**
+```cpp
+TEST(AudioEngineTest, InitializeAudioDevice) {
+    AudioEngine audio;
+    
+    EXPECT_TRUE(audio.initialize());
+    EXPECT_TRUE(audio.isInitialized());
+    
+    // Should detect audio capabilities
+    auto caps = audio.getCapabilities();
+    EXPECT_GT(caps.sampleRate, 0);
+    EXPECT_GT(caps.channels, 0);
+}
+
+TEST(AudioEngineTest, PlaySound) {
+    AudioEngine audio;
+    audio.initialize();
+    
+    // Load a test sound
+    auto sound = audio.loadSound("test_data/sword_swing.wav");
+    EXPECT_NE(sound, nullptr);
+    
+    // Play the sound
+    auto handle = audio.playSound(sound);
+    EXPECT_NE(handle, AudioHandle::INVALID);
+    
+    // Verify it's playing
+    EXPECT_TRUE(audio.isPlaying(handle));
+}
+
+TEST(AudioEngineTest, StreamMusic) {
+    AudioEngine audio;
+    audio.initialize();
+    
+    // Start streaming background music
+    EXPECT_TRUE(audio.streamMusic("test_data/town_theme.ogg"));
+    
+    // Should be playing
+    EXPECT_TRUE(audio.isMusicPlaying());
+    
+    // Can control volume
+    audio.setMusicVolume(0.5f);
+    EXPECT_FLOAT_EQ(audio.getMusicVolume(), 0.5f);
+}
+```
+
+**Implementation:**
+- Use Oboe library for Android audio
+- Implement PCM audio playback
+- Add OGG Vorbis decoding for music
+- Create mixing system for multiple sounds
+- Add 3D audio positioning support
+
+#### Task 26.4: Asset Validation Implementation
+**Tests First:**
+```cpp
+TEST(AssetValidatorTest, ValidateMPQContents) {
+    AssetValidator validator;
+    
+    auto result = validator.validateMPQFile("test_data/d2data.mpq");
+    
+    EXPECT_TRUE(result.hasValidHeader);
+    EXPECT_TRUE(result.hasRequiredFiles);
+    EXPECT_EQ(result.corruptedFiles.size(), 0);
+    
+    // Should check for critical files
+    EXPECT_TRUE(result.hasFile("data/global/chars/BA/BA.dcc"));
+    EXPECT_TRUE(result.hasFile("data/global/excel/armor.txt"));
+}
+
+TEST(AssetValidatorTest, CalculateChecksums) {
+    AssetValidator validator;
+    
+    auto checksums = validator.calculateChecksums("extracted_assets/");
+    
+    EXPECT_FALSE(checksums.empty());
+    
+    // Should calculate MD5 for each file
+    for (const auto& [file, checksum] : checksums) {
+        EXPECT_EQ(checksum.length(), 32); // MD5 is 32 hex chars
+    }
+}
+
+TEST(AssetValidatorTest, DetectModifiedFiles) {
+    AssetValidator validator;
+    
+    // Create baseline
+    auto baseline = validator.calculateChecksums("original_assets/");
+    
+    // Check current assets
+    auto current = validator.calculateChecksums("extracted_assets/");
+    
+    auto modified = validator.findModifiedFiles(baseline, current);
+    
+    // In clean install, nothing should be modified
+    EXPECT_EQ(modified.size(), 0);
+}
+```
+
+**Implementation:**
+- Read MPQ file tables properly
+- Implement MD5 checksum calculation
+- Compare against known good checksums
+- Detect tampering or corruption
+
+**Deliverables:**
+- Functional game loop with entity updates
+- Working collision detection
+- Complete inventory persistence
+- Basic audio playback system
+- Proper asset validation
+
+---
+
+## Phase 27: Network and Rendering Completion (Week 43)
+
+### Objectives
+- Implement real network sockets for multiplayer
+- Complete the OpenGL rendering pipeline
+- Add sprite batching and optimization
+- Implement UI rendering system
+
+### Context
+Network code uses static variables instead of real sockets. Rendering system needs completion with proper sprite batching and UI support.
+
+### Tasks
+
+#### Task 27.1: Implement Network Sockets
+**Tests First:**
+```cpp
+TEST(NetworkTest, CreateTCPServer) {
+    NetworkManager network;
+    
+    // Create server socket
+    auto server = network.createServer(8080);
+    EXPECT_NE(server, nullptr);
+    EXPECT_TRUE(server->isListening());
+    EXPECT_EQ(server->getPort(), 8080);
+}
+
+TEST(NetworkTest, ClientServerConnection) {
+    NetworkManager network;
+    
+    // Create server
+    auto server = network.createServer(8081);
+    
+    // Create client and connect
+    auto client = network.createClient();
+    EXPECT_TRUE(client->connect("127.0.0.1", 8081));
+    
+    // Server should accept connection
+    auto connection = server->acceptConnection(1000); // 1 sec timeout
+    EXPECT_NE(connection, nullptr);
+}
+
+TEST(NetworkTest, SendReceivePackets) {
+    NetworkManager network;
+    auto server = network.createServer(8082);
+    auto client = network.createClient();
+    client->connect("127.0.0.1", 8082);
+    auto connection = server->acceptConnection(1000);
+    
+    // Send packet from client
+    Packet packet;
+    packet.type = PacketType::PLAYER_POSITION;
+    packet.data = {100.0f, 200.0f}; // x, y position
+    
+    EXPECT_TRUE(client->sendPacket(packet));
+    
+    // Server should receive it
+    Packet received;
+    EXPECT_TRUE(connection->receivePacket(received, 1000));
+    EXPECT_EQ(received.type, PacketType::PLAYER_POSITION);
+    EXPECT_FLOAT_EQ(received.data[0], 100.0f);
+    EXPECT_FLOAT_EQ(received.data[1], 200.0f);
+}
+```
+
+**Implementation:**
+- Use POSIX sockets for TCP/IP
+- Implement packet serialization
+- Add connection management
+- Handle network errors gracefully
+- Support both host and client modes
+
+#### Task 27.2: Complete Sprite Rendering
+**Tests First:**
+```cpp
+TEST(SpriteRendererTest, BatchMultipleSprites) {
+    SpriteRenderer renderer;
+    renderer.initialize();
+    
+    // Add multiple sprites to batch
+    renderer.beginBatch();
+    
+    for (int i = 0; i < 100; i++) {
+        renderer.addSprite(
+            textureIds[i % 10],
+            glm::vec2(i * 10, i * 5),
+            glm::vec2(32, 32)
+        );
+    }
+    
+    auto metrics = renderer.endBatch();
+    
+    // Should batch efficiently
+    EXPECT_LE(metrics.drawCalls, 10); // Max 10 draw calls for 10 textures
+    EXPECT_EQ(metrics.spritesDrawn, 100);
+}
+
+TEST(SpriteRendererTest, SortByDepth) {
+    SpriteRenderer renderer;
+    renderer.initialize();
+    
+    renderer.beginBatch();
+    renderer.addSprite(texture1, glm::vec2(0, 0), glm::vec2(32, 32), 5.0f);
+    renderer.addSprite(texture2, glm::vec2(10, 10), glm::vec2(32, 32), 2.0f);
+    renderer.addSprite(texture3, glm::vec2(20, 20), glm::vec2(32, 32), 8.0f);
+    renderer.endBatch();
+    
+    // Should render in depth order
+    auto renderOrder = renderer.getLastRenderOrder();
+    EXPECT_EQ(renderOrder[0].depth, 2.0f); // Nearest first
+    EXPECT_EQ(renderOrder[1].depth, 5.0f);
+    EXPECT_EQ(renderOrder[2].depth, 8.0f); // Farthest last
+}
+
+TEST(SpriteRendererTest, AnimatedSprites) {
+    SpriteRenderer renderer;
+    renderer.initialize();
+    
+    // Create animated sprite
+    AnimatedSprite anim;
+    anim.addFrame(texture1, 0.1f); // 100ms per frame
+    anim.addFrame(texture2, 0.1f);
+    anim.addFrame(texture3, 0.1f);
+    
+    // Update animation
+    anim.update(0.25f); // 250ms elapsed
+    
+    // Should be on frame 2 (0-indexed)
+    EXPECT_EQ(anim.getCurrentFrame(), 2);
+    
+    // Render current frame
+    renderer.renderAnimatedSprite(anim, glm::vec2(100, 100));
+}
+```
+
+**Implementation:**
+- Create vertex buffer for sprite batching
+- Implement texture atlasing support
+- Add depth sorting for proper layering
+- Support animated sprites
+- Optimize for mobile GPUs
+
+#### Task 27.3: UI Rendering System
+**Tests First:**
+```cpp
+TEST(UIRendererTest, RenderUIPanel) {
+    UIRenderer uiRenderer;
+    uiRenderer.initialize();
+    
+    // Create UI panel
+    UIPanel panel(glm::vec2(100, 100), glm::vec2(200, 150));
+    panel.setBackgroundColor(glm::vec4(0.2f, 0.2f, 0.2f, 0.8f));
+    panel.setBorderWidth(2.0f);
+    panel.setBorderColor(glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+    
+    // Render panel
+    uiRenderer.beginFrame();
+    uiRenderer.renderPanel(panel);
+    auto metrics = uiRenderer.endFrame();
+    
+    // Should render background and border
+    EXPECT_GE(metrics.quadCount, 2); // At least 2 quads
+}
+
+TEST(UIRendererTest, RenderText) {
+    UIRenderer uiRenderer;
+    TextRenderer textRenderer;
+    
+    uiRenderer.initialize();
+    textRenderer.initialize();
+    
+    // Create label
+    UILabel label("Hello World", glm::vec2(50, 50));
+    label.setFont(fontManager.getFont("default"));
+    label.setColor(glm::vec3(1.0f, 1.0f, 0.0f)); // Yellow
+    
+    // Render
+    uiRenderer.beginFrame();
+    uiRenderer.renderLabel(label, textRenderer);
+    uiRenderer.endFrame();
+    
+    // Verify text was rendered
+    EXPECT_GT(textRenderer.getGlyphsRendered(), 0);
+}
+
+TEST(UIRendererTest, HandleUIInput) {
+    UIRenderer uiRenderer;
+    UIManager uiManager;
+    
+    // Create button
+    UIButton button("Click Me", glm::vec2(100, 100), glm::vec2(100, 40));
+    bool clicked = false;
+    button.setOnClick([&clicked]() { clicked = true; });
+    
+    uiManager.addElement(&button);
+    
+    // Simulate click
+    TouchEvent event;
+    event.type = TouchEvent::DOWN;
+    event.position = glm::vec2(150, 120); // Inside button
+    
+    uiManager.handleTouch(event);
+    
+    EXPECT_TRUE(clicked);
+}
+```
+
+**Implementation:**
+- Create UI quad rendering system
+- Implement nine-patch rendering for panels
+- Add text rendering integration
+- Support touch/click detection
+- Create UI element hierarchy
+
+#### Task 27.4: Shader System
+**Tests First:**
+```cpp
+TEST(ShaderManagerTest, LoadAndCompileShaders) {
+    ShaderManager shaderMgr;
+    
+    // Load sprite shader
+    auto spriteShader = shaderMgr.loadShader(
+        "sprite",
+        "shaders/sprite.vert",
+        "shaders/sprite.frag"
+    );
+    
+    EXPECT_NE(spriteShader, nullptr);
+    EXPECT_TRUE(spriteShader->isCompiled());
+    EXPECT_NE(spriteShader->getProgramId(), 0);
+}
+
+TEST(ShaderManagerTest, SetUniforms) {
+    ShaderManager shaderMgr;
+    auto shader = shaderMgr.loadShader("test", vertSrc, fragSrc);
+    
+    shader->use();
+    
+    // Set various uniform types
+    shader->setUniform("mvpMatrix", glm::mat4(1.0f));
+    shader->setUniform("tintColor", glm::vec4(1.0f, 0.0f, 0.0f, 1.0f));
+    shader->setUniform("time", 1.5f);
+    shader->setUniform("textureSlot", 0);
+    
+    // Verify uniforms were set (would need GL query in real impl)
+    EXPECT_TRUE(shader->hasUniform("mvpMatrix"));
+    EXPECT_TRUE(shader->hasUniform("tintColor"));
+}
+
+TEST(ShaderManagerTest, ShaderHotReload) {
+    ShaderManager shaderMgr;
+    shaderMgr.enableHotReload(true);
+    
+    auto shader = shaderMgr.loadShader("test", "test.vert", "test.frag");
+    uint32_t originalId = shader->getProgramId();
+    
+    // Modify shader file
+    modifyTestShaderFile("test.frag");
+    
+    // Trigger reload check
+    shaderMgr.checkForReloads();
+    
+    // Should have new program ID
+    EXPECT_NE(shader->getProgramId(), originalId);
+}
+```
+
+**Implementation:**
+- Create shader compilation wrapper
+- Add uniform management
+- Implement shader hot-reloading
+- Create default shaders for sprites/UI
+- Add error reporting
+
+**Deliverables:**
+- Real TCP/IP networking implementation
+- Complete sprite batching system
+- Functional UI rendering
+- Shader management system
+
+---
+
+## Phase 28: Final Integration and Polish (Week 44)
+
+### Objectives
+- Integrate all systems into cohesive whole
+- Fix remaining integration issues
+- Optimize performance
+- Final testing and validation
+
+### Context
+All individual systems need to work together seamlessly. Performance optimization and final polish are required.
+
+### Tasks
+
+#### Task 28.1: System Integration
+**Tests First:**
+```cpp
+TEST(IntegrationTest, FullGameplayLoop) {
+    // Create complete game instance
+    GameEngine engine;
+    EXPECT_TRUE(engine.initialize(1280, 720));
+    
+    // Load a character
+    Character character;
+    engine.loadCharacter("saves/test_character.d2s");
+    
+    // Start gameplay
+    engine.startGame();
+    
+    // Simulate 60 frames
+    for (int i = 0; i < 60; i++) {
+        engine.update(0.016f);
+        engine.render();
+    }
+    
+    // Game should be running smoothly
+    EXPECT_TRUE(engine.isRunning());
+    EXPECT_GT(engine.getFPS(), 55.0f); // At least 55 FPS
+}
+
+TEST(IntegrationTest, MultiplayerSession) {
+    // Host game
+    GameEngine host;
+    host.initialize(1280, 720);
+    host.hostGame(8090);
+    
+    // Client joins
+    GameEngine client;
+    client.initialize(1280, 720);
+    EXPECT_TRUE(client.joinGame("127.0.0.1", 8090));
+    
+    // Both should be connected
+    EXPECT_TRUE(host.isMultiplayer());
+    EXPECT_TRUE(client.isMultiplayer());
+    
+    // Simulate synchronized gameplay
+    for (int i = 0; i < 100; i++) {
+        host.update(0.016f);
+        client.update(0.016f);
+    }
+    
+    // States should be synchronized
+    auto hostState = host.getGameState();
+    auto clientState = client.getGameState();
+    
+    EXPECT_EQ(hostState->getPlayers().size(), 
+              clientState->getPlayers().size());
+}
+```
+
+**Implementation:**
+- Ensure all systems initialize in correct order
+- Fix any circular dependencies
+- Verify memory management
+- Test system interactions
+
+#### Task 28.2: Performance Optimization
+**Tests First:**
+```cpp
+TEST(PerformanceTest, MaintainTargetFPS) {
+    GameEngine engine;
+    engine.initialize(1280, 720);
+    
+    // Create heavy scene
+    for (int i = 0; i < 100; i++) {
+        auto monster = std::make_shared<Monster>();
+        monster->setPosition(glm::vec2(i * 50, i * 30));
+        engine.getGameState()->addMonster(monster);
+    }
+    
+    // Add many items
+    for (int i = 0; i < 200; i++) {
+        auto item = std::make_shared<DroppedItem>();
+        item->setPosition(glm::vec2(i * 25, i * 15));
+        engine.getGameState()->addItem(item);
+    }
+    
+    // Measure performance
+    auto start = std::chrono::high_resolution_clock::now();
+    for (int i = 0; i < 600; i++) { // 10 seconds at 60 FPS
+        engine.update(0.016f);
+        engine.render();
+    }
+    auto end = std::chrono::high_resolution_clock::now();
+    
+    auto duration = std::chrono::duration<float>(end - start).count();
+    float avgFPS = 600.0f / duration;
+    
+    EXPECT_GT(avgFPS, 55.0f); // Maintain at least 55 FPS average
+}
+
+TEST(MemoryTest, NoMemoryLeaks) {
+    size_t initialMemory = getCurrentMemoryUsage();
+    
+    // Create and destroy many objects
+    for (int i = 0; i < 1000; i++) {
+        GameEngine engine;
+        engine.initialize(800, 600);
+        engine.startGame();
+        engine.update(0.1f);
+        // Engine destroyed here
+    }
+    
+    size_t finalMemory = getCurrentMemoryUsage();
+    
+    // Should not leak more than 1MB
+    EXPECT_LT(finalMemory - initialMemory, 1024 * 1024);
+}
+```
+
+**Implementation:**
+- Profile and optimize hot paths
+- Implement object pooling
+- Optimize render batching
+- Reduce memory allocations
+- Add performance monitoring
+
+#### Task 28.3: Android Integration Testing
+**Tests First:**
+```java
+@RunWith(AndroidJUnit4.class)
+public class GameIntegrationTest {
+    
+    @Test
+    public void testFullGameLaunch() {
+        // Launch game activity
+        ActivityScenario<MainActivity> scenario = 
+            ActivityScenario.launch(MainActivity.class);
+        
+        scenario.onActivity(activity -> {
+            // Wait for engine initialization
+            waitForCondition(() -> activity.isEngineReady(), 5000);
+            
+            // Verify rendering started
+            assertTrue(activity.isRendering());
+            
+            // Check FPS
+            float fps = activity.getCurrentFPS();
+            assertTrue("FPS too low: " + fps, fps > 55.0f);
+        });
+    }
+    
+    @Test
+    public void testGamepadInput() {
+        ActivityScenario<MainActivity> scenario = 
+            ActivityScenario.launch(MainActivity.class);
+        
+        scenario.onActivity(activity -> {
+            // Simulate gamepad input
+            MotionEvent event = MotionEvent.obtain(
+                0, 0, MotionEvent.ACTION_MOVE,
+                1, new MotionEvent.PointerProperties[]{},
+                new MotionEvent.PointerCoords[]{},
+                0, 0, 0, 0, 0, 0, 0, 0
+            );
+            
+            activity.onGenericMotionEvent(event);
+            
+            // Verify input was processed
+            assertTrue(activity.getLastInputTime() > 0);
+        });
+    }
+}
+```
+
+**Implementation:**
+- Fix all JNI integration issues
+- Ensure lifecycle management works
+- Test on actual devices
+- Verify controller support
+- Check orientation handling
+
+#### Task 28.4: Final Polish
+**Tests First:**
+```cpp
+TEST(PolishTest, GracefulErrorHandling) {
+    GameEngine engine;
+    
+    // Initialize without MPQ files
+    EXPECT_TRUE(engine.initialize(800, 600));
+    
+    // Should show error state, not crash
+    EXPECT_TRUE(engine.isInErrorState());
+    EXPECT_FALSE(engine.isPlayable());
+    
+    // Should display helpful error message
+    auto errorMsg = engine.getErrorMessage();
+    EXPECT_TRUE(errorMsg.find("MPQ files") != std::string::npos);
+    EXPECT_TRUE(errorMsg.find("vendor/mpq") != std::string::npos);
+}
+
+TEST(PolishTest, SaveStateRecovery) {
+    GameEngine engine;
+    engine.initialize(800, 600);
+    
+    // Simulate crash during save
+    engine.getGameState()->corruptSaveState();
+    
+    // Attempt to save
+    bool saved = engine.saveGame("corrupt_test.d2s");
+    EXPECT_FALSE(saved);
+    
+    // Should have backup
+    EXPECT_TRUE(engine.hasBackupSave("corrupt_test.d2s"));
+    
+    // Should be able to load backup
+    EXPECT_TRUE(engine.loadBackupSave("corrupt_test.d2s"));
+}
+```
+
+**Implementation:**
+- Add comprehensive error handling
+- Implement save backup system
+- Add diagnostic logging
+- Create recovery mechanisms
+- Polish UI feedback
+
+**Deliverables:**
+- Fully integrated game systems
+- Optimized performance (60+ FPS)
+- No memory leaks
+- Polished user experience
+- Production-ready application
+
+---
+
 ## Updated Final Timeline
 
 - **Phases 0-20**: Weeks 1-36 (COMPLETED) - Core Implementation
@@ -3582,7 +4592,11 @@ TEST(SecurityTest, ValidateAssetIntegrity) {
 - **Phase 22**: Week 38 - Enhanced Asset Pipeline  
 - **Phase 23**: Week 39 - User Experience Enhancement
 - **Phase 24**: Week 40 - Quality Assurance and Polish
-- **Total Project Duration**: 40 weeks
+- **Phase 25**: Week 41 - Critical Core Functionality Repair
+- **Phase 26**: Week 42 - Core Game Loop Implementation
+- **Phase 27**: Week 43 - Network and Rendering Completion
+- **Phase 28**: Week 44 - Final Integration and Polish
+- **Total Project Duration**: 44 weeks
 
 ## Enhanced Success Criteria
 
@@ -3611,4 +4625,16 @@ TEST(SecurityTest, ValidateAssetIntegrity) {
    - ✅ Comprehensive help documentation
    - ✅ Diagnostic reporting
 
-This extended implementation plan transforms the project from a technically capable but user-hostile system into a polished, production-ready application that provides an exceptional user experience for getting Diablo II running on Android devices.
+5. **Core Functionality (Phases 25-28)**
+   - ✅ Working JNI bridge between Android and native engine
+   - ✅ Complete OpenGL ES 3.0 rendering pipeline
+   - ✅ Functional game loop with entity updates
+   - ✅ Real network sockets for multiplayer
+   - ✅ Complete save system with inventory persistence
+   - ✅ Working audio system with Oboe integration
+   - ✅ Proper input handling (gamepad and touch)
+   - ✅ 60+ FPS performance on target hardware
+   - ✅ No memory leaks or crashes
+   - ✅ Graceful error handling and recovery
+
+This extended implementation plan transforms the project from a test framework with stub implementations into a fully functional, production-ready Diablo II port for Android devices. The additional phases (25-28) address all critical functionality gaps identified in the code review.

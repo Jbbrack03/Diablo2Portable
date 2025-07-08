@@ -30,9 +30,15 @@ set(TEST_SOURCES
     core/settings_manager_test.cpp
     rendering/egl_context_test.cpp
     rendering/renderer_test.cpp
+    rendering/opengl_implementation_test.cpp
+    rendering/game_loop_update_test.cpp
     rendering/shader_manager_test.cpp
+    rendering/shader_implementation_test.cpp
     rendering/texture_manager_test.cpp
     rendering/sprite_renderer_test.cpp
+    rendering/sprite_renderer_opengl_test.cpp
+    rendering/opengl_draw_calls_test.cpp
+    rendering/vertex_buffer_test.cpp
     rendering/world_renderer_test.cpp
     rendering/camera_test.cpp
     input/gamepad_manager_test.cpp

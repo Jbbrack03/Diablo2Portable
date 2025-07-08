@@ -34,6 +34,7 @@ add_library(d2engine STATIC
     src/rendering/shader_manager.cpp
     src/rendering/texture_manager.cpp
     src/rendering/sprite_renderer.cpp
+    src/rendering/vertex_buffer.cpp
     src/rendering/world_renderer.cpp
     src/rendering/optimized_world_renderer.cpp
     src/rendering/camera.cpp

@@ -165,12 +165,38 @@ void Monster::updateAI() {
                 // Don't pursue target if it would take us too far from territory
                 if (territoryDistSquared <= maxTerritoryDistSquared) {
                     m_aiState = AIState::SEEKING;
+                    
+                    // MINIMAL IMPLEMENTATION: Move towards target when seeking
+                    float fdx = static_cast<float>(dx);
+                    float fdy = static_cast<float>(dy);
+                    float distance = std::sqrt(fdx * fdx + fdy * fdy);
+                    if (distance > 0) {
+                        // Normalize direction and move at speed 5.0
+                        const float MONSTER_SPEED = 5.0f;
+                        float moveX = (fdx / distance) * MONSTER_SPEED;
+                        float moveY = (fdy / distance) * MONSTER_SPEED;
+                        position_.x += moveX;
+                        position_.y += moveY;
+                    }
                 } else {
                     // Return to territory center
                     m_aiState = AIState::PATROLLING;
                 }
             } else {
                 m_aiState = AIState::SEEKING;
+                
+                // MINIMAL IMPLEMENTATION: Move towards target when seeking (no territory)
+                float fdx = static_cast<float>(dx);
+                float fdy = static_cast<float>(dy);
+                float distance = std::sqrt(fdx * fdx + fdy * fdy);
+                if (distance > 0) {
+                    // Normalize direction and move at speed 5.0
+                    const float MONSTER_SPEED = 5.0f;
+                    float moveX = (fdx / distance) * MONSTER_SPEED;
+                    float moveY = (fdy / distance) * MONSTER_SPEED;
+                    position_.x += moveX;
+                    position_.y += moveY;
+                }
             }
             return;
         }
