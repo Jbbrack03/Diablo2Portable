@@ -47,4 +47,19 @@ bool ShaderManager::isShaderValid(uint32_t shader_id) const {
     return shader_id != 0;
 }
 
+uint32_t ShaderManager::createProgram(uint32_t vertex_shader, uint32_t fragment_shader) {
+    // Minimal implementation to pass the test
+    // In a real implementation, this would create an OpenGL shader program
+    if (vertex_shader == 0 || fragment_shader == 0) {
+        return 0; // Invalid input shaders
+    }
+    
+    return next_program_id_++;
+}
+
+bool ShaderManager::isProgramValid(uint32_t program_id) const {
+    // Minimal implementation - assume all non-zero program IDs are valid
+    return program_id != 0;
+}
+
 } // namespace d2::rendering

@@ -50,4 +50,22 @@ TEST_F(ShaderManagerTest, CompileVertexShader) {
     EXPECT_TRUE(manager.isShaderValid(shader_id));
 }
 
+// RED PHASE: This test MUST fail - testing shader program linking
+TEST_F(ShaderManagerTest, CreateShaderProgram) {
+    ShaderManager manager;
+    
+    // Compile both vertex and fragment shaders
+    uint32_t vertex_shader = manager.compileShader(ShaderType::VERTEX, vertex_shader_source);
+    uint32_t fragment_shader = manager.compileShader(ShaderType::FRAGMENT, fragment_shader_source);
+    
+    ASSERT_NE(vertex_shader, 0u);
+    ASSERT_NE(fragment_shader, 0u);
+    
+    // Link shaders into a complete program
+    uint32_t program_id = manager.createProgram(vertex_shader, fragment_shader);
+    
+    EXPECT_NE(program_id, 0u) << "Shader program should be created successfully";
+    EXPECT_TRUE(manager.isProgramValid(program_id)) << "Created program should be valid";
+}
+
 } // namespace d2::rendering
