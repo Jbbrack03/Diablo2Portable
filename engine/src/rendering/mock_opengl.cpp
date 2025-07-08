@@ -59,6 +59,23 @@ extern "C" {
     GLenum glGetError() {
         return GL_NO_ERROR;
     }
+    
+    // Shader and draw call functions
+    void glUseProgram(GLuint program) {
+        (void)program;
+    }
+    
+    void glDrawArrays(GLenum mode, int first, GLsizei count) {
+        (void)mode; (void)first; (void)count;
+    }
+    
+    void glEnableVertexAttribArray(GLuint index) {
+        (void)index;
+    }
+    
+    void glVertexAttribPointer(GLuint index, int size, GLenum type, bool normalized, GLsizei stride, const void* pointer) {
+        (void)index; (void)size; (void)type; (void)normalized; (void)stride; (void)pointer;
+    }
 }
 
 #endif // __ANDROID__

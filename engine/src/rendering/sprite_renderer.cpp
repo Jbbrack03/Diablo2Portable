@@ -5,6 +5,23 @@
 #include "rendering/vertex_buffer.h"
 #include "rendering/vertex_array_object.h"
 #include <unordered_set>
+#include <cstddef>
+
+#ifdef __ANDROID__
+#include <GLES3/gl3.h>
+#else
+// Mock OpenGL constants and functions for desktop testing
+#define GL_TRIANGLES 0x0004
+#define GL_FLOAT 0x1406
+#define GL_FALSE 0
+
+extern "C" {
+    void glUseProgram(uint32_t program);
+    void glDrawArrays(uint32_t mode, int first, int count);
+    void glEnableVertexAttribArray(uint32_t index);
+    void glVertexAttribPointer(uint32_t index, int size, uint32_t type, bool normalized, int stride, const void* pointer);
+}
+#endif
 
 namespace d2::rendering {
 
@@ -91,29 +108,93 @@ void SpriteRenderer::beginFrame() {
     draw_call_count_ = 0;
     sprite_count_ = 0;
     textures_used_.clear();
+    sprite_batches_.clear();
     
     // Activate shader program for this frame
     if (shader_program_ != 0) {
-        // In a real implementation, this would call glUseProgram(shader_program_)
+        glUseProgram(shader_program_);
         shader_program_active_ = true;
+    }
+    
+    // Bind VAO for sprite rendering
+    if (vao_) {
+        vao_->bind();
     }
 }
 
 void SpriteRenderer::drawSprite(uint32_t texture_id, const glm::vec2& position, const glm::vec2& size) {
-    // Minimal implementation - count sprite and track unique textures
-    (void)position;   // Suppress unused parameter warning
-    (void)size;       // Suppress unused parameter warning
-    
     sprite_count_++;
     textures_used_.insert(texture_id);
+    
+    // Create vertices for a sprite quad (two triangles)
+    // Top-left
+    SpriteVertex v0{{position.x, position.y}, {0.0f, 0.0f}};
+    // Top-right
+    SpriteVertex v1{{position.x + size.x, position.y}, {1.0f, 0.0f}};
+    // Bottom-left
+    SpriteVertex v2{{position.x, position.y + size.y}, {0.0f, 1.0f}};
+    // Bottom-right
+    SpriteVertex v3{{position.x + size.x, position.y + size.y}, {1.0f, 1.0f}};
+    
+    // Add vertices to the batch for this texture (two triangles)
+    auto& batch = sprite_batches_[texture_id];
+    batch.texture_id = texture_id;
+    
+    // First triangle (top-left, top-right, bottom-left)
+    batch.vertices.push_back(v0);
+    batch.vertices.push_back(v1);
+    batch.vertices.push_back(v2);
+    
+    // Second triangle (top-right, bottom-right, bottom-left)
+    batch.vertices.push_back(v1);
+    batch.vertices.push_back(v3);
+    batch.vertices.push_back(v2);
 }
 
 void SpriteRenderer::endFrame() {
-    // One draw call per unique texture (basic batching)
-    draw_call_count_ = static_cast<uint32_t>(textures_used_.size());
+    // Setup vertex attributes if we have a valid VAO
+    if (vao_ && vertex_buffer_) {
+        // Enable vertex attributes
+        glEnableVertexAttribArray(0); // position
+        glEnableVertexAttribArray(1); // texcoord
+        
+        // Set vertex attribute pointers
+        // Position attribute (location = 0)
+        glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(SpriteVertex), 
+                            reinterpret_cast<void*>(offsetof(SpriteVertex, position)));
+        
+        // TexCoord attribute (location = 1)
+        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(SpriteVertex), 
+                            reinterpret_cast<void*>(offsetof(SpriteVertex, texCoord)));
+    }
+    
+    // Process each batch and make draw calls
+    draw_call_count_ = 0;
+    for (const auto& [texture_id, batch] : sprite_batches_) {
+        if (!batch.vertices.empty() && vertex_buffer_) {
+            // Update vertex buffer with batch data
+            vertex_buffer_->update(batch.vertices);
+            vertex_buffer_->bind();
+            
+            // TODO: Bind texture here when texture binding is implemented
+            // glBindTexture(GL_TEXTURE_2D, texture_id);
+            
+            // Make the actual draw call
+            glDrawArrays(GL_TRIANGLES, 0, static_cast<int>(batch.vertices.size()));
+            draw_call_count_++;
+        }
+    }
     
     // Deactivate shader program
     shader_program_active_ = false;
+    if (shader_program_ != 0) {
+        glUseProgram(0);
+    }
+    
+    // Unbind VAO
+    if (vao_) {
+        VertexArrayObject::unbind();
+    }
 }
 
 uint32_t SpriteRenderer::getDrawCallCount() const {

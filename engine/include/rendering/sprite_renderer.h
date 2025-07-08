@@ -2,8 +2,11 @@
 
 #include <cstdint>
 #include <unordered_set>
+#include <unordered_map>
+#include <vector>
 #include <memory>
 #include <glm/vec2.hpp>
+#include "rendering/vertex_buffer.h"
 
 namespace d2::rendering {
 
@@ -48,6 +51,13 @@ private:
     // OpenGL resources
     std::unique_ptr<VertexBuffer> vertex_buffer_;
     std::unique_ptr<VertexArrayObject> vao_;
+    
+    // Sprite batching
+    struct SpriteBatch {
+        uint32_t texture_id;
+        std::vector<SpriteVertex> vertices;
+    };
+    std::unordered_map<uint32_t, SpriteBatch> sprite_batches_;
 };
 
 } // namespace d2::rendering
