@@ -39,6 +39,8 @@ set(TEST_SOURCES
     rendering/sprite_renderer_opengl_test.cpp
     rendering/opengl_draw_calls_test.cpp
     rendering/vertex_buffer_test.cpp
+    rendering/opengl_vertex_buffer_test.cpp
+    rendering/opengl_calls_required_test.cpp
     rendering/world_renderer_test.cpp
     rendering/camera_test.cpp
     input/gamepad_manager_test.cpp
