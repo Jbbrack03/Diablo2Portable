@@ -25,6 +25,7 @@ add_library(d2engine STATIC
     src/utils/bzip2_decompress.cpp
     src/utils/sparse_decompress.cpp
     src/utils/mock_mpq_builder.cpp
+    src/utils/security_utils.cpp
     src/sprites/dc6_parser.cpp
     src/core/asset_manager.cpp
     src/core/settings_manager.cpp

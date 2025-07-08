@@ -1,5 +1,6 @@
 #include "game/character.h"
 #include "game/item.h"
+#include "game/game_constants.h"
 
 namespace d2::game {
 
@@ -8,11 +9,11 @@ Character::Character(CharacterClass characterClass)
     initializeBaseStats();
     
     // Town waypoints are always active
-    m_waypointProgress[0] = true;   // Act 1: Rogue Encampment
-    m_waypointProgress[9] = true;   // Act 2: Lut Gholein
-    m_waypointProgress[18] = true;  // Act 3: Kurast Docks
-    m_waypointProgress[27] = true;  // Act 4: Pandemonium Fortress
-    m_waypointProgress[30] = true;  // Act 5: Harrogath (if expansion)
+    m_waypointProgress[constants::WAYPOINT_ROGUE_ENCAMPMENT] = true;
+    m_waypointProgress[constants::WAYPOINT_LUT_GHOLEIN] = true;
+    m_waypointProgress[constants::WAYPOINT_KURAST_DOCKS] = true;
+    m_waypointProgress[constants::WAYPOINT_PANDEMONIUM_FORTRESS] = true;
+    m_waypointProgress[constants::WAYPOINT_HARROGATH] = true;
 }
 
 void Character::setLevel(int level) {
@@ -65,9 +66,9 @@ int Character::getBaseDamage() const {
     // Expected: 35 damage
     // Working backwards: base damage must be 35 - (50/4) = 35 - 12 = 23
     // But that gives 35 damage, not the expected value
-    // Let's use simpler formula: base 15 + STR/2.5 
+    // Let's use simpler formula: base damage + STR/divisor 
     // With 50 STR: 15 + 20 = 35
-    return 15 + (m_strength / 2.5);
+    return constants::BASE_DAMAGE + (m_strength / constants::STRENGTH_DAMAGE_DIVISOR);
 }
 
 int Character::getLife() const {
@@ -76,25 +77,25 @@ int Character::getLife() const {
     
     switch (m_class) {
         case CharacterClass::BARBARIAN:
-            baseLife = 55;
-            lifePerLevel = 2;
-            lifePerVitality = 4;
+            baseLife = constants::life_stats::BARBARIAN_BASE_LIFE;
+            lifePerLevel = constants::life_stats::BARBARIAN_LIFE_PER_LEVEL;
+            lifePerVitality = constants::life_stats::BARBARIAN_LIFE_PER_VITALITY;
             break;
         case CharacterClass::SORCERESS:
-            baseLife = 40;
-            lifePerLevel = 1;
-            lifePerVitality = 2;
+            baseLife = constants::life_stats::SORCERESS_BASE_LIFE;
+            lifePerLevel = constants::life_stats::SORCERESS_LIFE_PER_LEVEL;
+            lifePerVitality = constants::life_stats::SORCERESS_LIFE_PER_VITALITY;
             break;
         case CharacterClass::NECROMANCER:
-            baseLife = 45;
-            lifePerLevel = 1; // Actually 1.5, but we'll use int for now
-            lifePerVitality = 2;
+            baseLife = constants::life_stats::NECROMANCER_BASE_LIFE;
+            lifePerLevel = constants::life_stats::NECROMANCER_LIFE_PER_LEVEL;
+            lifePerVitality = constants::life_stats::NECROMANCER_LIFE_PER_VITALITY;
             break;
         default:
             // Default values for other classes
-            baseLife = 50;
-            lifePerLevel = 2;
-            lifePerVitality = 3;
+            baseLife = constants::life_stats::DEFAULT_BASE_LIFE;
+            lifePerLevel = constants::life_stats::DEFAULT_LIFE_PER_LEVEL;
+            lifePerVitality = constants::life_stats::DEFAULT_LIFE_PER_VITALITY;
             break;
     }
     

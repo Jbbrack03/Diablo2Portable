@@ -1,6 +1,7 @@
 #include "save/save_manager.h"
 #include "game/character.h"
 #include "game/inventory.h"
+#include "utils/security_utils.h"
 #include <fstream>
 #include <filesystem>
 
@@ -13,8 +14,21 @@ SaveManager::SaveManager(const std::string& saveDirectory)
 }
 
 bool SaveManager::saveCharacter(const d2::game::Character& character, const std::string& filename) {
-    // Create full path
-    std::filesystem::path fullPath = std::filesystem::path(m_saveDirectory) / filename;
+    // Sanitize filename and validate extension
+    std::string sanitizedFilename = d2::utils::SecurityUtils::sanitizeFilename(filename);
+    if (!d2::utils::SecurityUtils::isFileExtensionAllowed(sanitizedFilename, {".d2s", ".sav"})) {
+        return false;
+    }
+    
+    // Create safe path
+    auto fullPath = d2::utils::SecurityUtils::createSafePath(
+        std::filesystem::path(m_saveDirectory), 
+        std::filesystem::path(sanitizedFilename)
+    );
+    
+    if (fullPath.empty()) {
+        return false; // Path is not safe
+    }
     
     // Open file in binary mode
     std::ofstream file(fullPath, std::ios::binary);

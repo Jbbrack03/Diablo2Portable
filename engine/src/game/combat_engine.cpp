@@ -1,4 +1,5 @@
 #include "game/combat_engine.h"
+#include "game/game_constants.h"
 #include <algorithm>
 #include <random>
 
@@ -20,7 +21,9 @@ float CombatEngine::calculateHitChance(int attackRating, int defense,
     float hitChance = arFactor * levelFactor;
     
     // Apply D2 hit chance caps: minimum 5%, maximum 95%
-    return std::clamp(hitChance, 0.05f, 0.95f);
+    constexpr float minHitChance = constants::MIN_HIT_CHANCE_PERCENT / 100.0f;
+    constexpr float maxHitChance = constants::MAX_HIT_CHANCE_PERCENT / 100.0f;
+    return std::clamp(hitChance, minHitChance, maxHitChance);
 }
 
 int CombatEngine::calculateDamage(int minDamage, int maxDamage, int elementalDamage) const {

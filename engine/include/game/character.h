@@ -9,24 +9,56 @@ namespace d2::game {
 // Forward declaration  
 class Item;
 
+/**
+ * @brief Enumeration of available character classes in Diablo II
+ * 
+ * These represent the seven playable character classes from the base game
+ * and Lord of Destruction expansion.
+ */
 enum class CharacterClass {
-    BARBARIAN,
-    NECROMANCER,
-    AMAZON,
-    SORCERESS,
-    PALADIN,
-    ASSASSIN,
-    DRUID
+    BARBARIAN,    ///< Melee warrior with high strength and vitality
+    NECROMANCER,  ///< Spellcaster who commands the undead
+    AMAZON,       ///< Ranged combat specialist with javelin and bow skills
+    SORCERESS,    ///< Elemental magic specialist
+    PALADIN,      ///< Holy warrior with auras and combat skills
+    ASSASSIN,     ///< Martial arts and trap specialist (expansion)
+    DRUID         ///< Shape-shifting nature magic user (expansion)
 };
 
+/**
+ * @brief Types of character statistics
+ * 
+ * Core attributes that define a character's capabilities.
+ */
 enum class StatType {
-    STRENGTH,
-    DEXTERITY,
-    VITALITY,
-    ENERGY,
-    DAMAGE  // For item damage bonuses
+    STRENGTH,   ///< Affects damage and equipment requirements
+    DEXTERITY,  ///< Affects attack rating and defense
+    VITALITY,   ///< Affects life points and stamina
+    ENERGY,     ///< Affects mana points for spellcasting
+    DAMAGE      ///< For item damage bonuses
 };
 
+/**
+ * @brief Represents a player character in Diablo II
+ * 
+ * This class encapsulates all aspects of a character including stats,
+ * level progression, quest completion, waypoint activation, and equipment.
+ * 
+ * The character system follows Diablo II mechanics with accurate formulas
+ * for life calculation, damage computation, and stat progression.
+ * 
+ * @example
+ * @code
+ * // Create a new barbarian character
+ * Character barbarian(CharacterClass::BARBARIAN);
+ * barbarian.setLevel(10);
+ * barbarian.addStatPoint(StatType::STRENGTH, 5);
+ * 
+ * // Check character stats
+ * int life = barbarian.getLife();
+ * int damage = barbarian.getBaseDamage();
+ * @endcode
+ */
 class Character {
 public:
     explicit Character(CharacterClass characterClass);
