@@ -112,6 +112,7 @@ set(TEST_SOURCES
     save/test_save_manager.cpp
     android/test_android_structure.cpp
     android/test_jni_bridge.cpp
+    android/test_android_jni_integration.cpp
     android/test_android_activity.cpp
     android/test_android_assets.cpp
     # android/test_android_gamepad.cpp  # DISABLED: Causes segfault/hang - tracked issue
