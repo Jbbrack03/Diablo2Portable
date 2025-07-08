@@ -68,4 +68,31 @@ TEST_F(ShaderManagerTest, CreateShaderProgram) {
     EXPECT_TRUE(manager.isProgramValid(program_id)) << "Created program should be valid";
 }
 
+// RED PHASE: This test MUST fail - testing OpenGL shader deletion
+TEST_F(ShaderManagerTest, DeleteShaderAfterProgram) {
+    ShaderManager manager;
+    
+    // Compile both vertex and fragment shaders
+    uint32_t vertex_shader = manager.compileShader(ShaderType::VERTEX, vertex_shader_source);
+    uint32_t fragment_shader = manager.compileShader(ShaderType::FRAGMENT, fragment_shader_source);
+    
+    ASSERT_NE(vertex_shader, 0u);
+    ASSERT_NE(fragment_shader, 0u);
+    
+    // Create program
+    uint32_t program_id = manager.createProgram(vertex_shader, fragment_shader);
+    ASSERT_NE(program_id, 0u);
+    
+    // Delete individual shaders (they should be detached from program)
+    manager.deleteShader(vertex_shader);
+    manager.deleteShader(fragment_shader);
+    
+    // Program should still be valid even after deleting individual shaders
+    EXPECT_TRUE(manager.isProgramValid(program_id)) << "Program should remain valid after deleting shaders";
+    
+    // Individual shaders should no longer be valid
+    EXPECT_FALSE(manager.isShaderValid(vertex_shader)) << "Deleted vertex shader should not be valid";
+    EXPECT_FALSE(manager.isShaderValid(fragment_shader)) << "Deleted fragment shader should not be valid";
+}
+
 } // namespace d2::rendering

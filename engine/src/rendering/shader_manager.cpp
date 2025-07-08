@@ -39,27 +39,33 @@ uint32_t ShaderManager::compileShader(ShaderType type, const std::string& source
         pos++;
     }
     
-    return next_shader_id_++;
+    uint32_t shader_id = next_shader_id_++;
+    valid_shaders_.insert(shader_id);
+    return shader_id;
 }
 
 bool ShaderManager::isShaderValid(uint32_t shader_id) const {
-    // Minimal implementation - assume all non-zero shader IDs are valid
-    return shader_id != 0;
+    return valid_shaders_.find(shader_id) != valid_shaders_.end();
+}
+
+void ShaderManager::deleteShader(uint32_t shader_id) {
+    // Remove from valid shaders set (simulates glDeleteShader)
+    valid_shaders_.erase(shader_id);
 }
 
 uint32_t ShaderManager::createProgram(uint32_t vertex_shader, uint32_t fragment_shader) {
-    // Minimal implementation to pass the test
-    // In a real implementation, this would create an OpenGL shader program
-    if (vertex_shader == 0 || fragment_shader == 0) {
+    // Check that both input shaders are valid
+    if (!isShaderValid(vertex_shader) || !isShaderValid(fragment_shader)) {
         return 0; // Invalid input shaders
     }
     
-    return next_program_id_++;
+    uint32_t program_id = next_program_id_++;
+    valid_programs_.insert(program_id);
+    return program_id;
 }
 
 bool ShaderManager::isProgramValid(uint32_t program_id) const {
-    // Minimal implementation - assume all non-zero program IDs are valid
-    return program_id != 0;
+    return valid_programs_.find(program_id) != valid_programs_.end();
 }
 
 } // namespace d2::rendering
