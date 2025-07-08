@@ -61,11 +61,40 @@ uint32_t ShaderManager::createProgram(uint32_t vertex_shader, uint32_t fragment_
     
     uint32_t program_id = next_program_id_++;
     valid_programs_.insert(program_id);
+    
+    // Initialize program info with uniform locations
+    ProgramInfo& info = program_info_[program_id];
+    
+    // Simulate finding uniforms in the shader source
+    // In a real implementation, this would query OpenGL for actual uniform locations
+    // For testing, we'll assign locations based on common uniform names
+    info.uniform_locations["u_projection"] = 0;
+    info.uniform_locations["u_color"] = 1;
+    info.uniform_locations["u_texture"] = 2;
+    info.uniform_locations["u_mvp"] = 3;
+    
     return program_id;
 }
 
 bool ShaderManager::isProgramValid(uint32_t program_id) const {
     return valid_programs_.find(program_id) != valid_programs_.end();
+}
+
+int ShaderManager::getUniformLocation(uint32_t program_id, const std::string& name) const {
+    // Check if program exists
+    auto it = program_info_.find(program_id);
+    if (it == program_info_.end()) {
+        return -1; // Invalid program
+    }
+    
+    // Look up uniform location
+    const ProgramInfo& info = it->second;
+    auto loc_it = info.uniform_locations.find(name);
+    if (loc_it == info.uniform_locations.end()) {
+        return -1; // Uniform not found
+    }
+    
+    return loc_it->second;
 }
 
 } // namespace d2::rendering
