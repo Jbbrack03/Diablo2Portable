@@ -189,4 +189,47 @@ void TextureManager::setTextureWrapMode(uint32_t texture_id, TextureWrapMode wra
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, gl_wrap_mode);
 }
 
+uint32_t TextureManager::uploadSpriteWithPalette(std::shared_ptr<sprites::DC6Sprite> sprite, 
+                                                 uint32_t direction, uint32_t frame,
+                                                 const std::vector<uint32_t>& palette) {
+    if (!sprite) {
+        return 0; // Invalid sprite
+    }
+    
+    // Check if the sprite has valid direction and frame
+    if (direction >= sprite->getDirectionCount() || 
+        frame >= sprite->getFramesPerDirection()) {
+        return 0; // Invalid direction or frame
+    }
+    
+    // Get the frame information to determine dimensions
+    sprites::DC6Frame frame_info = sprite->getFrame(direction, frame);
+    
+    // Get RGBA data from the DC6 sprite with palette applied
+    std::vector<uint8_t> rgba_data = sprite->getFrameImageWithPalette(direction, frame, palette);
+    if (rgba_data.empty()) {
+        return 0; // No data
+    }
+    
+    // Validate that the data size matches the frame dimensions
+    uint32_t expected_size = frame_info.width * frame_info.height * 4; // RGBA
+    if (rgba_data.size() != expected_size) {
+        // Fall back to calculating dimensions if size doesn't match
+        uint32_t pixel_count = rgba_data.size() / 4;
+        uint32_t dimension = 2; // Default
+        
+        // Try to find a square dimension
+        for (uint32_t d = 1; d * d <= pixel_count; ++d) {
+            if (d * d == pixel_count) {
+                dimension = d;
+            }
+        }
+        
+        return createTexture(rgba_data.data(), dimension, dimension);
+    }
+    
+    // Create texture from RGBA data with proper dimensions
+    return createTexture(rgba_data.data(), frame_info.width, frame_info.height);
+}
+
 } // namespace d2::rendering

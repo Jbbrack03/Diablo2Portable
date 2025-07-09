@@ -27,6 +27,9 @@ public:
 
     bool initialize(const Renderer& renderer);
     uint32_t uploadSprite(std::shared_ptr<sprites::DC6Sprite> sprite, uint32_t direction, uint32_t frame);
+    uint32_t uploadSpriteWithPalette(std::shared_ptr<sprites::DC6Sprite> sprite, 
+                                     uint32_t direction, uint32_t frame,
+                                     const std::vector<uint32_t>& palette);
     bool isTextureValid(uint32_t texture_id) const;
     
     // Create texture from raw RGBA data

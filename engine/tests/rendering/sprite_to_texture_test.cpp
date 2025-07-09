@@ -127,4 +127,56 @@ TEST_F(SpriteToTextureTest, CreateTextureFromDC6SpriteWithProperDimensions) {
         << "Texture height should match DC6 frame height";
 }
 
+// Test that TextureManager can apply palettes to DC6 sprites
+TEST_F(SpriteToTextureTest, CreateTextureFromDC6SpriteWithPalette) {
+    // Create a mock DC6 sprite
+    auto mockSprite = std::make_unique<MockDC6Sprite>();
+    
+    // Set up expectations for the mock
+    EXPECT_CALL(*mockSprite, getDirectionCount())
+        .WillOnce(testing::Return(1));
+    EXPECT_CALL(*mockSprite, getFramesPerDirection())
+        .WillOnce(testing::Return(1));
+    
+    // Create a test palette (simplified for testing)
+    std::vector<uint32_t> testPalette(256);
+    for (int i = 0; i < 256; ++i) {
+        // Create a grayscale palette with full alpha
+        uint8_t gray = static_cast<uint8_t>(i);
+        testPalette[i] = (gray << 24) | (gray << 16) | (gray << 8) | 0xFF;
+    }
+    
+    // Create RGBA data that should be returned when palette is applied
+    std::vector<uint8_t> paletteAppliedData = {
+        128, 128, 128, 255,  // Gray pixel (palette index 128)
+        255, 255, 255, 255,  // White pixel (palette index 255)
+        0, 0, 0, 255,        // Black pixel (palette index 0)
+        64, 64, 64, 255      // Dark gray pixel (palette index 64)
+    };
+    
+    // Expect the sprite to be queried with the palette
+    EXPECT_CALL(*mockSprite, getFrameImageWithPalette(0, 0, testPalette))
+        .WillOnce(testing::Return(paletteAppliedData));
+    
+    // Create frame info
+    d2::sprites::DC6Frame testFrame;
+    testFrame.width = 2;
+    testFrame.height = 2;
+    
+    EXPECT_CALL(*mockSprite, getFrame(0, 0))
+        .WillOnce(testing::Return(testFrame));
+    
+    // Create texture with palette
+    uint32_t textureId = textureManager->uploadSpriteWithPalette(
+        std::shared_ptr<d2::sprites::DC6Sprite>(mockSprite.release()), 
+        0, 0, testPalette);
+    
+    EXPECT_NE(textureId, 0)
+        << "Should be able to create texture from DC6 sprite with palette";
+    
+    // Verify the texture is valid
+    EXPECT_TRUE(textureManager->isTextureValid(textureId))
+        << "Created texture with palette should be valid";
+}
+
 } // namespace d2::rendering
