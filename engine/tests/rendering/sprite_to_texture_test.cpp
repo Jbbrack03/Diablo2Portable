@@ -49,6 +49,13 @@ TEST_F(SpriteToTextureTest, CreateTextureFromDC6Sprite) {
     EXPECT_CALL(*mockSprite, getFrameImage(0, 0))
         .WillOnce(testing::Return(rgbaData));
     
+    // Expect getFrame to be called with default frame
+    d2::sprites::DC6Frame defaultFrame;
+    defaultFrame.width = 2;
+    defaultFrame.height = 2;
+    EXPECT_CALL(*mockSprite, getFrame(0, 0))
+        .WillOnce(testing::Return(defaultFrame));
+    
     // Create texture from DC6 sprite
     uint32_t textureId = textureManager->uploadSprite(
         std::shared_ptr<d2::sprites::DC6Sprite>(mockSprite.release()), 0, 0);
