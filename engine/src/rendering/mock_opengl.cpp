@@ -26,6 +26,7 @@ typedef ptrdiff_t GLintptr;
 #define GL_INVALID_VALUE 0x0501
 #define GL_INVALID_ENUM 0x0500
 #define GL_INVALID_OPERATION 0x0502
+#define GL_OUT_OF_MEMORY 0x0505
 
 extern "C" {
     static std::random_device rd;
@@ -39,6 +40,11 @@ extern "C" {
     static std::unordered_map<uint32_t, bool> shader_compilation_status;
     static std::unordered_map<uint32_t, std::string> shader_source_storage;
     
+    // Static storage for VBO state tracking
+    static std::unordered_map<uint32_t, size_t> vbo_sizes; // Track VBO sizes for validation
+    static uint32_t currently_bound_buffer = 0; // Track currently bound buffer for size validation
+    static constexpr size_t MAX_VBO_SIZE = 100 * 1024 * 1024; // 100MB max VBO size limit
+    
     void glGenBuffers(GLsizei n, GLuint* buffers) {
         for (int i = 0; i < n; i++) {
             buffers[i] = dis(gen);  // Random buffer ID
@@ -46,19 +52,54 @@ extern "C" {
     }
     
     void glBindBuffer(GLenum target, GLuint buffer) {
-        (void)target; (void)buffer;
+        (void)target;
+        // Track currently bound buffer for size validation
+        currently_bound_buffer = buffer;
     }
     
     void glBufferData(GLenum target, GLsizeiptr size, const GLvoid* data, GLenum usage) {
-        (void)target; (void)size; (void)data; (void)usage;
+        (void)target; (void)data; (void)usage;
+        
+        // Simulate real OpenGL memory limits - fail if size exceeds reasonable GPU memory
+        if (size > static_cast<GLsizeiptr>(MAX_VBO_SIZE)) {
+            current_error = GL_INVALID_VALUE; // Set OpenGL error for excessive memory allocation
+            return;
+        }
+        
+        // Track VBO size for later validation in glBufferSubData
+        if (currently_bound_buffer != 0) {
+            vbo_sizes[currently_bound_buffer] = static_cast<size_t>(size);
+        }
     }
     
     void glBufferSubData(GLenum target, GLintptr offset, GLsizeiptr size, const GLvoid* data) {
-        (void)target; (void)offset; (void)size; (void)data;
+        (void)target; (void)offset; (void)data;
+        
+        // Simulate real OpenGL validation - check if offset + size exceeds original buffer size
+        if (currently_bound_buffer != 0) {
+            auto it = vbo_sizes.find(currently_bound_buffer);
+            if (it != vbo_sizes.end()) {
+                size_t original_size = it->second;
+                
+                // Check if the update would exceed the original buffer size
+                if (static_cast<size_t>(offset + size) > original_size) {
+                    current_error = GL_INVALID_VALUE; // Set OpenGL error for buffer overflow
+                    return;
+                }
+            }
+        }
     }
     
     void glDeleteBuffers(GLsizei n, const GLuint* buffers) {
-        (void)n; (void)buffers;
+        // Clean up VBO size tracking when buffers are deleted
+        for (int i = 0; i < n; i++) {
+            if (buffers) {
+                vbo_sizes.erase(buffers[i]);
+                if (currently_bound_buffer == buffers[i]) {
+                    currently_bound_buffer = 0;
+                }
+            }
+        }
     }
     
     void glGenVertexArrays(GLsizei n, GLuint* arrays) {
