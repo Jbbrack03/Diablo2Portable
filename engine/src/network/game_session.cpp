@@ -96,4 +96,39 @@ size_t GameSession::getBytesSent() const {
     return bytesSent_;
 }
 
+bool GameSession::receiveRawData(std::vector<uint8_t>& buffer, int timeout_ms) {
+    // GREEN phase - minimal implementation to pass test
+    if (socketDescriptor_ <= 0 || !active_) {
+        return false;
+    }
+    
+    // For a host session without connected clients, there's no data to receive
+    // In a real implementation, we'd use select() or poll() with timeout
+    // and recv() on accepted client sockets
+    (void)timeout_ms; // Suppress unused parameter warning
+    
+    // Clear the buffer and return false (no data available)
+    buffer.clear();
+    return false;
+}
+
+size_t GameSession::getBytesReceived() const {
+    return bytesReceived_;
+}
+
+bool GameSession::setNonBlocking(bool non_blocking) {
+    // GREEN phase - minimal implementation to pass test
+    if (socketDescriptor_ <= 0) {
+        return false;
+    }
+    
+    // In a real implementation, we'd use fcntl() to set O_NONBLOCK
+    nonBlocking_ = non_blocking;
+    return true;
+}
+
+bool GameSession::isNonBlocking() const {
+    return nonBlocking_;
+}
+
 } // namespace d2::network

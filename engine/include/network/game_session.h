@@ -61,6 +61,14 @@ public:
     // Network data transmission
     bool sendRawData(const std::vector<uint8_t>& data);
     size_t getBytesSent() const;
+    
+    // Network data reception
+    bool receiveRawData(std::vector<uint8_t>& buffer, int timeout_ms);
+    size_t getBytesReceived() const;
+    
+    // Socket configuration
+    bool setNonBlocking(bool non_blocking);
+    bool isNonBlocking() const;
 
 private:
     bool active_ = false;
@@ -71,6 +79,8 @@ private:
     int socketDescriptor_ = -1;
     bool listening_ = false;
     size_t bytesSent_ = 0;
+    size_t bytesReceived_ = 0;
+    bool nonBlocking_ = false;
 };
 
 } // namespace d2::network

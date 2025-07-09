@@ -94,6 +94,7 @@ set(TEST_SOURCES
     network/test_network_manager.cpp
     network/game_session_test.cpp
     network/network_game_test.cpp
+    network/network_receive_test.cpp
     utils/bzip2_test.cpp
     integration/test_real_mpq_files.cpp
     integration/gameplay_integration_test.cpp
