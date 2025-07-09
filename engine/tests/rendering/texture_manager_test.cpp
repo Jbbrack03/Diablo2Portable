@@ -2,14 +2,15 @@
 #include <gmock/gmock.h>
 #include "rendering/texture_manager.h"
 #include "sprites/dc6_parser.h"
+#include "mock_dc6_sprite.h"
 
 namespace d2::rendering {
 
 class TextureManagerTest : public ::testing::Test {
 protected:
     void SetUp() override {
-        // Create a simple test sprite (using nullptr for minimal test)
-        test_sprite = nullptr;
+        // Create a simple test sprite with proper mock
+        test_sprite = std::make_shared<test::MockDC6Sprite>(1, 1, 2, 2);
         
         // Mock a simple 2x2 RGBA image
         test_sprite_data = {

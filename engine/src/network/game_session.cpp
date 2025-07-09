@@ -1,8 +1,17 @@
 #include "network/game_session.h"
 #include <sys/socket.h>
 #include <errno.h>
+#include <unistd.h>
 
 namespace d2::network {
+
+GameSession::~GameSession() {
+    // Clean up socket if it's open
+    if (socketDescriptor_ > 0) {
+        close(socketDescriptor_);
+        socketDescriptor_ = -1;
+    }
+}
 
 bool GameSession::isActive() const {
     return active_;

@@ -36,7 +36,7 @@ class GameSession {
     friend class NetworkManager;
 public:
     GameSession() = default;
-    ~GameSession() = default;
+    ~GameSession();
 
     bool isActive() const;
     
