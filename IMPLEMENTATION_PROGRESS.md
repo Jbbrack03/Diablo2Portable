@@ -45,13 +45,23 @@ Following TDD principles from CLAUDE.md, I've been implementing missing core fun
 - **Network System**: Real TCP sockets implemented with bind/listen/send capabilities
 - **Audio System**: Real backend detection implemented, device info available
 - **Test Count**: Increased from 679 to 682 tests
+- **Network Reception**: ✅ Added receiveRawData() and non-blocking socket support
+- **Audio Playback**: ✅ Added playAudioData() with buffer management and playback control
+
+### Latest Updates (January 2025):
+1. **Network Data Reception** - Implemented GameSession::receiveRawData() with timeout support
+2. **Non-blocking Sockets** - Added setNonBlocking() and isNonBlocking() methods
+3. **Audio Playback API** - Implemented playAudioData() for raw audio samples
+4. **Audio State Management** - Added isPlaying(), stopPlayback(), and position tracking
+5. **Test Fixes** - Fixed texture manager tests with proper mock sprites
+6. **Socket Cleanup** - Added proper destructor to close sockets and prevent port conflicts
 
 ### Next Steps:
 Continue implementing missing functionality:
-- Add actual audio playback using platform APIs
 - Validate OpenGL rendering with real draw commands
-- Test JNI bridge with actual Android deployment
-- Implement actual network data reception (recv)
+- Test JNI bridge with actual Android deployment  
+- Implement actual socket recv() with client connections
+- Add real audio device output (Oboe on Android, Core Audio on iOS)
 
 Each implementation should follow strict TDD:
 1. Write ONE failing test
