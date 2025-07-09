@@ -1,4 +1,7 @@
 #include "network/network_manager.h"
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <unistd.h>
 
 namespace d2::network {
 
@@ -13,16 +16,41 @@ bool NetworkManager::isInitialized() const {
 }
 
 GameSession NetworkManager::hostGame(const std::string& gameName, uint32_t maxPlayers) {
-    // Minimal implementation to make test pass (Green phase)
+    // GREEN phase - create a real socket to make test pass
     if (!initialized_) {
         return GameSession{};
     }
     
     GameSession session;
-    session.active_ = true;
     session.gameName_ = gameName;
     session.maxPlayers_ = maxPlayers;
     session.port_ = 6112; // Default Diablo II port
+    
+    // Create a real TCP socket
+    int sockfd = socket(AF_INET, SOCK_STREAM, 0);
+    if (sockfd > 0) {
+        // Set up the socket address structure
+        struct sockaddr_in serverAddr;
+        serverAddr.sin_family = AF_INET;
+        serverAddr.sin_addr.s_addr = INADDR_ANY;
+        serverAddr.sin_port = htons(session.port_);
+        
+        // Bind the socket to the port
+        if (bind(sockfd, (struct sockaddr*)&serverAddr, sizeof(serverAddr)) == 0) {
+            // Start listening for connections
+            if (listen(sockfd, maxPlayers) == 0) {
+                session.socketDescriptor_ = sockfd;
+                session.listening_ = true;
+                session.active_ = true;
+            } else {
+                // Failed to listen, close the socket
+                close(sockfd);
+            }
+        } else {
+            // Failed to bind, close the socket
+            close(sockfd);
+        }
+    }
     
     return session;
 }

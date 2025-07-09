@@ -128,3 +128,19 @@ TEST_F(NetworkManagerTest, ProtocolCompatibility) {
     EXPECT_EQ(packet.size(), 28); // Expected D2 join packet size
     EXPECT_EQ(packet[0], 0x68); // D2 join game packet ID
 }
+
+// Test for actual socket creation - this should fail until real sockets are implemented
+TEST_F(NetworkManagerTest, CreatesRealNetworkSocket) {
+    NetworkManager manager;
+    manager.initialize();
+    
+    // When hosting a game, it should create a real listening socket
+    auto session = manager.hostGame("Socket Test", 4);
+    
+    // The session should have a valid socket descriptor
+    EXPECT_GT(session.getSocketDescriptor(), 0);
+    
+    // The socket should be bound to the expected port
+    EXPECT_TRUE(session.isListening());
+    EXPECT_EQ(session.getListeningPort(), 6112);
+}

@@ -53,4 +53,16 @@ bool GameSession::sendMessage(const GameStateMessage& message) {
     return active_;
 }
 
+int GameSession::getSocketDescriptor() const {
+    return socketDescriptor_;
+}
+
+bool GameSession::isListening() const {
+    return listening_;
+}
+
+uint16_t GameSession::getListeningPort() const {
+    return port_;
+}
+
 } // namespace d2::network

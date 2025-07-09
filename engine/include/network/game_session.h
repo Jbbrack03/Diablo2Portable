@@ -52,6 +52,11 @@ public:
     
     // Messaging
     bool sendMessage(const GameStateMessage& message);
+    
+    // Socket management (for real network implementation)
+    int getSocketDescriptor() const;
+    bool isListening() const;
+    uint16_t getListeningPort() const;
 
 private:
     bool active_ = false;
@@ -59,6 +64,8 @@ private:
     uint32_t maxPlayers_ = 0;
     uint16_t port_ = 6112;
     std::vector<PlayerInfo> players_;
+    int socketDescriptor_ = -1;
+    bool listening_ = false;
 };
 
 } // namespace d2::network
