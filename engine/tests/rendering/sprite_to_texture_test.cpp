@@ -87,4 +87,44 @@ TEST_F(SpriteToTextureTest, CreateTextureFromRGBAData) {
         << "Texture height should match input";
 }
 
+// Test that TextureManager properly handles DC6 frame dimensions
+TEST_F(SpriteToTextureTest, CreateTextureFromDC6SpriteWithProperDimensions) {
+    // Create a mock DC6 sprite
+    auto mockSprite = std::make_unique<MockDC6Sprite>();
+    
+    // Set up expectations for the mock
+    EXPECT_CALL(*mockSprite, getDirectionCount())
+        .WillOnce(testing::Return(8)); // 8 directions typical for Diablo II
+    EXPECT_CALL(*mockSprite, getFramesPerDirection())
+        .WillOnce(testing::Return(16)); // Multiple frames per direction
+    
+    // Create test DC6Frame data with specific dimensions
+    d2::sprites::DC6Frame testFrame;
+    testFrame.width = 32;
+    testFrame.height = 48;
+    testFrame.offset_x = -16;
+    testFrame.offset_y = -40;
+    
+    // Create RGBA data matching the frame dimensions (32x48)
+    std::vector<uint8_t> rgbaData(32 * 48 * 4, 255); // All white pixels
+    
+    EXPECT_CALL(*mockSprite, getFrame(3, 7)) // Direction 3, Frame 7
+        .WillOnce(testing::Return(testFrame));
+    EXPECT_CALL(*mockSprite, getFrameImage(3, 7))
+        .WillOnce(testing::Return(rgbaData));
+    
+    // Create texture from specific frame
+    uint32_t textureId = textureManager->uploadSprite(
+        std::shared_ptr<d2::sprites::DC6Sprite>(mockSprite.release()), 3, 7);
+    
+    EXPECT_NE(textureId, 0)
+        << "Should be able to create texture from specific DC6 frame";
+    
+    // Verify texture dimensions match the frame
+    EXPECT_EQ(textureManager->getTextureWidth(textureId), 32)
+        << "Texture width should match DC6 frame width";
+    EXPECT_EQ(textureManager->getTextureHeight(textureId), 48)
+        << "Texture height should match DC6 frame height";
+}
+
 } // namespace d2::rendering

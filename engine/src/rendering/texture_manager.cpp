@@ -85,26 +85,34 @@ uint32_t TextureManager::uploadSprite(std::shared_ptr<sprites::DC6Sprite> sprite
         return 0; // Invalid direction or frame
     }
     
+    // Get the frame information to determine dimensions
+    sprites::DC6Frame frame_info = sprite->getFrame(direction, frame);
+    
     // Get RGBA data from the DC6 sprite
     std::vector<uint8_t> rgba_data = sprite->getFrameImage(direction, frame);
     if (rgba_data.empty()) {
         return 0; // No data
     }
     
-    // Calculate dimensions (assuming square sprite for now)
-    // In a real implementation, we'd get this from DC6Frame
-    uint32_t pixel_count = rgba_data.size() / 4; // RGBA = 4 bytes per pixel
-    uint32_t dimension = 2; // Default to 2x2 for our test
-    
-    // Try to find a square dimension
-    for (uint32_t d = 1; d * d <= pixel_count; ++d) {
-        if (d * d == pixel_count) {
-            dimension = d;
+    // Validate that the data size matches the frame dimensions
+    uint32_t expected_size = frame_info.width * frame_info.height * 4; // RGBA
+    if (rgba_data.size() != expected_size) {
+        // Fall back to calculating dimensions if size doesn't match
+        uint32_t pixel_count = rgba_data.size() / 4;
+        uint32_t dimension = 2; // Default
+        
+        // Try to find a square dimension
+        for (uint32_t d = 1; d * d <= pixel_count; ++d) {
+            if (d * d == pixel_count) {
+                dimension = d;
+            }
         }
+        
+        return createTexture(rgba_data.data(), dimension, dimension);
     }
     
-    // Create texture from RGBA data
-    return createTexture(rgba_data.data(), dimension, dimension);
+    // Create texture from RGBA data with proper dimensions
+    return createTexture(rgba_data.data(), frame_info.width, frame_info.height);
 }
 
 bool TextureManager::isTextureValid(uint32_t texture_id) const {
