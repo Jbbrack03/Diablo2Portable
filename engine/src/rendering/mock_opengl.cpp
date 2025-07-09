@@ -45,6 +45,21 @@ extern "C" {
     static uint32_t currently_bound_buffer = 0; // Track currently bound buffer for size validation
     static constexpr size_t MAX_VBO_SIZE = 100 * 1024 * 1024; // 100MB max VBO size limit
     
+    // Static storage for draw command tracking
+    struct DrawArraysCall {
+        uint32_t mode;
+        int first;
+        int count;
+    };
+    struct DrawElementsCall {
+        uint32_t mode;
+        int count;
+        uint32_t type;
+        uintptr_t indices;
+    };
+    static std::vector<DrawArraysCall> draw_arrays_calls;
+    static std::vector<DrawElementsCall> draw_elements_calls;
+    
     void glGenBuffers(GLsizei n, GLuint* buffers) {
         for (int i = 0; i < n; i++) {
             buffers[i] = dis(gen);  // Random buffer ID
@@ -128,7 +143,8 @@ extern "C" {
     }
     
     void glDrawArrays(GLenum mode, int first, GLsizei count) {
-        (void)mode; (void)first; (void)count;
+        // Track the draw call
+        draw_arrays_calls.push_back({static_cast<uint32_t>(mode), first, static_cast<int>(count)});
     }
     
     void glEnableVertexAttribArray(GLuint index) {
@@ -227,6 +243,36 @@ extern "C" {
     
     void glDeleteProgram(GLuint program) {
         (void)program;
+    }
+    
+    // Draw command tracking access functions
+    void resetDrawCommandTracking() {
+        draw_arrays_calls.clear();
+        draw_elements_calls.clear();
+    }
+    
+    size_t getDrawArraysCallCount() {
+        return draw_arrays_calls.size();
+    }
+    
+    size_t getDrawElementsCallCount() {
+        return draw_elements_calls.size();
+    }
+    
+    bool wasDrawArraysCalled() {
+        return !draw_arrays_calls.empty();
+    }
+    
+    bool wasDrawElementsCalled() {
+        return !draw_elements_calls.empty();
+    }
+    
+    const DrawArraysCall* getDrawArraysCalls() {
+        return draw_arrays_calls.data();
+    }
+    
+    const DrawElementsCall* getDrawElementsCalls() {
+        return draw_elements_calls.data();
     }
 }
 

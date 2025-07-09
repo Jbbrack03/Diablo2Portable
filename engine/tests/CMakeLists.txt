@@ -38,6 +38,7 @@ set(TEST_SOURCES
     rendering/texture_manager_test.cpp
     rendering/real_opengl_texture_operations_test.cpp
     rendering/real_opengl_vbo_test.cpp
+    rendering/real_opengl_draw_commands_test.cpp
     rendering/sprite_renderer_test.cpp
     rendering/sprite_renderer_opengl_test.cpp
     rendering/opengl_draw_calls_test.cpp
