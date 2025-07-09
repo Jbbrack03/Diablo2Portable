@@ -23,11 +23,17 @@ typedef ptrdiff_t GLintptr;
 #define GL_LINK_STATUS 0x8B82
 #define GL_FALSE 0
 #define GL_TRUE 1
+#define GL_INVALID_VALUE 0x0501
+#define GL_INVALID_ENUM 0x0500
+#define GL_INVALID_OPERATION 0x0502
 
 extern "C" {
     static std::random_device rd;
     static std::mt19937 gen(rd());
     static std::uniform_int_distribution<uint32_t> dis(1000, 999999);
+    
+    // Shared OpenGL error state (accessible from texture_manager.cpp)
+    extern GLenum current_error;
     
     // Static storage for shader compilation state
     static std::unordered_map<uint32_t, bool> shader_compilation_status;
@@ -70,7 +76,9 @@ extern "C" {
     }
     
     GLenum glGetError() {
-        return GL_NO_ERROR;
+        GLenum error = current_error;
+        current_error = GL_NO_ERROR; // Error is consumed after reading
+        return error;
     }
     
     // Shader and draw call functions
