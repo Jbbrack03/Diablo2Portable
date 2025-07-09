@@ -147,6 +147,16 @@ extern "C" {
         draw_arrays_calls.push_back({static_cast<uint32_t>(mode), first, static_cast<int>(count)});
     }
     
+    void glDrawElements(GLenum mode, GLsizei count, GLenum type, const void* indices) {
+        // Track the draw call
+        draw_elements_calls.push_back({
+            static_cast<uint32_t>(mode),
+            static_cast<int>(count),
+            static_cast<uint32_t>(type),
+            reinterpret_cast<uintptr_t>(indices)
+        });
+    }
+    
     void glEnableVertexAttribArray(GLuint index) {
         (void)index;
     }
