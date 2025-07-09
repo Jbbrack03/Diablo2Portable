@@ -216,3 +216,18 @@ TEST_F(AudioEngineTest, AudioStreamingForMusic) {
     engine.stopMusic();
     EXPECT_FALSE(engine.isMusicPlaying());
 }
+
+// Test for real audio device initialization using platform-specific APIs
+TEST_F(AudioEngineTest, InitializesRealAudioDevice) {
+    AudioEngine engine;
+    engine.initialize();
+    
+    // The engine should use a real audio backend (e.g., Oboe on Android)
+    EXPECT_TRUE(engine.hasRealAudioBackend());
+    
+    // Should be able to query actual device properties
+    auto deviceInfo = engine.getAudioDeviceInfo();
+    EXPECT_FALSE(deviceInfo.deviceName.empty());
+    EXPECT_GT(deviceInfo.maxChannels, 0);
+    EXPECT_TRUE(deviceInfo.supportsLowLatency);
+}

@@ -87,6 +87,15 @@ public:
     bool playMusic(SoundId soundId);
     void stopMusic();
     bool isMusicPlaying() const;
+    
+    // Real audio backend support
+    bool hasRealAudioBackend() const;
+    struct AudioDeviceInfo {
+        std::string deviceName;
+        int maxChannels = 0;
+        bool supportsLowLatency = false;
+    };
+    AudioDeviceInfo getAudioDeviceInfo() const;
 
 private:
     struct AudioData {
