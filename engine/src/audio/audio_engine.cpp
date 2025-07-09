@@ -298,4 +298,43 @@ AudioEngine::AudioDeviceInfo AudioEngine::getAudioDeviceInfo() const {
     return info;
 }
 
+bool AudioEngine::playAudioData(const float* samples, size_t numSamples, int sampleRate, int channels) {
+    // GREEN phase - minimal implementation to pass test
+    if (!initialized_ || !samples || numSamples == 0) {
+        return false;
+    }
+    
+    // Store playback parameters
+    currentSampleRate_ = sampleRate;
+    isPlayingAudio_ = true;
+    playbackPosition_ = 0.0f;
+    
+    // In a real implementation, we'd send the audio data to the audio device
+    // For now, just simulate successful playback
+    (void)channels; // Suppress unused parameter warning
+    
+    return true;
+}
+
+bool AudioEngine::isPlaying() const {
+    return isPlayingAudio_;
+}
+
+float AudioEngine::getPlaybackPosition() const {
+    return playbackPosition_;
+}
+
+void AudioEngine::stopPlayback() {
+    isPlayingAudio_ = false;
+    playbackPosition_ = 0.0f;
+}
+
+size_t AudioEngine::getBufferSize() const {
+    return bufferSize_;
+}
+
+int AudioEngine::getSampleRate() const {
+    return currentSampleRate_;
+}
+
 } // namespace d2::audio

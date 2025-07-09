@@ -91,6 +91,7 @@ set(TEST_SOURCES
     utils/huffman_decompress_test.cpp
     utils/sparse_decompress_test.cpp
     audio/test_audio_engine.cpp
+    audio/audio_playback_test.cpp
     network/test_network_manager.cpp
     network/game_session_test.cpp
     network/network_game_test.cpp

@@ -96,6 +96,14 @@ public:
         bool supportsLowLatency = false;
     };
     AudioDeviceInfo getAudioDeviceInfo() const;
+    
+    // Audio playback
+    bool playAudioData(const float* samples, size_t numSamples, int sampleRate, int channels);
+    bool isPlaying() const;
+    float getPlaybackPosition() const;
+    void stopPlayback();
+    size_t getBufferSize() const;
+    int getSampleRate() const;
 
 private:
     struct AudioData {
@@ -129,6 +137,12 @@ private:
     std::unordered_set<SoundId> streamingSounds_;
     SoundId currentMusicId_ = INVALID_SOUND_ID;
     bool musicPlaying_ = false;
+    
+    // Playback state
+    bool isPlayingAudio_ = false;
+    float playbackPosition_ = 0.0f;
+    size_t bufferSize_ = 4096;
+    int currentSampleRate_ = 44100;
 };
 
 } // namespace d2::audio
