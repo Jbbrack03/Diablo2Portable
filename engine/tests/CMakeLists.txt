@@ -34,6 +34,7 @@ set(TEST_SOURCES
     rendering/game_loop_update_test.cpp
     rendering/shader_manager_test.cpp
     rendering/shader_implementation_test.cpp
+    rendering/real_opengl_shader_compilation_test.cpp
     rendering/texture_manager_test.cpp
     rendering/sprite_renderer_test.cpp
     rendering/sprite_renderer_opengl_test.cpp

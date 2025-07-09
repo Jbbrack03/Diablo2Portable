@@ -1,45 +1,69 @@
 #include "rendering/shader_manager.h"
 #include <cctype>
 
+// OpenGL includes
+#ifndef __ANDROID__
+// Desktop OpenGL functions (declared in mock_opengl.cpp)
+extern "C" {
+    typedef unsigned int GLenum;
+    typedef unsigned int GLuint;
+    typedef int GLsizei;
+    
+    GLuint glCreateShader(GLenum shader_type);
+    void glShaderSource(GLuint shader, GLsizei count, const char* const* string, const int* length);
+    void glCompileShader(GLuint shader);
+    void glGetShaderiv(GLuint shader, GLenum pname, int* params);
+    void glDeleteShader(GLuint shader);
+    GLuint glCreateProgram();
+    void glAttachShader(GLuint program, GLuint shader);
+    void glLinkProgram(GLuint program);
+    void glGetProgramiv(GLuint program, GLenum pname, int* params);
+    void glDeleteProgram(GLuint program);
+}
+
+// OpenGL constants
+#define GL_VERTEX_SHADER 0x8B31
+#define GL_FRAGMENT_SHADER 0x8B30
+#define GL_COMPILE_STATUS 0x8B81
+#define GL_LINK_STATUS 0x8B82
+#define GL_FALSE 0
+#define GL_TRUE 1
+
+#else
+// Android OpenGL ES includes
+#include <GLES3/gl3.h>
+#endif
+
 namespace d2::rendering {
 
 uint32_t ShaderManager::compileShader(ShaderType type, const std::string& source) {
-    // Minimal implementation to pass the test
-    // In a real implementation, this would compile OpenGL shaders
-    (void)type;  // Suppress unused parameter warning
+    // Convert ShaderType to OpenGL enum
+    GLenum gl_shader_type = (type == ShaderType::VERTEX) ? GL_VERTEX_SHADER : GL_FRAGMENT_SHADER;
     
-    // MINIMAL IMPLEMENTATION: Basic syntax validation
-    // Check for obvious syntax errors
-    if (source.find("INVALID SYNTAX") != std::string::npos) {
-        return 0; // Compilation failed
+    // Create OpenGL shader object
+    GLuint shader_id = glCreateShader(gl_shader_type);
+    if (shader_id == 0) {
+        return 0; // Failed to create shader
     }
     
-    // Check for missing semicolons before closing braces
-    size_t pos = 0;
-    while ((pos = source.find("}", pos)) != std::string::npos) {
-        // Look backwards from } to find the last non-whitespace character
-        size_t checkPos = pos;
-        while (checkPos > 0 && std::isspace(source[checkPos - 1])) {
-            checkPos--;
-        }
-        
-        // If we found a ) without a semicolon, it might be invalid
-        if (checkPos > 0 && source[checkPos - 1] == ')') {
-            // Check if this looks like a missing semicolon case
-            size_t lineStart = source.rfind('\n', checkPos);
-            if (lineStart == std::string::npos) lineStart = 0;
-            std::string line = source.substr(lineStart, checkPos - lineStart);
-            
-            // If the line contains gl_Position or similar without semicolon, it's invalid
-            if (line.find("gl_Position") != std::string::npos && 
-                line.find(";") == std::string::npos) {
-                return 0; // Compilation failed
-            }
-        }
-        pos++;
+    // Set shader source
+    const char* source_cstr = source.c_str();
+    glShaderSource(shader_id, 1, &source_cstr, nullptr);
+    
+    // Compile the shader
+    glCompileShader(shader_id);
+    
+    // Check compilation status
+    int compile_status;
+    glGetShaderiv(shader_id, GL_COMPILE_STATUS, &compile_status);
+    
+    if (compile_status == GL_FALSE) {
+        // Compilation failed - delete the shader and return 0
+        glDeleteShader(shader_id);
+        return 0;
     }
     
-    uint32_t shader_id = next_shader_id_++;
+    // Store valid shader ID
     valid_shaders_.insert(shader_id);
     return shader_id;
 }
@@ -49,7 +73,10 @@ bool ShaderManager::isShaderValid(uint32_t shader_id) const {
 }
 
 void ShaderManager::deleteShader(uint32_t shader_id) {
-    // Remove from valid shaders set (simulates glDeleteShader)
+    // Delete the OpenGL shader object
+    glDeleteShader(shader_id);
+    
+    // Remove from valid shaders set
     valid_shaders_.erase(shader_id);
 }
 
