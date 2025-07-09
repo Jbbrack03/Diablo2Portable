@@ -3,10 +3,7 @@
 #include <memory>
 #include <cstdint>
 #include <unordered_map>
-
-namespace d2::sprites {
-class DC6Sprite;
-}
+#include "sprites/dc6_sprite_wrapper.h"
 
 namespace d2::rendering {
 
