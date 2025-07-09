@@ -57,6 +57,10 @@ public:
     int getSocketDescriptor() const;
     bool isListening() const;
     uint16_t getListeningPort() const;
+    
+    // Network data transmission
+    bool sendRawData(const std::vector<uint8_t>& data);
+    size_t getBytesSent() const;
 
 private:
     bool active_ = false;
@@ -66,6 +70,7 @@ private:
     std::vector<PlayerInfo> players_;
     int socketDescriptor_ = -1;
     bool listening_ = false;
+    size_t bytesSent_ = 0;
 };
 
 } // namespace d2::network

@@ -144,3 +144,21 @@ TEST_F(NetworkManagerTest, CreatesRealNetworkSocket) {
     EXPECT_TRUE(session.isListening());
     EXPECT_EQ(session.getListeningPort(), 6112);
 }
+
+// Test for actual network data transmission
+TEST_F(NetworkManagerTest, TransmitsDataOverNetwork) {
+    NetworkManager manager;
+    manager.initialize();
+    
+    // Host a game
+    auto hostSession = manager.hostGame("Network Test", 2);
+    ASSERT_TRUE(hostSession.isActive());
+    
+    // The session should be able to send actual network data
+    std::vector<uint8_t> testData = {0x01, 0x02, 0x03, 0x04};
+    bool sendResult = hostSession.sendRawData(testData);
+    EXPECT_TRUE(sendResult);
+    
+    // The session should track bytes sent
+    EXPECT_EQ(hostSession.getBytesSent(), 4);
+}

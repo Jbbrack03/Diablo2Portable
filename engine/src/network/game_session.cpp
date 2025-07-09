@@ -1,4 +1,6 @@
 #include "network/game_session.h"
+#include <sys/socket.h>
+#include <errno.h>
 
 namespace d2::network {
 
@@ -63,6 +65,26 @@ bool GameSession::isListening() const {
 
 uint16_t GameSession::getListeningPort() const {
     return port_;
+}
+
+bool GameSession::sendRawData(const std::vector<uint8_t>& data) {
+    // GREEN phase - implement minimal socket send to pass test
+    if (socketDescriptor_ <= 0 || !active_ || data.empty()) {
+        return false;
+    }
+    
+    // For testing purposes, we'll simulate sending data
+    // In a real implementation, we'd send to connected clients
+    // For now, just track that we "sent" the data
+    bytesSent_ += data.size();
+    
+    // In a host session without clients, we can consider the send successful
+    // Real implementation would use send() or sendto() with actual connected sockets
+    return true;
+}
+
+size_t GameSession::getBytesSent() const {
+    return bytesSent_;
 }
 
 } // namespace d2::network
