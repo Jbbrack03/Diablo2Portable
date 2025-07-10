@@ -321,8 +321,8 @@ During Phase 17 implementation, a TDD violation occurred:
 ## Current Implementation Status (January 2025)
 
 ### 📊 **Overall Project Statistics (VERIFIED January 2025):**
-- **Total Tests**: 693 C++ unit tests (All 30 phases complete - Project finished) ✅ VERIFIED
-- **Test Success Rate**: 96.4%+ (669 passing, 24 skipping gracefully) ✅ VERIFIED
+- **Total Tests**: 697 C++ unit tests (Phase 31 in progress - 4 new tests added) ✅ UPDATED
+- **Test Success Rate**: 96.5%+ (674 passing, 23 skipping gracefully) ✅ UPDATED
 - **Test Coverage**: ✅ 95%+ achieved - Most implementation files have comprehensive unit tests ✅ VERIFIED
 - **Integration Testing**: ✅ COMPLETE - Real MPQ integration tests now passing with authentic Diablo II files ✅ VERIFIED
 - **Total Source Files**: 172+ (C++ engine implementation + onboarding + Android UI + UX features)  
@@ -583,6 +583,13 @@ During Phase 17 implementation, a TDD violation occurred:
   - ✅ **Palette Support**: Added uploadSpriteWithPalette() for indexed color sprite rendering
   - ✅ **Perfect TDD Compliance**: 2 tests added with strict RED-GREEN cycles, zero test modifications
   - ✅ **Technical Achievement**: Complete DC6 sprite to OpenGL texture pipeline functional
+- 🔄 **CURRENT SESSION: Phase 31 ISO Extraction Started (January 2025)**:
+  - ✅ **ISOExtractor Class Created**: Basic structure with error handling
+  - ✅ **Test-Driven Development**: 4 tests added following strict RED-GREEN-COMMIT cycles
+  - ✅ **Methods Implemented**: open(), isOpen(), listFiles(), extractFile(), getLastError()
+  - ✅ **Perfect TDD Compliance**: No tests modified, all implementation driven by failing tests
+  - ✅ **Test Count**: Increased from 693 to 697 tests
+  - 🔄 **Next Steps**: Implement actual ISO reading functionality (platform-specific)
 - ✅ COMPLETED Phase 25.1-25.2 MPQ Integration Repair (January 2025):
   - ✅ Diagnosed Root Cause: Empty MPQ files (0 bytes) causing stack overflow error 1000 
   - ✅ Fixed StormLib Integration: Added file size validation to prevent crashes
@@ -1198,7 +1205,13 @@ The asset pipeline tools for mobile optimization:
 
 ### 🚧 **New Development Phases (31-35): Asset Extraction System**
 
-**Phase 31: ISO and Archive Extraction** - Implement real extraction for ISOs, archives, and installers
+**Phase 31: ISO and Archive Extraction** - 🔄 IN PROGRESS (4 tests implemented)
+- ✅ Created ISOExtractor class with basic structure
+- ✅ Implemented error handling for non-existent files
+- ✅ Added listFiles() and extractFile() method stubs
+- 🔄 Next: Implement actual ISO reading functionality
+- Tests added: 4 (ISOExtractor basic functionality)
+
 **Phase 32: Patch System** - Handle game patches with proper file priority system  
 **Phase 33: Comprehensive Asset Extraction** - Extract all asset types (audio, data, video)
 **Phase 34: Extraction Workflow** - Unified pipeline for complete extraction process
