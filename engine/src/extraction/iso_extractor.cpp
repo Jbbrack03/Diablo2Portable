@@ -135,8 +135,102 @@ bool ISOExtractor::extractFile(const std::string& source_path, const std::string
         return false;
     }
     
-    // Not implemented yet
-    return false;
+    // First, find the file in the directory
+    // Seek to root directory
+    isoFile.seekg(rootDirSector * 2048);
+    
+    // Read the root directory
+    std::vector<uint8_t> dirData(rootDirSize);
+    isoFile.read(reinterpret_cast<char*>(dirData.data()), dirData.size());
+    
+    if (!isoFile.good()) {
+        lastError = "Failed to read root directory";
+        return false;
+    }
+    
+    // Parse directory entries to find the file
+    size_t offset = 0;
+    bool found = false;
+    uint32_t fileSector = 0;
+    uint32_t fileSize = 0;
+    
+    while (offset < dirData.size() && !found) {
+        uint8_t recordLength = dirData[offset];
+        
+        // End of directory entries
+        if (recordLength == 0) {
+            break;
+        }
+        
+        // Skip if we'd go past the end
+        if (offset + recordLength > dirData.size()) {
+            break;
+        }
+        
+        // Extract file flags (offset 25)
+        uint8_t flags = dirData[offset + 25];
+        
+        // Skip directories (flag 0x02)
+        if (!(flags & 0x02)) {
+            // Extract identifier length (offset 32)
+            uint8_t identLength = dirData[offset + 32];
+            
+            // Extract identifier (offset 33)
+            if (identLength > 0) {
+                std::string filename(reinterpret_cast<char*>(&dirData[offset + 33]), identLength);
+                
+                // ISO 9660 Level 1 uses ";1" version suffix, remove it
+                size_t semicolon = filename.find(';');
+                if (semicolon != std::string::npos) {
+                    filename = filename.substr(0, semicolon);
+                }
+                
+                if (filename == source_path) {
+                    // Found the file! Extract location and size
+                    fileSector = dirData[offset + 2] | (dirData[offset + 3] << 8) | 
+                                (dirData[offset + 4] << 16) | (dirData[offset + 5] << 24);
+                    fileSize = dirData[offset + 10] | (dirData[offset + 11] << 8) | 
+                              (dirData[offset + 12] << 16) | (dirData[offset + 13] << 24);
+                    found = true;
+                }
+            }
+        }
+        
+        offset += recordLength;
+    }
+    
+    if (!found) {
+        lastError = "File not found in ISO: " + source_path;
+        return false;
+    }
+    
+    // Now extract the file
+    isoFile.seekg(fileSector * 2048);
+    
+    std::vector<uint8_t> fileData(fileSize);
+    isoFile.read(reinterpret_cast<char*>(fileData.data()), fileSize);
+    
+    if (!isoFile.good()) {
+        lastError = "Failed to read file data from ISO";
+        return false;
+    }
+    
+    // Write to destination
+    std::ofstream outFile(dest_path, std::ios::binary);
+    if (!outFile.is_open()) {
+        lastError = "Failed to create output file: " + dest_path;
+        return false;
+    }
+    
+    outFile.write(reinterpret_cast<char*>(fileData.data()), fileSize);
+    outFile.close();
+    
+    if (!outFile.good()) {
+        lastError = "Failed to write output file: " + dest_path;
+        return false;
+    }
+    
+    return true;
 }
 
 void ISOExtractor::close() {

@@ -259,3 +259,139 @@ TEST_F(ISOExtractorTest, ListFilesInISO) {
     EXPECT_TRUE(std::find(files.begin(), files.end(), "D2DATA.MPQ") != files.end());
     EXPECT_TRUE(std::find(files.begin(), files.end(), "D2EXP.MPQ") != files.end());
 }
+
+// Test 8: Extract file from ISO should succeed
+TEST_F(ISOExtractorTest, ExtractFileFromISO) {
+    // Create ISO with actual file content
+    fs::path iso_path = test_dir / "test_extract.iso";
+    {
+        std::ofstream file(iso_path, std::ios::binary);
+        
+        // Write 16 sectors of zeros (system area)
+        std::vector<uint8_t> sector(2048, 0);
+        for (int i = 0; i < 16; ++i) {
+            file.write(reinterpret_cast<char*>(sector.data()), sector.size());
+        }
+        
+        // Write Primary Volume Descriptor at sector 16
+        std::vector<uint8_t> pvd(2048, 0);
+        pvd[0] = 0x01;
+        std::memcpy(pvd.data() + 1, "CD001", 5);
+        pvd[6] = 0x01;
+        
+        // Volume Space Size
+        uint32_t volume_size = 100;
+        pvd[80] = volume_size & 0xFF;
+        pvd[81] = (volume_size >> 8) & 0xFF;
+        pvd[82] = (volume_size >> 16) & 0xFF;
+        pvd[83] = (volume_size >> 24) & 0xFF;
+        pvd[84] = (volume_size >> 24) & 0xFF;
+        pvd[85] = (volume_size >> 16) & 0xFF;
+        pvd[86] = (volume_size >> 8) & 0xFF;
+        pvd[87] = volume_size & 0xFF;
+        
+        // Root directory at sector 20
+        uint32_t root_dir_sector = 20;
+        pvd[156 + 2] = root_dir_sector & 0xFF;
+        pvd[156 + 3] = (root_dir_sector >> 8) & 0xFF;
+        pvd[156 + 4] = (root_dir_sector >> 16) & 0xFF;
+        pvd[156 + 5] = (root_dir_sector >> 24) & 0xFF;
+        pvd[156 + 6] = (root_dir_sector >> 24) & 0xFF;
+        pvd[156 + 7] = (root_dir_sector >> 16) & 0xFF;
+        pvd[156 + 8] = (root_dir_sector >> 8) & 0xFF;
+        pvd[156 + 9] = root_dir_sector & 0xFF;
+        
+        uint32_t root_dir_size = 2048;
+        pvd[156 + 10] = root_dir_size & 0xFF;
+        pvd[156 + 11] = (root_dir_size >> 8) & 0xFF;
+        pvd[156 + 12] = (root_dir_size >> 16) & 0xFF;
+        pvd[156 + 13] = (root_dir_size >> 24) & 0xFF;
+        pvd[156 + 14] = (root_dir_size >> 24) & 0xFF;
+        pvd[156 + 15] = (root_dir_size >> 16) & 0xFF;
+        pvd[156 + 16] = (root_dir_size >> 8) & 0xFF;
+        pvd[156 + 17] = root_dir_size & 0xFF;
+        
+        pvd[156 + 0] = 34;
+        pvd[156 + 25] = 0x02;
+        pvd[156 + 32] = 1;
+        pvd[156 + 33] = 0x00;
+        
+        file.write(reinterpret_cast<char*>(pvd.data()), pvd.size());
+        
+        // Write Volume Descriptor Set Terminator at sector 17
+        std::vector<uint8_t> terminator(2048, 0);
+        terminator[0] = 0xFF;
+        std::memcpy(terminator.data() + 1, "CD001", 5);
+        terminator[6] = 0x01;
+        file.write(reinterpret_cast<char*>(terminator.data()), terminator.size());
+        
+        // Skip to sector 20 for root directory
+        file.seekp(20 * 2048);
+        
+        // Write root directory at sector 20
+        std::vector<uint8_t> root_dir(2048, 0);
+        size_t offset = 0;
+        
+        // Self entry "."
+        root_dir[offset + 0] = 34;
+        root_dir[offset + 2] = 20;
+        root_dir[offset + 10] = 0x08;
+        root_dir[offset + 25] = 0x02;
+        root_dir[offset + 32] = 1;
+        root_dir[offset + 33] = 0x00;
+        offset += 34;
+        
+        // Parent entry ".."
+        root_dir[offset + 0] = 34;
+        root_dir[offset + 2] = 20;
+        root_dir[offset + 10] = 0x08;
+        root_dir[offset + 25] = 0x02;
+        root_dir[offset + 32] = 1;
+        root_dir[offset + 33] = 0x01;
+        offset += 34;
+        
+        // Add a file entry: "TEST.MPQ" with actual content
+        std::string filename = "TEST.MPQ";
+        std::string fileContent = "This is test MPQ file content!";
+        uint32_t fileSize = fileContent.length();
+        
+        uint8_t record_len = 33 + filename.length() + (filename.length() % 2 == 0 ? 1 : 0);
+        root_dir[offset + 0] = record_len;
+        root_dir[offset + 2] = 21; // File at sector 21
+        
+        // File size (both-endian)
+        root_dir[offset + 10] = fileSize & 0xFF;
+        root_dir[offset + 11] = (fileSize >> 8) & 0xFF;
+        root_dir[offset + 12] = (fileSize >> 16) & 0xFF;
+        root_dir[offset + 13] = (fileSize >> 24) & 0xFF;
+        root_dir[offset + 14] = (fileSize >> 24) & 0xFF;
+        root_dir[offset + 15] = (fileSize >> 16) & 0xFF;
+        root_dir[offset + 16] = (fileSize >> 8) & 0xFF;
+        root_dir[offset + 17] = fileSize & 0xFF;
+        
+        root_dir[offset + 25] = 0x00; // File flag
+        root_dir[offset + 32] = filename.length();
+        std::memcpy(root_dir.data() + offset + 33, filename.c_str(), filename.length());
+        
+        file.write(reinterpret_cast<char*>(root_dir.data()), root_dir.size());
+        
+        // Write file content at sector 21
+        file.seekp(21 * 2048);
+        file.write(fileContent.c_str(), fileContent.length());
+    }
+    
+    // Now test extraction
+    ISOExtractor extractor;
+    EXPECT_TRUE(extractor.open(iso_path.string()));
+    
+    fs::path output_path = test_dir / "extracted_test.mpq";
+    EXPECT_TRUE(extractor.extractFile("TEST.MPQ", output_path.string()));
+    
+    // Verify the extracted file exists and has correct content
+    EXPECT_TRUE(fs::exists(output_path));
+    
+    std::ifstream extracted(output_path);
+    std::string content((std::istreambuf_iterator<char>(extracted)),
+                        std::istreambuf_iterator<char>());
+    EXPECT_EQ(content, "This is test MPQ file content!");
+}
