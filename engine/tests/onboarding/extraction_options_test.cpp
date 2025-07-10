@@ -34,5 +34,22 @@ TEST_F(ExtractionOptionsTest, SetCustomOutputPath) {
     EXPECT_EQ("/custom/extraction/path", options.getOutputPath());
 }
 
+// Test 3: Disable specific asset types
+TEST_F(ExtractionOptionsTest, DisableSpecificAssetTypes) {
+    ExtractionOptions options;
+    
+    // Disable videos and audio
+    options.setAssetTypeEnabled(AssetType::VIDEOS, false);
+    options.setAssetTypeEnabled(AssetType::AUDIO, false);
+    
+    // Videos and audio should be disabled
+    EXPECT_FALSE(options.isAssetTypeEnabled(AssetType::VIDEOS));
+    EXPECT_FALSE(options.isAssetTypeEnabled(AssetType::AUDIO));
+    
+    // But sprites and data tables should still be enabled
+    EXPECT_TRUE(options.isAssetTypeEnabled(AssetType::SPRITES));
+    EXPECT_TRUE(options.isAssetTypeEnabled(AssetType::DATA_TABLES));
+}
+
 } // namespace onboarding
 } // namespace d2
