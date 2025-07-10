@@ -395,3 +395,18 @@ TEST_F(ISOExtractorTest, ExtractFileFromISO) {
                         std::istreambuf_iterator<char>());
     EXPECT_EQ(content, "This is test MPQ file content!");
 }
+
+// Test 9: Extract non-existent file should fail
+TEST_F(ISOExtractorTest, ExtractNonExistentFileFails) {
+    fs::path iso_path = test_dir / "test_with_files.iso";
+    createISOWithFiles(iso_path);
+    
+    ISOExtractor extractor;
+    EXPECT_TRUE(extractor.open(iso_path.string()));
+    
+    fs::path output_path = test_dir / "nonexistent.mpq";
+    EXPECT_FALSE(extractor.extractFile("NONEXISTENT.MPQ", output_path.string()));
+    EXPECT_FALSE(fs::exists(output_path));
+    EXPECT_FALSE(extractor.getLastError().empty());
+    EXPECT_TRUE(extractor.getLastError().find("File not found") != std::string::npos);
+}
