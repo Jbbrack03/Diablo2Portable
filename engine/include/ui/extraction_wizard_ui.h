@@ -1,5 +1,8 @@
 #pragma once
 
+#include <string>
+#include <vector>
+
 namespace d2 {
 
 enum class ExtractionWizardStep {
@@ -10,12 +13,19 @@ enum class ExtractionWizardStep {
     COMPLETION
 };
 
+struct StepInfo {
+    std::string title;
+    std::string description;
+    std::vector<std::string> instructions;
+};
+
 class ExtractionWizardUI {
 public:
     ExtractionWizardUI();
     ~ExtractionWizardUI();
     
     ExtractionWizardStep getCurrentStep() const;
+    StepInfo getCurrentStepInfo() const;
     bool nextStep();
 
 private:

@@ -28,5 +28,14 @@ TEST_F(ExtractionWizardUITest, CanNavigateToNextStep) {
     EXPECT_EQ(wizard->getCurrentStep(), ExtractionWizardStep::FILE_SELECTION);
 }
 
+TEST_F(ExtractionWizardUITest, CanGetStepInformation) {
+    // Test that we can get information about the current step
+    auto stepInfo = wizard->getCurrentStepInfo();
+    
+    EXPECT_EQ(stepInfo.title, "Welcome to Diablo II Extraction");
+    EXPECT_EQ(stepInfo.description, "This wizard will guide you through extracting your Diablo II game files for use on mobile devices.");
+    EXPECT_FALSE(stepInfo.instructions.empty());
+}
+
 } // namespace
 } // namespace d2
