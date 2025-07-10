@@ -129,12 +129,12 @@ TEST_F(PatchSystemTest, FilePrioritySystem) {
     EXPECT_EQ(resolved.priority, d2::FileSourcePriority::OFFICIAL_PATCH);
 }
 
-TEST_F(PatchSystemTest, DISABLED_ExtractPatchFromExecutable) {
+TEST_F(PatchSystemTest, ExtractPatchFromExecutable) {
     // Create a simple executable with MPQ at a known offset
     fs::path patch_exe = test_dir / "LODPatch_114d.exe";
     
-    // Create file content
-    std::vector<uint8_t> file_content(2048, 0);
+    // Create file content (large enough for MPQ at offset 1024 + 512 bytes)
+    std::vector<uint8_t> file_content(1536, 0);
     
     // PE header
     file_content[0] = 'M';
@@ -145,14 +145,26 @@ TEST_F(PatchSystemTest, DISABLED_ExtractPatchFromExecutable) {
     
     // MPQ at offset 1024
     size_t mpq_offset = 1024;
-    file_content[mpq_offset] = 'M';
+    
+    // MPQ signature: "MPQ\x1A"
+    file_content[mpq_offset + 0] = 'M';
     file_content[mpq_offset + 1] = 'P';
     file_content[mpq_offset + 2] = 'Q';
     file_content[mpq_offset + 3] = 0x1A;
     
-    // Archive size at offset 8 (512 bytes)
+    // Header size (offset 4): 32 bytes
+    *reinterpret_cast<uint32_t*>(&file_content[mpq_offset + 4]) = 32;
+    
+    // Archive size (offset 8): size of entire archive including header
     uint32_t archive_size = 512;
     *reinterpret_cast<uint32_t*>(&file_content[mpq_offset + 8]) = archive_size;
+    
+    // Fill some dummy data to meet the archive size
+    for (size_t i = mpq_offset + 32; i < mpq_offset + archive_size; ++i) {
+        if (i < file_content.size()) {
+            file_content[i] = static_cast<uint8_t>(i % 256);
+        }
+    }
     
     // Write file
     std::ofstream file(patch_exe, std::ios::binary);

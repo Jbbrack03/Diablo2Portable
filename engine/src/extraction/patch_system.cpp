@@ -3,6 +3,7 @@
 #include <regex>
 #include <algorithm>
 #include <vector>
+#include <iostream>
 
 namespace d2 {
 
@@ -130,12 +131,20 @@ bool PatchSystem::extractPatchFromExecutable(const std::filesystem::path& exePat
         return false;
     }
     
-    // Read MPQ archive size from header
+    // Clear any potential stream error state and seek to archive size position
+    input.clear();
     input.seekg(mpq_offset + 8);
-    uint32_t archive_size = 0;
-    input.read(reinterpret_cast<char*>(&archive_size), sizeof(archive_size));
     
-    // Validate archive size
+    // Read MPQ archive size from header (32-bit little-endian)
+    char size_bytes[4];
+    input.read(size_bytes, 4);
+    if (input.gcount() != 4) {
+        return false;
+    }
+    
+    uint32_t archive_size = *reinterpret_cast<uint32_t*>(size_bytes);
+    
+    // Validate archive size (reasonable bounds check)
     if (archive_size == 0 || archive_size > 1024 * 1024 * 1024) { // Max 1GB
         return false;
     }
