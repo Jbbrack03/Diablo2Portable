@@ -132,6 +132,7 @@ set(TEST_SOURCES
     ui/accessibility_manager_test.cpp
     ui/input_remapper_test.cpp
     ui/asset_management_ui_test.cpp
+    ui/extraction_wizard_ui_test.cpp
     save/test_save_manager.cpp
     android/test_android_structure.cpp
     android/test_jni_bridge.cpp
