@@ -19,6 +19,14 @@ StepInfo ExtractionWizardUI::getCurrentStepInfo() const {
             info.description = "This wizard will guide you through extracting your Diablo II game files for use on mobile devices.";
             info.instructions = {"Click Next to begin the extraction process."};
             break;
+        case ExtractionWizardStep::EXTRACTION_OPTIONS:
+            info.title = "Extraction Options";
+            info.description = "Configure how your Diablo II assets will be extracted.";
+            info.instructions = {
+                "Choose a custom output directory or use the default location.",
+                "Select which asset types you want to extract (sprites, audio, data tables, videos)."
+            };
+            break;
         default:
             info.title = "Unknown Step";
             info.description = "Step information not available.";

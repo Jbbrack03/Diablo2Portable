@@ -78,5 +78,22 @@ TEST_F(ExtractionWizardUITest, CanSetExtractionOptions) {
     EXPECT_TRUE(options.isAssetTypeEnabled(onboarding::AssetType::SPRITES));
 }
 
+TEST_F(ExtractionWizardUITest, ExtractionOptionsStepInfo) {
+    // Test that the extraction options step has proper information
+    
+    // Navigate to the extraction options step
+    wizard->nextStep(); // FILE_SELECTION
+    wizard->nextStep(); // EXTRACTION_OPTIONS
+    
+    auto stepInfo = wizard->getCurrentStepInfo();
+    
+    EXPECT_EQ(stepInfo.title, "Extraction Options");
+    EXPECT_EQ(stepInfo.description, "Configure how your Diablo II assets will be extracted.");
+    EXPECT_FALSE(stepInfo.instructions.empty());
+    
+    // Should have instructions for customizing the extraction
+    EXPECT_TRUE(stepInfo.instructions.size() >= 2);
+}
+
 } // namespace
 } // namespace d2
