@@ -4,6 +4,7 @@
 #include <vector>
 #include <chrono>
 #include "onboarding/extraction_options.h"
+#include "tools/asset_browser_backend.h"
 
 namespace d2 {
 
@@ -46,6 +47,9 @@ public:
     
     // Extraction summary functionality
     ExtractionSummary getExtractionSummary() const;
+    
+    // Asset browser integration
+    bool launchAssetBrowser(const std::string& assetPath);
     
     // Get the current extraction options
     const onboarding::ExtractionOptions& getExtractionOptions() const { return extractionOptions; }

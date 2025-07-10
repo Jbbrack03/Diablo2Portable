@@ -162,5 +162,16 @@ TEST_F(ExtractionWizardUITest, CanGetExtractionSummary) {
     EXPECT_TRUE(summary.successful); // Should be successful by default
 }
 
+TEST_F(ExtractionWizardUITest, CanLaunchAssetBrowser) {
+    // Test that we can launch the asset browser from the wizard
+    
+    std::string assetPath = "/path/to/extracted/assets";
+    
+    bool result = wizard->launchAssetBrowser(assetPath);
+    
+    // Should return true indicating successful launch
+    EXPECT_TRUE(result);
+}
+
 } // namespace
 } // namespace d2

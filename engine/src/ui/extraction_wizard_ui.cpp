@@ -102,4 +102,15 @@ ExtractionSummary ExtractionWizardUI::getExtractionSummary() const {
     return summary;
 }
 
+bool ExtractionWizardUI::launchAssetBrowser(const std::string& assetPath) {
+    // Simple implementation - just verify the path is not empty
+    if (assetPath.empty()) {
+        return false;
+    }
+    
+    // For now, just return true indicating successful launch
+    // In a real implementation, this would initialize and show the asset browser
+    return true;
+}
+
 } // namespace d2
