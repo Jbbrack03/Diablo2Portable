@@ -172,6 +172,7 @@ set(TEST_SOURCES
     onboarding/asset_validator_test.cpp
     security/security_privacy_test.cpp
     extraction/test_iso_extractor.cpp
+    extraction/test_patch_system.cpp
     integration/gameplay_integration_test.cpp
     integration/end_to_end_test.cpp
     integration/test_real_mpq_files.cpp

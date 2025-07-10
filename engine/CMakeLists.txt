@@ -113,6 +113,7 @@ add_library(d2engine STATIC
     src/onboarding/file_format_handler.cpp
     src/onboarding/asset_validator.cpp
     src/extraction/iso_extractor.cpp
+    src/extraction/patch_system.cpp
 )
 
 # Include directories
