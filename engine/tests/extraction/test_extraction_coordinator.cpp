@@ -76,4 +76,35 @@ TEST_F(ExtractionCoordinatorTest, CanDetectSourceType) {
     EXPECT_EQ(sourceType, "MPQ");
 }
 
+// Test that ExtractionCoordinator can provide progress updates during extraction
+TEST_F(ExtractionCoordinatorTest, CanProvideProgressUpdates) {
+    ExtractionCoordinator coordinator;
+    
+    // Set up progress tracking variables
+    bool progressCallbackCalled = false;
+    float lastProgress = -1.0f;
+    std::string lastFile;
+    
+    // Set up progress callback
+    coordinator.setProgressCallback([&](float progress, const std::string& currentFile) {
+        progressCallbackCalled = true;
+        lastProgress = progress;
+        lastFile = currentFile;
+    });
+    
+    // Create a mock source file
+    std::filesystem::path sourcePath = tempDir / "test_source.mpq";
+    std::ofstream sourceFile(sourcePath);
+    sourceFile << "dummy mpq content";
+    sourceFile.close();
+    
+    // Extract and verify progress was reported
+    bool result = coordinator.extractFrom(sourcePath.string(), outputDir.string());
+    
+    EXPECT_TRUE(result);
+    EXPECT_TRUE(progressCallbackCalled);
+    EXPECT_GE(lastProgress, 0.0f);
+    EXPECT_LE(lastProgress, 1.0f);
+}
+
 } // namespace d2

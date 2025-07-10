@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <functional>
 
 namespace d2 {
 
@@ -29,6 +30,15 @@ public:
      * @return String indicating source type ("ISO", "MPQ", "DIRECTORY", etc.)
      */
     std::string detectSourceType(const std::string& sourcePath);
+    
+    /**
+     * Set progress callback for extraction updates
+     * @param callback Function called with progress (0.0-1.0) and current file
+     */
+    void setProgressCallback(std::function<void(float, const std::string&)> callback);
+
+private:
+    std::function<void(float, const std::string&)> progressCallback;
 };
 
 } // namespace d2

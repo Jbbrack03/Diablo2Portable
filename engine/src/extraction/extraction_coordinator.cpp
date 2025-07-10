@@ -5,6 +5,11 @@
 namespace d2 {
 
 bool ExtractionCoordinator::extractFrom(const std::string& sourcePath, const std::string& outputPath) {
+    // Report progress if callback is set
+    if (progressCallback) {
+        progressCallback(0.5f, sourcePath);
+    }
+    
     // Minimal implementation to make test pass
     // For now, just return true to indicate success
     return true;
@@ -27,6 +32,10 @@ std::string ExtractionCoordinator::detectSourceType(const std::string& sourcePat
     } else {
         return "UNKNOWN";
     }
+}
+
+void ExtractionCoordinator::setProgressCallback(std::function<void(float, const std::string&)> callback) {
+    progressCallback = callback;
 }
 
 } // namespace d2
