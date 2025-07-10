@@ -173,5 +173,18 @@ TEST_F(ExtractionWizardUITest, CanLaunchAssetBrowser) {
     EXPECT_TRUE(result);
 }
 
+TEST_F(ExtractionWizardUITest, CanVerifyExtractedAssets) {
+    // Test that we can verify extracted assets from the wizard
+    
+    std::string assetPath = "/path/to/extracted/assets";
+    
+    auto result = wizard->verifyExtractedAssets(assetPath);
+    
+    // Should return a verification result
+    EXPECT_GE(result.validatedFiles, 0);
+    EXPECT_TRUE(result.isComplete); // Should be complete by default
+    EXPECT_TRUE(result.hasRequiredAssets()); // Should have required assets
+}
+
 } // namespace
 } // namespace d2

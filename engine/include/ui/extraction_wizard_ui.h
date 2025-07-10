@@ -5,6 +5,7 @@
 #include <chrono>
 #include "onboarding/extraction_options.h"
 #include "tools/asset_browser_backend.h"
+#include "tools/asset_verifier.h"
 
 namespace d2 {
 
@@ -50,6 +51,9 @@ public:
     
     // Asset browser integration
     bool launchAssetBrowser(const std::string& assetPath);
+    
+    // Asset integrity verification
+    VerificationResult verifyExtractedAssets(const std::string& assetPath);
     
     // Get the current extraction options
     const onboarding::ExtractionOptions& getExtractionOptions() const { return extractionOptions; }
