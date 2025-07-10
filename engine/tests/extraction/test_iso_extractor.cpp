@@ -25,3 +25,13 @@ TEST_F(ISOExtractorTest, CreateISOExtractor) {
     ISOExtractor extractor;
     EXPECT_FALSE(extractor.isOpen());
 }
+
+// Test 2: Open non-existent ISO file should fail
+TEST_F(ISOExtractorTest, OpenNonExistentISOFails) {
+    ISOExtractor extractor;
+    fs::path non_existent = test_dir / "does_not_exist.iso";
+    
+    EXPECT_FALSE(extractor.open(non_existent.string()));
+    EXPECT_FALSE(extractor.isOpen());
+    EXPECT_FALSE(extractor.getLastError().empty());
+}
