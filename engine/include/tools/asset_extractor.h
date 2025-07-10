@@ -79,6 +79,9 @@ private:
     
     // Helper to determine sprite category from file path
     std::filesystem::path determineSpriteCategory(const std::string& filePath) const;
+    
+    // Helper to determine audio category from file path
+    std::filesystem::path determineAudioCategory(const std::string& filePath) const;
 };
 
 } // namespace d2

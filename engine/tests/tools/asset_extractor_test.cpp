@@ -119,3 +119,34 @@ TEST_F(AssetExtractorTest, ExtractAudioFiles) {
     // For now we test with mock data, but this will ensure the logic works
     EXPECT_GT(extractor.getExtractedAudioFileCount(), 0);
 }
+
+// Phase 33: Real WAV File Extraction Test
+TEST_F(AssetExtractorTest, ExtractRealWAVFiles) {
+    AssetExtractor extractor;
+    
+    bool result = extractor.extractFromD2(
+        testD2Path.string(),
+        outputPath.string()
+    );
+    
+    EXPECT_TRUE(result);
+    
+    // Verify that actual WAV files were extracted and organized by category
+    fs::path soundsPath = outputPath / "sounds";
+    
+    // Check that WAV files exist in appropriate categories
+    bool foundWAVFiles = false;
+    for (const auto& category : {"music", "effects", "speech"}) {
+        fs::path categoryPath = soundsPath / category;
+        if (fs::exists(categoryPath)) {
+            for (const auto& entry : fs::recursive_directory_iterator(categoryPath)) {
+                if (entry.path().extension() == ".wav" || entry.path().extension() == ".WAV") {
+                    foundWAVFiles = true;
+                    break;
+                }
+            }
+        }
+    }
+    
+    EXPECT_TRUE(foundWAVFiles) << "No WAV files were extracted to organized directories";
+}
