@@ -34,6 +34,7 @@ public:
 class PatchSystem {
 public:
     std::vector<PatchInfo> detectPatches(const std::filesystem::path& directory);
+    bool extractPatchFromExecutable(const std::filesystem::path& exePath, const std::filesystem::path& outputPath);
 };
 
 struct FileResolution {

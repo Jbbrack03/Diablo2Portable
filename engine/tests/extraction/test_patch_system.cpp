@@ -127,3 +127,62 @@ TEST_F(PatchSystemTest, FilePrioritySystem) {
     EXPECT_EQ(resolved.source, "patch");
     EXPECT_EQ(resolved.priority, d2::FileSourcePriority::OFFICIAL_PATCH);
 }
+
+TEST_F(PatchSystemTest, ExtractPatchFromExecutable) {
+    // Create a simple executable with MPQ at a known offset
+    fs::path patch_exe = test_dir / "LODPatch_114d.exe";
+    
+    // Create file content
+    std::vector<uint8_t> file_content(2048, 0);
+    
+    // PE header
+    file_content[0] = 'M';
+    file_content[1] = 'Z';
+    file_content[60] = 128; // PE offset
+    file_content[128] = 'P';
+    file_content[129] = 'E';
+    
+    // MPQ at offset 1024
+    size_t mpq_offset = 1024;
+    file_content[mpq_offset] = 'M';
+    file_content[mpq_offset + 1] = 'P';
+    file_content[mpq_offset + 2] = 'Q';
+    file_content[mpq_offset + 3] = 0x1A;
+    
+    // Archive size at offset 8 (512 bytes)
+    uint32_t archive_size = 512;
+    *reinterpret_cast<uint32_t*>(&file_content[mpq_offset + 8]) = archive_size;
+    
+    // Write file
+    std::ofstream file(patch_exe, std::ios::binary);
+    file.write(reinterpret_cast<char*>(file_content.data()), file_content.size());
+    file.close();
+    
+    // Extract the patch
+    d2::PatchSystem patch_system;
+    fs::path output_path = test_dir / "extracted_patch.mpq";
+    
+    bool result = patch_system.extractPatchFromExecutable(patch_exe, output_path);
+    
+    ASSERT_TRUE(result) << "Failed to extract patch from executable";
+    EXPECT_TRUE(fs::exists(output_path)) << "Output file does not exist";
+    
+    // Verify the extracted MPQ
+    if (fs::exists(output_path)) {
+        // Get file size
+        auto file_size = fs::file_size(output_path);
+        EXPECT_EQ(file_size, archive_size) << "Extracted file size is wrong";
+        
+        std::ifstream extracted(output_path, std::ios::binary);
+        ASSERT_TRUE(extracted.is_open());
+        
+        char header[4] = {0};
+        extracted.read(header, 4);
+        ASSERT_EQ(extracted.gcount(), 4) << "Failed to read 4 bytes";
+        
+        EXPECT_EQ(header[0], 'M') << "First byte should be 'M'";
+        EXPECT_EQ(header[1], 'P') << "Second byte should be 'P'";
+        EXPECT_EQ(header[2], 'Q') << "Third byte should be 'Q'";
+        EXPECT_EQ(header[3], 0x1A) << "Fourth byte should be 0x1A";
+    }
+}
