@@ -129,5 +129,24 @@ TEST_F(ExtractionWizardUITest, ProgressStepInfo) {
     EXPECT_TRUE(stepInfo.instructions.size() >= 1);
 }
 
+TEST_F(ExtractionWizardUITest, CompletionStepInfo) {
+    // Test that the completion step has proper information
+    
+    // Navigate to the completion step
+    wizard->nextStep(); // FILE_SELECTION
+    wizard->nextStep(); // EXTRACTION_OPTIONS
+    wizard->nextStep(); // PROGRESS
+    wizard->nextStep(); // COMPLETION
+    
+    auto stepInfo = wizard->getCurrentStepInfo();
+    
+    EXPECT_EQ(stepInfo.title, "Extraction Complete");
+    EXPECT_EQ(stepInfo.description, "Your Diablo II assets have been successfully extracted and are ready for use.");
+    EXPECT_FALSE(stepInfo.instructions.empty());
+    
+    // Should have instructions for post-extraction actions
+    EXPECT_TRUE(stepInfo.instructions.size() >= 3);
+}
+
 } // namespace
 } // namespace d2

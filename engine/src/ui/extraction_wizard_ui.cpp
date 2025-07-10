@@ -37,6 +37,15 @@ StepInfo ExtractionWizardUI::getCurrentStepInfo() const {
             info.description = "Please wait while your Diablo II assets are being extracted and optimized.";
             info.instructions = {"The extraction process may take several minutes depending on your system performance."};
             break;
+        case ExtractionWizardStep::COMPLETION:
+            info.title = "Extraction Complete";
+            info.description = "Your Diablo II assets have been successfully extracted and are ready for use.";
+            info.instructions = {
+                "Click 'Browse Assets' to explore your extracted files.",
+                "Click 'Verify Integrity' to validate all files were extracted correctly.",
+                "Click 'Finish' to complete the wizard and start playing."
+            };
+            break;
         default:
             info.title = "Unknown Step";
             info.description = "Step information not available.";
