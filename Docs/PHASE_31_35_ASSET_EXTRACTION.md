@@ -2,14 +2,14 @@
 
 ## Current Status (January 2025)
 - **Phase 31**: ✅ COMPLETE - ISO extraction fully implemented (15 tests implemented)
-- **Phase 32**: 🔄 IN PROGRESS - Patch system (4 tests implemented so far)
-  - ✅ Patch detection (standalone MPQ and executables)
-  - ✅ Version detection from filename
-  - ✅ File priority system for cascading
-  - ❌ Patch application and extraction (TODO)
-- **Phase 33**: ❌ NOT STARTED - Comprehensive asset extraction
-- **Phase 34**: ❌ NOT STARTED - Extraction workflow integration
-- **Phase 35**: ❌ NOT STARTED - User experience polish
+- **Phase 32**: ✅ COMPLETE - Patch system fully implemented (7 tests implemented)
+- **Phase 33**: ✅ COMPLETE - Comprehensive asset extraction (3 tests implemented)
+- **Phase 34**: ✅ COMPLETE - Extraction workflow integration (5 tests implemented)
+- **Phase 35**: 🔄 IN PROGRESS - User experience polish (4 tests implemented)
+  - ✅ Task 35.1 COMPLETE: Extraction Wizard UI with step-by-step guided process
+  - ❌ Task 35.2 TODO: Advanced Options for custom extraction paths and selective extraction
+  - ❌ Task 35.3 TODO: Help and Troubleshooting system with built-in help
+  - ❌ Task 35.4 TODO: Post-Extraction Features including asset browser and integrity verification
 
 ### Progress Summary
 - ✅ **15 ISO extractor tests** implemented with perfect TDD compliance
