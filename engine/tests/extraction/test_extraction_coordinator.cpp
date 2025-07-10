@@ -53,4 +53,27 @@ TEST_F(ExtractionCoordinatorTest, CanExtractFromSourceToOutput) {
     EXPECT_TRUE(result);
 }
 
+// Test that ExtractionCoordinator can detect different source types
+TEST_F(ExtractionCoordinatorTest, CanDetectSourceType) {
+    ExtractionCoordinator coordinator;
+    
+    // Test ISO file detection
+    std::filesystem::path isoPath = tempDir / "test.iso";
+    std::ofstream isoFile(isoPath);
+    isoFile << "dummy iso content";
+    isoFile.close();
+    
+    std::string sourceType = coordinator.detectSourceType(isoPath.string());
+    EXPECT_EQ(sourceType, "ISO");
+    
+    // Test MPQ file detection
+    std::filesystem::path mpqPath = tempDir / "test.mpq";
+    std::ofstream mpqFile(mpqPath);
+    mpqFile << "dummy mpq content";
+    mpqFile.close();
+    
+    sourceType = coordinator.detectSourceType(mpqPath.string());
+    EXPECT_EQ(sourceType, "MPQ");
+}
+
 } // namespace d2

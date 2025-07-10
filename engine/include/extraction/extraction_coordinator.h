@@ -22,6 +22,13 @@ public:
      * @return true if extraction succeeded, false otherwise
      */
     bool extractFrom(const std::string& sourcePath, const std::string& outputPath);
+    
+    /**
+     * Detect the type of source based on file extension or content
+     * @param sourcePath Path to source file
+     * @return String indicating source type ("ISO", "MPQ", "DIRECTORY", etc.)
+     */
+    std::string detectSourceType(const std::string& sourcePath);
 };
 
 } // namespace d2
