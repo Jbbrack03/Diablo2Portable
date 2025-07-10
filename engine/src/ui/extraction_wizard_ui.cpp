@@ -28,11 +28,24 @@ StepInfo ExtractionWizardUI::getCurrentStepInfo() const {
 }
 
 bool ExtractionWizardUI::nextStep() {
-    if (currentStep == ExtractionWizardStep::WELCOME) {
-        currentStep = ExtractionWizardStep::FILE_SELECTION;
-        return true;
+    switch (currentStep) {
+        case ExtractionWizardStep::WELCOME:
+            currentStep = ExtractionWizardStep::FILE_SELECTION;
+            return true;
+        case ExtractionWizardStep::FILE_SELECTION:
+            currentStep = ExtractionWizardStep::EXTRACTION_OPTIONS;
+            return true;
+        case ExtractionWizardStep::EXTRACTION_OPTIONS:
+            currentStep = ExtractionWizardStep::PROGRESS;
+            return true;
+        case ExtractionWizardStep::PROGRESS:
+            currentStep = ExtractionWizardStep::COMPLETION;
+            return true;
+        case ExtractionWizardStep::COMPLETION:
+            return false; // Can't go beyond completion
+        default:
+            return false;
     }
-    return false;
 }
 
 float ExtractionWizardUI::getOverallProgress() const {

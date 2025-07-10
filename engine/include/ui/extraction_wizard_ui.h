@@ -32,6 +32,13 @@ public:
     
     // Get the current extraction options
     const onboarding::ExtractionOptions& getExtractionOptions() const { return extractionOptions; }
+    onboarding::ExtractionOptions& getExtractionOptions() { return extractionOptions; }
+    
+    // Convenience methods for setting extraction options
+    void setOutputPath(const std::string& path) { extractionOptions.setOutputPath(path); }
+    void setAssetTypeEnabled(onboarding::AssetType type, bool enabled) { 
+        extractionOptions.setAssetTypeEnabled(type, enabled); 
+    }
 
 private:
     ExtractionWizardStep currentStep;

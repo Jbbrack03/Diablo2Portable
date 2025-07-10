@@ -57,5 +57,26 @@ TEST_F(ExtractionWizardUITest, CanGetExtractionOptions) {
     EXPECT_TRUE(options.isAssetTypeEnabled(onboarding::AssetType::AUDIO));
 }
 
+TEST_F(ExtractionWizardUITest, CanSetExtractionOptions) {
+    // Test that we can modify extraction options through the wizard
+    
+    // Navigate to the extraction options step
+    wizard->nextStep(); // FILE_SELECTION
+    wizard->nextStep(); // EXTRACTION_OPTIONS
+    EXPECT_EQ(wizard->getCurrentStep(), ExtractionWizardStep::EXTRACTION_OPTIONS);
+    
+    // Get a mutable reference to options
+    auto& options = wizard->getExtractionOptions();
+    
+    // Set custom output path
+    wizard->setOutputPath("/custom/output");
+    EXPECT_EQ(options.getOutputPath(), "/custom/output");
+    
+    // Disable audio extraction
+    wizard->setAssetTypeEnabled(onboarding::AssetType::AUDIO, false);
+    EXPECT_FALSE(options.isAssetTypeEnabled(onboarding::AssetType::AUDIO));
+    EXPECT_TRUE(options.isAssetTypeEnabled(onboarding::AssetType::SPRITES));
+}
+
 } // namespace
 } // namespace d2
