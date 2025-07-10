@@ -114,6 +114,7 @@ add_library(d2engine STATIC
     src/onboarding/asset_validator.cpp
     src/extraction/iso_extractor.cpp
     src/extraction/patch_system.cpp
+    src/extraction/extraction_coordinator.cpp
 )
 
 # Include directories
