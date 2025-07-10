@@ -105,3 +105,16 @@ TEST_F(ISOExtractorTest, OpenValidISO) {
     EXPECT_TRUE(extractor.isOpen());
     EXPECT_TRUE(extractor.getLastError().empty());
 }
+
+// Test 6: Close ISO file should work
+TEST_F(ISOExtractorTest, CloseISO) {
+    fs::path iso_path = test_dir / "test.iso";
+    createMinimalISO(iso_path);
+    
+    ISOExtractor extractor;
+    EXPECT_TRUE(extractor.open(iso_path.string()));
+    EXPECT_TRUE(extractor.isOpen());
+    
+    extractor.close();
+    EXPECT_FALSE(extractor.isOpen());
+}

@@ -33,6 +33,11 @@ public:
     bool isOpen() const { return isOpenFlag; }
     
     /**
+     * Close the currently open ISO file
+     */
+    void close();
+    
+    /**
      * List all files in the ISO
      * @return Vector of file paths found in the ISO
      */

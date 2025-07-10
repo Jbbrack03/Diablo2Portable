@@ -74,4 +74,12 @@ bool ISOExtractor::extractFile(const std::string& source_path, const std::string
     return false;
 }
 
+void ISOExtractor::close() {
+    if (isoFile.is_open()) {
+        isoFile.close();
+    }
+    isOpenFlag = false;
+    isoPath.clear();
+}
+
 } // namespace d2
