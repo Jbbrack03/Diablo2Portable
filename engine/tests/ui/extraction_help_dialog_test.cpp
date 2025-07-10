@@ -32,4 +32,19 @@ TEST_F(ExtractionHelpDialogTest, ShowAndHideHelpDialog) {
     EXPECT_FALSE(helpDialog->isVisible());
 }
 
+// Test 3: Set context for help dialog
+TEST_F(ExtractionHelpDialogTest, SetHelpContext) {
+    // Set context to file selection
+    helpDialog->setContext(ExtractionHelpContext::FILE_SELECTION);
+    EXPECT_EQ(helpDialog->getCurrentContext(), ExtractionHelpContext::FILE_SELECTION);
+    
+    // Set context to extraction options
+    helpDialog->setContext(ExtractionHelpContext::EXTRACTION_OPTIONS);
+    EXPECT_EQ(helpDialog->getCurrentContext(), ExtractionHelpContext::EXTRACTION_OPTIONS);
+    
+    // Set context to progress
+    helpDialog->setContext(ExtractionHelpContext::PROGRESS);
+    EXPECT_EQ(helpDialog->getCurrentContext(), ExtractionHelpContext::PROGRESS);
+}
+
 } // namespace d2
