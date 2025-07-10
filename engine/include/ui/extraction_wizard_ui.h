@@ -16,6 +16,7 @@ public:
     ~ExtractionWizardUI();
     
     ExtractionWizardStep getCurrentStep() const;
+    bool nextStep();
 
 private:
     ExtractionWizardStep currentStep;

@@ -19,5 +19,14 @@ TEST_F(ExtractionWizardUITest, CanCreateExtractionWizardUI) {
     EXPECT_EQ(wizard->getCurrentStep(), ExtractionWizardStep::WELCOME);
 }
 
+TEST_F(ExtractionWizardUITest, CanNavigateToNextStep) {
+    // Test that we can navigate to the next step in the wizard
+    EXPECT_EQ(wizard->getCurrentStep(), ExtractionWizardStep::WELCOME);
+    
+    bool success = wizard->nextStep();
+    EXPECT_TRUE(success);
+    EXPECT_EQ(wizard->getCurrentStep(), ExtractionWizardStep::FILE_SELECTION);
+}
+
 } // namespace
 } // namespace d2
