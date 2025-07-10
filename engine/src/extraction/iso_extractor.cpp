@@ -268,4 +268,73 @@ bool ISOExtractor::extractAll(const std::string& dest_dir) {
     return true;
 }
 
+ISOFileInfo ISOExtractor::getFileInfo(const std::string& filename) const {
+    ISOFileInfo info;
+    
+    if (!isOpen()) {
+        return info;
+    }
+    
+    // Seek to root directory
+    isoFile.seekg(rootDirSector * 2048);
+    
+    // Read the root directory
+    std::vector<uint8_t> dirData(rootDirSize);
+    isoFile.read(reinterpret_cast<char*>(dirData.data()), dirData.size());
+    
+    if (!isoFile.good()) {
+        return info;
+    }
+    
+    // Parse directory entries to find the file
+    size_t offset = 0;
+    while (offset < dirData.size()) {
+        uint8_t recordLength = dirData[offset];
+        
+        // End of directory entries
+        if (recordLength == 0) {
+            break;
+        }
+        
+        // Skip if we'd go past the end
+        if (offset + recordLength > dirData.size()) {
+            break;
+        }
+        
+        // Extract file flags (offset 25)
+        uint8_t flags = dirData[offset + 25];
+        
+        // Skip directories (flag 0x02)
+        if (!(flags & 0x02)) {
+            // Extract identifier length (offset 32)
+            uint8_t identLength = dirData[offset + 32];
+            
+            // Extract identifier (offset 33)
+            if (identLength > 0) {
+                std::string filenameCurrent(reinterpret_cast<char*>(&dirData[offset + 33]), identLength);
+                
+                // ISO 9660 Level 1 uses ";1" version suffix, remove it
+                size_t semicolon = filenameCurrent.find(';');
+                if (semicolon != std::string::npos) {
+                    filenameCurrent = filenameCurrent.substr(0, semicolon);
+                }
+                
+                if (filenameCurrent == filename) {
+                    // Found the file!
+                    info.exists = true;
+                    info.sector = dirData[offset + 2] | (dirData[offset + 3] << 8) | 
+                                 (dirData[offset + 4] << 16) | (dirData[offset + 5] << 24);
+                    info.size = dirData[offset + 10] | (dirData[offset + 11] << 8) | 
+                               (dirData[offset + 12] << 16) | (dirData[offset + 13] << 24);
+                    return info;
+                }
+            }
+        }
+        
+        offset += recordLength;
+    }
+    
+    return info;
+}
+
 } // namespace d2

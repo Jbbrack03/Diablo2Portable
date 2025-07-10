@@ -458,3 +458,26 @@ TEST_F(ISOExtractorTest, ExtractAllFilesFromISO) {
     EXPECT_TRUE(fs::exists(output_dir / "D2DATA.MPQ"));
     EXPECT_TRUE(fs::exists(output_dir / "D2EXP.MPQ"));
 }
+
+// Test 11: Get file info should return correct size and location
+TEST_F(ISOExtractorTest, GetFileInfo) {
+    fs::path iso_path = test_dir / "test_with_files.iso";
+    createISOWithFiles(iso_path);
+    
+    ISOExtractor extractor;
+    EXPECT_TRUE(extractor.open(iso_path.string()));
+    
+    auto info = extractor.getFileInfo("D2DATA.MPQ");
+    EXPECT_TRUE(info.exists);
+    EXPECT_EQ(info.size, 23u); // "D2DATA.MPQ test content" is 23 bytes
+    EXPECT_EQ(info.sector, 21u);
+    
+    info = extractor.getFileInfo("D2EXP.MPQ");
+    EXPECT_TRUE(info.exists);
+    EXPECT_EQ(info.size, 22u); // "D2EXP.MPQ test content" is 22 bytes
+    EXPECT_EQ(info.sector, 22u);
+    
+    // Non-existent file
+    info = extractor.getFileInfo("NOTEXIST.MPQ");
+    EXPECT_FALSE(info.exists);
+}

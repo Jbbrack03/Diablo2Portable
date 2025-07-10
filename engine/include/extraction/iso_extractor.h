@@ -8,6 +8,15 @@
 namespace d2 {
 
 /**
+ * Information about a file in the ISO
+ */
+struct ISOFileInfo {
+    bool exists = false;
+    uint32_t size = 0;
+    uint32_t sector = 0;
+};
+
+/**
  * ISO file extractor for extracting MPQ files from ISO images
  */
 class ISOExtractor {
@@ -57,6 +66,13 @@ public:
      * @return true if extraction successful, false otherwise
      */
     bool extractAll(const std::string& dest_dir);
+    
+    /**
+     * Get information about a file in the ISO
+     * @param filename Name of the file to get info for
+     * @return ISOFileInfo struct with file information
+     */
+    ISOFileInfo getFileInfo(const std::string& filename) const;
     
     /**
      * Get the last error message
