@@ -321,8 +321,8 @@ During Phase 17 implementation, a TDD violation occurred:
 ## Current Implementation Status (January 2025)
 
 ### 📊 **Overall Project Statistics (VERIFIED January 2025):**
-- **Total Tests**: 705 C++ unit tests (Phase 31 in progress - 12 ISO extractor tests added) ✅ UPDATED
-- **Test Success Rate**: 96.5%+ (682 passing, 23 skipping gracefully) ✅ UPDATED
+- **Total Tests**: 708 C++ unit tests (Phase 31 complete - 15 ISO extractor tests added) ✅ UPDATED
+- **Test Success Rate**: 96.7%+ (685 passing, 23 skipping gracefully) ✅ UPDATED
 - **Test Coverage**: ✅ 95%+ achieved - Most implementation files have comprehensive unit tests ✅ VERIFIED
 - **Integration Testing**: ✅ COMPLETE - Real MPQ integration tests now passing with authentic Diablo II files ✅ VERIFIED
 - **Total Source Files**: 172+ (C++ engine implementation + onboarding + Android UI + UX features)  
@@ -583,19 +583,21 @@ During Phase 17 implementation, a TDD violation occurred:
   - ✅ **Palette Support**: Added uploadSpriteWithPalette() for indexed color sprite rendering
   - ✅ **Perfect TDD Compliance**: 2 tests added with strict RED-GREEN cycles, zero test modifications
   - ✅ **Technical Achievement**: Complete DC6 sprite to OpenGL texture pipeline functional
-- 🔄 **CURRENT SESSION: Phase 31 ISO Extraction In Progress (January 2025)**:
+- ✅ **COMPLETED SESSION: Phase 31 ISO Extraction Complete (January 2025)**:
   - ✅ **ISOExtractor Class Created**: Full ISO 9660 format support implemented
-  - ✅ **Test-Driven Development**: 12 tests added following strict RED-GREEN-COMMIT cycles
+  - ✅ **Test-Driven Development**: 15 tests added following strict RED-GREEN-COMMIT cycles
   - ✅ **Methods Implemented**: 
     - open(), isOpen(), close() - ISO file management
     - listFiles() - List all files in ISO
-    - extractFile() - Extract individual files
-    - extractAll() - Extract all files at once
+    - listFilesRecursive() - List all files including subdirectories
+    - extractFile() - Extract individual files (now supports subdirectories)
+    - extractAll() - Extract all files at once (now creates subdirectories)
     - getFileInfo() - Get file metadata (size, sector)
+  - ✅ **Subdirectory Support**: Full support for nested directory structures
   - ✅ **Real ISO Support**: Successfully tested with actual Diablo II ISO files
   - ✅ **Perfect TDD Compliance**: No tests modified, all implementation driven by failing tests
-  - ✅ **Test Count**: Increased from 693 to 705 tests (12 ISO tests added)
-  - 🔄 **Next Steps**: Add subdirectory support and handle nested directory structures
+  - ✅ **Test Count**: Increased from 693 to 708 tests (15 ISO tests added)
+  - ✅ **Phase 31 COMPLETE**: ISO extraction with full subdirectory support implemented
 - ✅ COMPLETED Phase 25.1-25.2 MPQ Integration Repair (January 2025):
   - ✅ Diagnosed Root Cause: Empty MPQ files (0 bytes) causing stack overflow error 1000 
   - ✅ Fixed StormLib Integration: Added file size validation to prevent crashes
@@ -1211,14 +1213,16 @@ The asset pipeline tools for mobile optimization:
 
 ### 🚧 **New Development Phases (31-35): Asset Extraction System**
 
-**Phase 31: ISO and Archive Extraction** - 🔄 IN PROGRESS (12 tests implemented)
+**Phase 31: ISO and Archive Extraction** - ✅ COMPLETE (15 tests implemented)
 - ✅ Created ISOExtractor class with full ISO 9660 support
 - ✅ Implemented complete ISO reading functionality
 - ✅ Added listFiles(), extractFile(), extractAll(), getFileInfo() methods
+- ✅ Added listFilesRecursive() for subdirectory traversal
+- ✅ Full subdirectory support for nested ISO structures
 - ✅ Successfully tested with real Diablo II ISO files
 - ✅ Can extract MPQ files and other game assets from ISO images
-- 🔄 Next: Add subdirectory support for nested ISO structures
-- Tests added: 12 (ISOExtractor complete functionality)
+- ✅ Creates directory structure when extracting all files
+- Tests added: 15 (ISOExtractor complete functionality with subdirectories)
 
 **Phase 32: Patch System** - Handle game patches with proper file priority system  
 **Phase 33: Comprehensive Asset Extraction** - Extract all asset types (audio, data, video)
