@@ -106,3 +106,24 @@ TEST_F(PatchSystemTest, DetectPatchVersionFromFilename) {
         }
     }
 }
+
+TEST_F(PatchSystemTest, FilePrioritySystem) {
+    // Create a file priority system
+    d2::FilePrioritySystem priority_system;
+    
+    // Add file sources in order
+    priority_system.addSource("base", d2::FileSourcePriority::BASE_GAME);
+    priority_system.addSource("expansion", d2::FileSourcePriority::EXPANSION);
+    priority_system.addSource("patch", d2::FileSourcePriority::OFFICIAL_PATCH);
+    priority_system.addSource("mod", d2::FileSourcePriority::USER_MOD);
+    
+    // Test file resolution with same file in multiple sources
+    priority_system.addFile("base", "data/global/excel/armor.txt");
+    priority_system.addFile("expansion", "data/global/excel/armor.txt");
+    priority_system.addFile("patch", "data/global/excel/armor.txt");
+    
+    // Should return the highest priority source (patch)
+    auto resolved = priority_system.resolveFile("data/global/excel/armor.txt");
+    EXPECT_EQ(resolved.source, "patch");
+    EXPECT_EQ(resolved.priority, d2::FileSourcePriority::OFFICIAL_PATCH);
+}
