@@ -36,6 +36,12 @@ public:
     size_t getExtractedFileCount() const { return extractedCount; }
     
     /**
+     * Get the number of audio files extracted
+     * @return Number of extracted audio files
+     */
+    size_t getExtractedAudioFileCount() const { return extractedAudioCount; }
+    
+    /**
      * Set progress callback for extraction updates
      * @param callback Function called with progress (0.0-1.0) and current file
      */
@@ -53,6 +59,7 @@ public:
     
 private:
     size_t extractedCount = 0;
+    size_t extractedAudioCount = 0;
     std::function<void(float, const std::string&)> progressCallback;
     ExtractionMonitor* extractionMonitor = nullptr;
     

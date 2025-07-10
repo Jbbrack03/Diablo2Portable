@@ -98,3 +98,24 @@ TEST_F(AssetExtractorTest, ExtractRealDC6Sprites) {
     
     EXPECT_TRUE(foundDC6Files) << "No DC6 files were extracted";
 }
+
+// Phase 33: Comprehensive Asset Extraction - Audio Extraction Test
+TEST_F(AssetExtractorTest, ExtractAudioFiles) {
+    AssetExtractor extractor;
+    
+    bool result = extractor.extractFromD2(
+        testD2Path.string(),
+        outputPath.string()
+    );
+    
+    EXPECT_TRUE(result);
+    
+    // Verify audio output directories were created with proper organization
+    EXPECT_TRUE(fs::exists(outputPath / "sounds" / "music"));
+    EXPECT_TRUE(fs::exists(outputPath / "sounds" / "effects"));
+    EXPECT_TRUE(fs::exists(outputPath / "sounds" / "speech"));
+    
+    // Verify that audio extraction actually extracted WAV files
+    // For now we test with mock data, but this will ensure the logic works
+    EXPECT_GT(extractor.getExtractedAudioFileCount(), 0);
+}
