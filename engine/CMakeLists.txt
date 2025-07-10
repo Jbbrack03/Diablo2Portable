@@ -90,6 +90,7 @@ add_library(d2engine STATIC
     src/ui/help_system.cpp
     src/ui/asset_management_ui.cpp
     src/ui/extraction_wizard_ui.cpp
+    src/ui/extraction_help_dialog.cpp
     src/save/save_manager.cpp
     src/android/jni_bridge.cpp
     src/android/gamepad_handler.cpp
