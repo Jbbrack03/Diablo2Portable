@@ -4744,3 +4744,149 @@ All 30 phases of the TDD Implementation Plan have been successfully completed. T
 - ✅ User onboarding and experience systems
 
 **The core engine is production-ready and fully functional.**
+
+---
+
+## Extended Phases: Complete Asset Extraction System
+
+### Phase 31: ISO and Archive Extraction Implementation
+**Objective**: Implement real extraction capabilities for ISO files, installers, and archive formats.
+
+#### Tasks:
+1. **ISO Extraction Support**
+   - Platform-specific ISO mounting/extraction
+   - Handle different ISO formats
+   - Extract all contents to temporary directory
+   - Identify and collect MPQ files
+
+2. **Archive Format Support**
+   - Integrate 7zip library or command-line tool
+   - Support ZIP/RAR/CAB/self-extracting EXEs
+   - Extract with progress tracking
+   - Handle password-protected archives
+
+3. **Installer Extraction**
+   - Detect installer types (InstallShield, NSIS, etc.)
+   - Extract without running installer
+   - Handle Blizzard downloader formats
+   - Extract embedded MPQ files
+
+4. **Error Handling and Recovery**
+   - Handle corrupt/incomplete files
+   - Provide meaningful error messages
+   - Implement retry mechanisms
+   - Clean up temporary files on failure
+
+### Phase 32: Patch System Implementation
+**Objective**: Implement a proper patch system that handles game updates and file priorities.
+
+#### Tasks:
+1. **Patch Detection**
+   - Identify patch files (patch.mpq, d2patch.mpq, etc.)
+   - Detect patch version from file contents
+   - Support multiple patch formats
+   - Maintain patch registry
+
+2. **File Priority System**
+   - Implement cascading file system
+   - Track file origins
+   - Handle file conflicts properly
+   - Base game → Expansion → Patches → Mods
+
+3. **Patch Application**
+   - Extract patch contents
+   - Merge with existing assets
+   - Override base game files
+   - Maintain file versioning
+
+4. **Version Management**
+   - Detect game version
+   - Track applied patches
+   - Validate patch compatibility
+   - Support multiple game versions
+
+### Phase 33: Comprehensive Asset Extraction
+**Objective**: Extend extraction to handle all game asset types, not just sprites.
+
+#### Tasks:
+1. **Audio Extraction**
+   - Extract WAV files from MPQs
+   - Organize by category (music, effects, speech)
+   - Support compressed audio formats
+   - Convert to mobile-friendly formats
+
+2. **Data Table Extraction**
+   - Extract all .txt files (Excel tables)
+   - Extract .tbl files (string tables)
+   - Extract .bin files (binary data)
+   - Organize by data type
+
+3. **Palette and Graphics Data**
+   - Extract palette files (.dat)
+   - Extract font files
+   - Extract cursor graphics
+   - Extract UI elements
+
+4. **Video and Cinematics**
+   - Extract cinematics from d2video.mpq
+   - Handle different video formats
+   - Optional: Convert to mobile formats
+   - Organize by act/chapter
+
+### Phase 34: Extraction Workflow Integration
+**Objective**: Create a unified extraction workflow that handles the complete process seamlessly.
+
+#### Tasks:
+1. **Unified Extraction Pipeline**
+   - Create master extraction coordinator
+   - Handle all source types in one flow
+   - Progress tracking across all steps
+   - Validate completeness
+
+2. **Smart Detection and Validation**
+   - Auto-detect all available sources
+   - Validate game files
+   - Check for completeness
+   - Suggest solutions for missing files
+
+3. **Incremental Updates**
+   - Support updating existing extraction
+   - Detect new patches/content
+   - Only extract changed files
+   - Maintain extraction state
+
+4. **Platform Integration**
+   - Android: Storage Access Framework
+   - iOS: Document picker
+   - Desktop: Native file dialogs
+   - Console: Controller-friendly UI
+
+### Phase 35: User Experience Polish
+**Objective**: Polish the extraction experience to be intuitive and user-friendly.
+
+#### Tasks:
+1. **Extraction Wizard UI**
+   - Step-by-step guided process
+   - Clear instructions at each step
+   - Visual progress indicators
+   - Estimated time remaining
+
+2. **Advanced Options**
+   - Custom extraction paths
+   - Selective extraction
+   - Compression options
+   - Language selection
+
+3. **Help and Troubleshooting**
+   - Built-in help system
+   - Common problem solutions
+   - File format explanations
+   - Video tutorials
+
+4. **Post-Extraction Features**
+   - Asset browser
+   - Integrity verification
+   - Backup/restore
+   - Export/import settings
+
+**Detailed implementation plan available in: Docs/PHASE_31_35_ASSET_EXTRACTION.md**

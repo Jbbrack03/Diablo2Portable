@@ -193,7 +193,8 @@ extern "C" {
         
         // Check for obviously invalid content
         if (source.find("this is not valid GLSL") != std::string::npos ||
-            source.find("random text that should never compile") != std::string::npos) {
+            source.find("random text that should never compile") != std::string::npos ||
+            source.find("INVALID SYNTAX HERE") != std::string::npos) {
             valid = false;
         }
         

@@ -960,6 +960,7 @@ During Phase 17 implementation, a TDD violation occurred:
 - ✅ **Phase 28 COMPLETE** - Quality Assurance and Validation (all systems verified)
 - ✅ **Phase 29 FULLY COMPLETE** - Full OpenGL ES 3.0 rendering pipeline with advanced features implemented!
 - ✅ **ALL CORE PHASES COMPLETE** - Project ready for advanced gameplay development
+- 🚧 **NEW PHASES ADDED (31-35)** - Complete asset extraction system planned
 - ✅ **Technical Status Verified**:
   - ✅ JNI Bridge functional - Android app creates working GameEngine instances
   - ✅ OpenGL rendering foundation - VertexBuffer with real OpenGL ES 3.0 calls
@@ -1195,7 +1196,17 @@ The asset pipeline tools for mobile optimization:
 
 ---
 
-## 🎉 PROJECT COMPLETE
+### 🚧 **New Development Phases (31-35): Asset Extraction System**
+
+**Phase 31: ISO and Archive Extraction** - Implement real extraction for ISOs, archives, and installers
+**Phase 32: Patch System** - Handle game patches with proper file priority system  
+**Phase 33: Comprehensive Asset Extraction** - Extract all asset types (audio, data, video)
+**Phase 34: Extraction Workflow** - Unified pipeline for complete extraction process
+**Phase 35: User Experience Polish** - Wizard UI and advanced extraction features
+
+These phases address the current gaps in asset extraction to properly handle user-provided files like ISOs, patches, and various archive formats.
+
+## 🎉 CORE ENGINE COMPLETE
 
 All 30 phases of the TDD Implementation Plan have been successfully completed as of January 2025. The Diablo II Android port project has achieved:
 
