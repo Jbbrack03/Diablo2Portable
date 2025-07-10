@@ -975,7 +975,9 @@ During Phase 17 implementation, a TDD violation occurred:
 - ✅ **Phase 28 COMPLETE** - Quality Assurance and Validation (all systems verified)
 - ✅ **Phase 29 FULLY COMPLETE** - Full OpenGL ES 3.0 rendering pipeline with advanced features implemented!
 - ✅ **ALL CORE PHASES COMPLETE** - Project ready for advanced gameplay development
-- 🚧 **NEW PHASES ADDED (31-35)** - Complete asset extraction system planned
+- 🚧 **NEW PHASES ADDED (31-35)** - Complete asset extraction system
+  - ✅ **Phase 31 COMPLETE** - ISO extraction with full subdirectory support (15 tests)
+  - 🔄 **Phase 32 IN PROGRESS** - Patch system implementation (4 tests completed)
 - ✅ **Technical Status Verified**:
   - ✅ JNI Bridge functional - Android app creates working GameEngine instances
   - ✅ OpenGL rendering foundation - VertexBuffer with real OpenGL ES 3.0 calls
@@ -1224,7 +1226,13 @@ The asset pipeline tools for mobile optimization:
 - ✅ Creates directory structure when extracting all files
 - Tests added: 15 (ISOExtractor complete functionality with subdirectories)
 
-**Phase 32: Patch System** - Handle game patches with proper file priority system  
+**Phase 32: Patch System** - 🔄 IN PROGRESS (4 tests implemented)
+- ✅ Patch detection for standalone MPQ files
+- ✅ Patch executable detection with embedded MPQ
+- ✅ Version detection from filename 
+- ✅ File priority system (BASE_GAME < EXPANSION < OFFICIAL_PATCH < USER_MOD)
+- ❌ TODO: Patch extraction, application, and version management
+
 **Phase 33: Comprehensive Asset Extraction** - Extract all asset types (audio, data, video)
 **Phase 34: Extraction Workflow** - Unified pipeline for complete extraction process
 **Phase 35: User Experience Polish** - Wizard UI and advanced extraction features
