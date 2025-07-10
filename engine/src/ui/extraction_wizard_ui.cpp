@@ -19,6 +19,11 @@ StepInfo ExtractionWizardUI::getCurrentStepInfo() const {
             info.description = "This wizard will guide you through extracting your Diablo II game files for use on mobile devices.";
             info.instructions = {"Click Next to begin the extraction process."};
             break;
+        case ExtractionWizardStep::FILE_SELECTION:
+            info.title = "Select Game Files";
+            info.description = "Choose the location of your Diablo II game files for extraction.";
+            info.instructions = {"Browse to your Diablo II installation directory or select MPQ files directly."};
+            break;
         case ExtractionWizardStep::EXTRACTION_OPTIONS:
             info.title = "Extraction Options";
             info.description = "Configure how your Diablo II assets will be extracted.";

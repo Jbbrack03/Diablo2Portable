@@ -95,5 +95,21 @@ TEST_F(ExtractionWizardUITest, ExtractionOptionsStepInfo) {
     EXPECT_TRUE(stepInfo.instructions.size() >= 2);
 }
 
+TEST_F(ExtractionWizardUITest, FileSelectionStepInfo) {
+    // Test that the file selection step has proper information
+    
+    // Navigate to the file selection step
+    wizard->nextStep(); // FILE_SELECTION
+    
+    auto stepInfo = wizard->getCurrentStepInfo();
+    
+    EXPECT_EQ(stepInfo.title, "Select Game Files");
+    EXPECT_EQ(stepInfo.description, "Choose the location of your Diablo II game files for extraction.");
+    EXPECT_FALSE(stepInfo.instructions.empty());
+    
+    // Should have instructions for file selection
+    EXPECT_TRUE(stepInfo.instructions.size() >= 1);
+}
+
 } // namespace
 } // namespace d2
