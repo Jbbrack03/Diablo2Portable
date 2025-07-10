@@ -2,6 +2,7 @@
 
 #include <string>
 #include <vector>
+#include "onboarding/extraction_options.h"
 
 namespace d2 {
 
@@ -28,9 +29,13 @@ public:
     StepInfo getCurrentStepInfo() const;
     bool nextStep();
     float getOverallProgress() const;
+    
+    // Get the current extraction options
+    const onboarding::ExtractionOptions& getExtractionOptions() const { return extractionOptions; }
 
 private:
     ExtractionWizardStep currentStep;
+    onboarding::ExtractionOptions extractionOptions;
 };
 
 } // namespace d2

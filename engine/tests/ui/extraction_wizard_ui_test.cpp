@@ -47,5 +47,15 @@ TEST_F(ExtractionWizardUITest, CanTrackProgress) {
     EXPECT_EQ(progress, 0.25f); // 1 of 4 steps completed (WELCOME done)
 }
 
+TEST_F(ExtractionWizardUITest, CanGetExtractionOptions) {
+    // Test that we can get extraction options from the wizard
+    const auto& options = wizard->getExtractionOptions();
+    
+    // Should have default options
+    EXPECT_EQ("", options.getOutputPath());
+    EXPECT_TRUE(options.isAssetTypeEnabled(onboarding::AssetType::SPRITES));
+    EXPECT_TRUE(options.isAssetTypeEnabled(onboarding::AssetType::AUDIO));
+}
+
 } // namespace
 } // namespace d2
