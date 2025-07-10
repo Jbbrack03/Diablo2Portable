@@ -15,4 +15,9 @@ bool ISOExtractor::open(const std::string& filepath) {
     return false;
 }
 
+std::vector<std::string> ISOExtractor::listFiles() const {
+    // Return empty vector when not open
+    return {};
+}
+
 } // namespace d2

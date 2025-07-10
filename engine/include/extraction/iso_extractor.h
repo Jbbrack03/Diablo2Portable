@@ -2,6 +2,7 @@
 #define D2_ISO_EXTRACTOR_H
 
 #include <string>
+#include <vector>
 
 namespace d2 {
 
@@ -25,6 +26,12 @@ public:
      * @return true if ISO is open, false otherwise
      */
     bool isOpen() const { return false; }
+    
+    /**
+     * List all files in the ISO
+     * @return Vector of file paths found in the ISO
+     */
+    std::vector<std::string> listFiles() const;
     
     /**
      * Get the last error message

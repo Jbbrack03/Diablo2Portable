@@ -35,3 +35,11 @@ TEST_F(ISOExtractorTest, OpenNonExistentISOFails) {
     EXPECT_FALSE(extractor.isOpen());
     EXPECT_FALSE(extractor.getLastError().empty());
 }
+
+// Test 3: List files in ISO should return empty for unopened ISO
+TEST_F(ISOExtractorTest, ListFilesWhenNotOpen) {
+    ISOExtractor extractor;
+    
+    auto files = extractor.listFiles();
+    EXPECT_TRUE(files.empty());
+}
