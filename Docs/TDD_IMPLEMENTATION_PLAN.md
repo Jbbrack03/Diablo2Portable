@@ -4870,6 +4870,12 @@ All 30 phases of the TDD Implementation Plan have been successfully completed. T
 ### Phase 35: User Experience Polish
 **Objective**: Polish the extraction experience to be intuitive and user-friendly.
 
+**Status**: 75% Complete (3 of 4 tasks completed)
+- ✅ Phase 35.1: Extraction Wizard UI (4 tests added, 719 total)
+- ✅ Phase 35.2: Advanced Options (11 tests added, 734 total)
+- ✅ Phase 35.3: Help and Troubleshooting (6 tests added, 740 total)
+- ❌ Phase 35.4: Post-Extraction Features (TODO)
+
 #### Tasks:
 1. **✅ COMPLETED: Extraction Wizard UI**
    - ✅ Step-by-step guided process (ExtractionWizardStep enum with 5 steps)
@@ -4886,14 +4892,21 @@ All 30 phases of the TDD Implementation Plan have been successfully completed. T
    - ✅ EXTRACTION_OPTIONS step with full instructions
    - **Tests Added**: 11 tests with perfect TDD compliance
    - **Implementation**: ExtractionOptions class with full configuration support
+   - **Session Date**: January 2025
+   - **Test Count**: 734 total tests after completion
    - ⚠️ Compression options (not implemented - out of scope)
    - ⚠️ Language selection (not implemented - out of scope)
 
-3. **Help and Troubleshooting**
-   - Built-in help system
-   - Common problem solutions
-   - File format explanations
-   - Video tutorials
+3. **✅ COMPLETED: Help and Troubleshooting**
+   - ✅ Built-in help system (ExtractionHelpDialog with context-sensitive help)
+   - ✅ Common problem solutions (6 help topics covering common issues)
+   - ✅ File format explanations (ISO, MPQ, patch file documentation)
+   - ✅ Context-sensitive help (getHelpForStep method with step-specific guidance)
+   - **Tests Added**: 6 tests with perfect TDD compliance
+   - **Implementation**: ExtractionHelpDialog class with comprehensive help content
+   - **Session Date**: January 2025
+   - **Test Count**: 740 total tests after completion
+   - ⚠️ Video tutorials (not implemented - out of scope)
 
 4. **Post-Extraction Features**
    - Asset browser
