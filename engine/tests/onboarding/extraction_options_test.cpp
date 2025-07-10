@@ -1,4 +1,5 @@
 #include <gtest/gtest.h>
+#include <algorithm>
 #include "onboarding/extraction_options.h"
 
 namespace d2 {
@@ -49,6 +50,25 @@ TEST_F(ExtractionOptionsTest, DisableSpecificAssetTypes) {
     // But sprites and data tables should still be enabled
     EXPECT_TRUE(options.isAssetTypeEnabled(AssetType::SPRITES));
     EXPECT_TRUE(options.isAssetTypeEnabled(AssetType::DATA_TABLES));
+}
+
+// Test 4: Get list of enabled asset types
+TEST_F(ExtractionOptionsTest, GetEnabledAssetTypes) {
+    ExtractionOptions options;
+    
+    // Disable audio
+    options.setAssetTypeEnabled(AssetType::AUDIO, false);
+    
+    auto enabled_types = options.getEnabledAssetTypes();
+    
+    // Should have 3 enabled types (all except audio)
+    EXPECT_EQ(3u, enabled_types.size());
+    
+    // Check that the correct types are in the list
+    EXPECT_TRUE(std::find(enabled_types.begin(), enabled_types.end(), AssetType::SPRITES) != enabled_types.end());
+    EXPECT_TRUE(std::find(enabled_types.begin(), enabled_types.end(), AssetType::DATA_TABLES) != enabled_types.end());
+    EXPECT_TRUE(std::find(enabled_types.begin(), enabled_types.end(), AssetType::VIDEOS) != enabled_types.end());
+    EXPECT_FALSE(std::find(enabled_types.begin(), enabled_types.end(), AssetType::AUDIO) != enabled_types.end());
 }
 
 } // namespace onboarding

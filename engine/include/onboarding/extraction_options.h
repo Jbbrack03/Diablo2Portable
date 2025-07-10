@@ -2,6 +2,7 @@
 
 #include <string>
 #include <unordered_map>
+#include <vector>
 
 namespace d2 {
 namespace onboarding {
@@ -56,6 +57,20 @@ public:
     bool isAssetTypeEnabled(AssetType type) const {
         auto it = asset_types_.find(type);
         return it != asset_types_.end() ? it->second : true;
+    }
+    
+    /**
+     * Get a list of all enabled asset types
+     * @return Vector of enabled asset types
+     */
+    std::vector<AssetType> getEnabledAssetTypes() const {
+        std::vector<AssetType> enabled;
+        for (const auto& [type, is_enabled] : asset_types_) {
+            if (is_enabled) {
+                enabled.push_back(type);
+            }
+        }
+        return enabled;
     }
     
 private:
