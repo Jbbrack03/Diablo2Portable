@@ -70,3 +70,39 @@ TEST_F(PatchSystemTest, DetectPatchExecutable) {
     EXPECT_EQ(detected_patches[0].getFilename(), "LODPatch_114d.exe");
     EXPECT_EQ(detected_patches[0].getType(), d2::PatchType::PATCH_EXECUTABLE);
 }
+
+TEST_F(PatchSystemTest, DetectPatchVersionFromFilename) {
+    // Create patches with version in filename
+    fs::path patch114d = test_dir / "LODPatch_114d.exe";
+    fs::path patch113c = test_dir / "D2Patch_113c.exe";
+    
+    // Create minimal PE files with MPQ
+    for (const auto& path : {patch114d, patch113c}) {
+        std::ofstream file(path, std::ios::binary);
+        char dos_header[128] = {'M', 'Z'};
+        dos_header[60] = static_cast<char>(128);
+        file.write(dos_header, sizeof(dos_header));
+        
+        char pe_header[4] = {'P', 'E', 0, 0};
+        file.write(pe_header, sizeof(pe_header));
+        
+        // Add MPQ at offset 512
+        file.seekp(512);
+        char mpq_header[32] = {'M', 'P', 'Q', 0x1A};
+        file.write(mpq_header, sizeof(mpq_header));
+    }
+    
+    d2::PatchSystem patch_system;
+    auto detected_patches = patch_system.detectPatches(test_dir);
+    
+    ASSERT_EQ(detected_patches.size(), 2);
+    
+    // Find and verify version detection
+    for (const auto& patch : detected_patches) {
+        if (patch.getFilename() == "LODPatch_114d.exe") {
+            EXPECT_EQ(patch.getVersion(), "1.14d");
+        } else if (patch.getFilename() == "D2Patch_113c.exe") {
+            EXPECT_EQ(patch.getVersion(), "1.13c");
+        }
+    }
+}

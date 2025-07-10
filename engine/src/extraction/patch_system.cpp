@@ -1,7 +1,24 @@
 #include "extraction/patch_system.h"
 #include <fstream>
+#include <regex>
 
 namespace d2 {
+
+std::string extractVersionFromFilename(const std::string& filename) {
+    // Look for version patterns like 114d, 113c, etc.
+    std::regex version_regex("(\\d{3}[a-z])");
+    std::smatch match;
+    
+    if (std::regex_search(filename, match, version_regex)) {
+        std::string version_str = match[1];
+        // Convert 114d to 1.14d
+        if (version_str.length() == 4) {
+            return version_str.substr(0, 1) + "." + version_str.substr(1);
+        }
+    }
+    
+    return "";
+}
 
 std::vector<PatchInfo> PatchSystem::detectPatches(const std::filesystem::path& directory) {
     std::vector<PatchInfo> patches;
@@ -22,6 +39,7 @@ std::vector<PatchInfo> PatchSystem::detectPatches(const std::filesystem::path& d
                     PatchInfo patch;
                     patch.filename = filename;
                     patch.type = PatchType::STANDALONE_MPQ;
+                    patch.version = extractVersionFromFilename(filename);
                     patches.push_back(patch);
                 }
             }
@@ -64,6 +82,7 @@ std::vector<PatchInfo> PatchSystem::detectPatches(const std::filesystem::path& d
                         PatchInfo patch;
                         patch.filename = filename;
                         patch.type = PatchType::PATCH_EXECUTABLE;
+                        patch.version = extractVersionFromFilename(filename);
                         patches.push_back(patch);
                     }
                 }

@@ -16,9 +16,11 @@ class PatchInfo {
 public:
     std::string getFilename() const { return filename; }
     PatchType getType() const { return type; }
+    std::string getVersion() const { return version; }
     
     std::string filename;
     PatchType type;
+    std::string version;
 };
 
 class PatchSystem {
