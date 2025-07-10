@@ -171,6 +171,7 @@ set(TEST_SOURCES
     onboarding/onboarding_jni_test.cpp
     onboarding/file_format_handler_test.cpp
     onboarding/asset_validator_test.cpp
+    onboarding/extraction_options_test.cpp
     security/security_privacy_test.cpp
     extraction/test_iso_extractor.cpp
     extraction/test_patch_system.cpp
