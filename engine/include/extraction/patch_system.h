@@ -36,6 +36,8 @@ public:
     std::vector<PatchInfo> detectPatches(const std::filesystem::path& directory);
     bool extractPatchFromExecutable(const std::filesystem::path& exePath, const std::filesystem::path& outputPath);
     bool applyPatch(const std::filesystem::path& baseMpq, const std::filesystem::path& patchMpq, const std::filesystem::path& outputDir);
+    std::vector<std::string> getAvailableVersions(const std::filesystem::path& directory);
+    std::string getLatestVersion(const std::filesystem::path& directory);
 };
 
 struct FileResolution {

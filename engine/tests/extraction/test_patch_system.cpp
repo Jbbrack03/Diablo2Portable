@@ -217,3 +217,36 @@ TEST_F(PatchSystemTest, ApplyPatchToGameFiles) {
         EXPECT_TRUE(fs::exists(output_dir)) << "Output directory should exist";
     }
 }
+
+TEST_F(PatchSystemTest, ManagePatchVersions) {
+    // Create multiple patch versions
+    fs::path patch_dir = test_dir / "patches";
+    fs::create_directories(patch_dir);
+    
+    // Create patch files with different versions
+    auto createMockMPQ = [](const fs::path& path) {
+        std::ofstream file(path, std::ios::binary);
+        char header[32] = {'M', 'P', 'Q', 0x1A};
+        file.write(header, sizeof(header));
+        file.close();
+    };
+    
+    createMockMPQ(patch_dir / "D2Patch_113c.mpq");
+    createMockMPQ(patch_dir / "D2Patch_113d.mpq");
+    createMockMPQ(patch_dir / "LODPatch_114d.mpq");
+    
+    // Get version list
+    d2::PatchSystem patch_system;
+    auto versions = patch_system.getAvailableVersions(patch_dir);
+    
+    ASSERT_EQ(versions.size(), 3);
+    
+    // Check versions are sorted (newest first)
+    EXPECT_EQ(versions[0], "1.14d");
+    EXPECT_EQ(versions[1], "1.13d");
+    EXPECT_EQ(versions[2], "1.13c");
+    
+    // Get latest version
+    auto latest = patch_system.getLatestVersion(patch_dir);
+    EXPECT_EQ(latest, "1.14d");
+}

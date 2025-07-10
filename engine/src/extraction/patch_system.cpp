@@ -31,7 +31,7 @@ std::vector<PatchInfo> PatchSystem::detectPatches(const std::filesystem::path& d
             auto filename = entry.path().filename().string();
             
             // Check if it's a standalone patch MPQ
-            if (filename == "patch.mpq" || filename == "d2patch.mpq") {
+            if (filename.find(".mpq") != std::string::npos || filename.find(".MPQ") != std::string::npos) {
                 // Verify it's actually an MPQ file by checking header
                 std::ifstream file(entry.path(), std::ios::binary);
                 char header[4];
@@ -170,6 +170,30 @@ bool PatchSystem::applyPatch(const std::filesystem::path& baseMpq, const std::fi
     } catch (...) {
         return false;
     }
+}
+
+std::vector<std::string> PatchSystem::getAvailableVersions(const std::filesystem::path& directory) {
+    auto patches = detectPatches(directory);
+    std::vector<std::string> versions;
+    
+    for (const auto& patch : patches) {
+        if (!patch.version.empty()) {
+            versions.push_back(patch.version);
+        }
+    }
+    
+    // Sort versions in descending order (newest first)
+    std::sort(versions.begin(), versions.end(), [](const std::string& a, const std::string& b) {
+        // Simple string comparison works for versions like "1.13c", "1.14d"
+        return a > b;
+    });
+    
+    return versions;
+}
+
+std::string PatchSystem::getLatestVersion(const std::filesystem::path& directory) {
+    auto versions = getAvailableVersions(directory);
+    return versions.empty() ? "" : versions[0];
 }
 
 } // namespace d2
