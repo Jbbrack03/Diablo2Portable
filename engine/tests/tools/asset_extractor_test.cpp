@@ -150,3 +150,41 @@ TEST_F(AssetExtractorTest, ExtractRealWAVFiles) {
     
     EXPECT_TRUE(foundWAVFiles) << "No WAV files were extracted to organized directories";
 }
+
+// Phase 33: Data Table Extraction Test
+TEST_F(AssetExtractorTest, ExtractDataTables) {
+    AssetExtractor extractor;
+    
+    bool result = extractor.extractFromD2(
+        testD2Path.string(),
+        outputPath.string()
+    );
+    
+    EXPECT_TRUE(result);
+    
+    // Verify data output directories were created with proper organization
+    EXPECT_TRUE(fs::exists(outputPath / "data" / "excel"));
+    EXPECT_TRUE(fs::exists(outputPath / "data" / "string_tables"));
+    EXPECT_TRUE(fs::exists(outputPath / "data" / "binary"));
+    
+    // Verify that actual data files were extracted
+    EXPECT_GT(extractor.getExtractedDataFileCount(), 0);
+    
+    // Check that data files exist in appropriate categories  
+    fs::path dataPath = outputPath / "data";
+    
+    bool foundDataFiles = false;
+    for (const auto& category : {"excel", "string_tables", "binary"}) {
+        fs::path categoryPath = dataPath / category;
+        if (fs::exists(categoryPath)) {
+            for (const auto& entry : fs::recursive_directory_iterator(categoryPath)) {
+                if (entry.is_regular_file()) {
+                    foundDataFiles = true;
+                    break;
+                }
+            }
+        }
+    }
+    
+    EXPECT_TRUE(foundDataFiles) << "No data files were extracted to organized directories";
+}

@@ -42,6 +42,12 @@ public:
     size_t getExtractedAudioFileCount() const { return extractedAudioCount; }
     
     /**
+     * Get the number of data files extracted
+     * @return Number of extracted data files
+     */
+    size_t getExtractedDataFileCount() const { return extractedDataCount; }
+    
+    /**
      * Set progress callback for extraction updates
      * @param callback Function called with progress (0.0-1.0) and current file
      */
@@ -60,6 +66,7 @@ public:
 private:
     size_t extractedCount = 0;
     size_t extractedAudioCount = 0;
+    size_t extractedDataCount = 0;
     std::function<void(float, const std::string&)> progressCallback;
     ExtractionMonitor* extractionMonitor = nullptr;
     
@@ -82,6 +89,9 @@ private:
     
     // Helper to determine audio category from file path
     std::filesystem::path determineAudioCategory(const std::string& filePath) const;
+    
+    // Helper to determine data file category from file path
+    std::filesystem::path determineDataCategory(const std::string& filePath) const;
 };
 
 } // namespace d2
