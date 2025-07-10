@@ -731,3 +731,31 @@ TEST_F(ISOExtractorTest, ExtractFileFromSubdirectory) {
                         std::istreambuf_iterator<char>());
     EXPECT_EQ(content, "Global MPQ content");
 }
+
+// Test 15: Extract all files including subdirectories
+TEST_F(ISOExtractorTest, ExtractAllIncludingSubdirectories) {
+    fs::path iso_path = test_dir / "test_with_subdirs.iso";
+    createISOWithSubdirectories(iso_path);
+    
+    ISOExtractor extractor;
+    EXPECT_TRUE(extractor.open(iso_path.string()));
+    
+    // Extract all files
+    fs::path output_dir = test_dir / "extracted_all_subdirs";
+    fs::create_directories(output_dir);
+    
+    EXPECT_TRUE(extractor.extractAll(output_dir.string()));
+    
+    // Verify subdirectory was created
+    EXPECT_TRUE(fs::exists(output_dir / "DATA"));
+    EXPECT_TRUE(fs::is_directory(output_dir / "DATA"));
+    
+    // Verify file was extracted to subdirectory
+    EXPECT_TRUE(fs::exists(output_dir / "DATA" / "GLOBAL.MPQ"));
+    
+    // Verify content
+    std::ifstream extracted(output_dir / "DATA" / "GLOBAL.MPQ");
+    std::string content((std::istreambuf_iterator<char>(extracted)),
+                        std::istreambuf_iterator<char>());
+    EXPECT_EQ(content, "Global MPQ content");
+}

@@ -280,8 +280,8 @@ bool ISOExtractor::extractAll(const std::string& dest_dir) {
         return false;
     }
     
-    // Get list of all files
-    auto files = listFiles();
+    // Get list of all files recursively
+    auto files = listFilesRecursive();
     if (files.empty()) {
         // No files to extract, but that's not an error
         return true;
@@ -290,6 +290,18 @@ bool ISOExtractor::extractAll(const std::string& dest_dir) {
     // Extract each file
     for (const auto& file : files) {
         std::filesystem::path destPath = std::filesystem::path(dest_dir) / file;
+        
+        // Create subdirectories if necessary
+        std::filesystem::path destDir = destPath.parent_path();
+        if (!destDir.empty() && !std::filesystem::exists(destDir)) {
+            try {
+                std::filesystem::create_directories(destDir);
+            } catch (const std::exception& e) {
+                lastError = "Failed to create directory: " + destDir.string() + " - " + e.what();
+                return false;
+            }
+        }
+        
         if (!extractFile(file, destPath.string())) {
             // extractFile already sets lastError
             return false;
