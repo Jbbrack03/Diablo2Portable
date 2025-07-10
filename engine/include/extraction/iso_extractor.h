@@ -59,9 +59,11 @@ public:
     
 private:
     std::string lastError;
-    std::ifstream isoFile;
+    mutable std::ifstream isoFile;  // mutable for const listFiles()
     std::string isoPath;
     bool isOpenFlag = false;
+    uint32_t rootDirSector = 0;
+    uint32_t rootDirSize = 0;
 };
 
 } // namespace d2

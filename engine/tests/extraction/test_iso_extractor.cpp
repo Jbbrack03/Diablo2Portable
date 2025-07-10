@@ -4,6 +4,7 @@
 #include <fstream>
 #include <cstring>
 #include <vector>
+#include <algorithm>
 
 using namespace d2;
 namespace fs = std::filesystem;
@@ -59,6 +60,132 @@ protected:
         terminator[6] = 0x01;
         
         file.write(reinterpret_cast<char*>(terminator.data()), terminator.size());
+    }
+    
+    // Helper to create an ISO with files
+    void createISOWithFiles(const fs::path& iso_path) {
+        std::ofstream file(iso_path, std::ios::binary);
+        
+        // Write 16 sectors of zeros (system area)
+        std::vector<uint8_t> sector(2048, 0);
+        for (int i = 0; i < 16; ++i) {
+            file.write(reinterpret_cast<char*>(sector.data()), sector.size());
+        }
+        
+        // Write Primary Volume Descriptor at sector 16
+        std::vector<uint8_t> pvd(2048, 0);
+        pvd[0] = 0x01; // Type code for Primary Volume Descriptor
+        std::memcpy(pvd.data() + 1, "CD001", 5); // Standard identifier
+        pvd[6] = 0x01; // Version
+        
+        // Volume Space Size (both-endian format at offset 80)
+        uint32_t volume_size = 100; // 100 sectors
+        // Little-endian
+        pvd[80] = volume_size & 0xFF;
+        pvd[81] = (volume_size >> 8) & 0xFF;
+        pvd[82] = (volume_size >> 16) & 0xFF;
+        pvd[83] = (volume_size >> 24) & 0xFF;
+        // Big-endian
+        pvd[84] = (volume_size >> 24) & 0xFF;
+        pvd[85] = (volume_size >> 16) & 0xFF;
+        pvd[86] = (volume_size >> 8) & 0xFF;
+        pvd[87] = volume_size & 0xFF;
+        
+        // Root directory record location (offset 156) - put at sector 20
+        uint32_t root_dir_sector = 20;
+        // Location of extent (LBA) - offset 2 in directory record
+        pvd[156 + 2] = root_dir_sector & 0xFF;
+        pvd[156 + 3] = (root_dir_sector >> 8) & 0xFF;
+        pvd[156 + 4] = (root_dir_sector >> 16) & 0xFF;
+        pvd[156 + 5] = (root_dir_sector >> 24) & 0xFF;
+        // Big-endian
+        pvd[156 + 6] = (root_dir_sector >> 24) & 0xFF;
+        pvd[156 + 7] = (root_dir_sector >> 16) & 0xFF;
+        pvd[156 + 8] = (root_dir_sector >> 8) & 0xFF;
+        pvd[156 + 9] = root_dir_sector & 0xFF;
+        
+        // Data length of root directory - offset 10 in directory record
+        uint32_t root_dir_size = 2048; // One sector
+        pvd[156 + 10] = root_dir_size & 0xFF;
+        pvd[156 + 11] = (root_dir_size >> 8) & 0xFF;
+        pvd[156 + 12] = (root_dir_size >> 16) & 0xFF;
+        pvd[156 + 13] = (root_dir_size >> 24) & 0xFF;
+        // Big-endian
+        pvd[156 + 14] = (root_dir_size >> 24) & 0xFF;
+        pvd[156 + 15] = (root_dir_size >> 16) & 0xFF;
+        pvd[156 + 16] = (root_dir_size >> 8) & 0xFF;
+        pvd[156 + 17] = root_dir_size & 0xFF;
+        
+        // Directory record length
+        pvd[156 + 0] = 34; // Minimum directory record size
+        
+        // Flags (offset 25) - 0x02 for directory
+        pvd[156 + 25] = 0x02;
+        
+        // File identifier length (offset 32)
+        pvd[156 + 32] = 1; // Root directory has identifier length 1
+        // File identifier (offset 33)
+        pvd[156 + 33] = 0x00; // Root directory identifier
+        
+        file.write(reinterpret_cast<char*>(pvd.data()), pvd.size());
+        
+        // Write Volume Descriptor Set Terminator at sector 17
+        std::vector<uint8_t> terminator(2048, 0);
+        terminator[0] = 0xFF; // Type code for terminator
+        std::memcpy(terminator.data() + 1, "CD001", 5);
+        terminator[6] = 0x01;
+        
+        file.write(reinterpret_cast<char*>(terminator.data()), terminator.size());
+        
+        // Skip to sector 20 for root directory
+        file.seekp(20 * 2048);
+        
+        // Write root directory at sector 20
+        std::vector<uint8_t> root_dir(2048, 0);
+        size_t offset = 0;
+        
+        // Self entry "."
+        root_dir[offset + 0] = 34; // Record length
+        root_dir[offset + 2] = 20; // Location (sector 20)
+        root_dir[offset + 10] = 0x08; // Data length (2048 bytes)
+        root_dir[offset + 25] = 0x02; // Directory flag
+        root_dir[offset + 32] = 1; // Identifier length
+        root_dir[offset + 33] = 0x00; // "." identifier
+        offset += 34;
+        
+        // Parent entry ".."
+        root_dir[offset + 0] = 34; // Record length
+        root_dir[offset + 2] = 20; // Location (same as self for root)
+        root_dir[offset + 10] = 0x08; // Data length
+        root_dir[offset + 25] = 0x02; // Directory flag
+        root_dir[offset + 32] = 1; // Identifier length
+        root_dir[offset + 33] = 0x01; // ".." identifier
+        offset += 34;
+        
+        // Add a file entry: "D2DATA.MPQ"
+        std::string filename = "D2DATA.MPQ";
+        uint8_t record_len = 33 + filename.length() + (filename.length() % 2 == 0 ? 1 : 0);
+        root_dir[offset + 0] = record_len; // Record length
+        root_dir[offset + 2] = 21; // Location (sector 21)
+        root_dir[offset + 10] = 0x00; // Data length (0 for empty file)
+        root_dir[offset + 11] = 0x10; // 4096 bytes
+        root_dir[offset + 25] = 0x00; // File flag (not directory)
+        root_dir[offset + 32] = filename.length(); // Identifier length
+        std::memcpy(root_dir.data() + offset + 33, filename.c_str(), filename.length());
+        offset += record_len;
+        
+        // Add another file: "D2EXP.MPQ"
+        filename = "D2EXP.MPQ";
+        record_len = 33 + filename.length() + (filename.length() % 2 == 0 ? 1 : 0);
+        root_dir[offset + 0] = record_len; // Record length
+        root_dir[offset + 2] = 22; // Location (sector 22)
+        root_dir[offset + 10] = 0x00; // Data length
+        root_dir[offset + 11] = 0x20; // 8192 bytes
+        root_dir[offset + 25] = 0x00; // File flag
+        root_dir[offset + 32] = filename.length(); // Identifier length
+        std::memcpy(root_dir.data() + offset + 33, filename.c_str(), filename.length());
+        
+        file.write(reinterpret_cast<char*>(root_dir.data()), root_dir.size());
     }
 };
 
@@ -117,4 +244,18 @@ TEST_F(ISOExtractorTest, CloseISO) {
     
     extractor.close();
     EXPECT_FALSE(extractor.isOpen());
+}
+
+// Test 7: List files in ISO should return file list
+TEST_F(ISOExtractorTest, ListFilesInISO) {
+    fs::path iso_path = test_dir / "test_with_files.iso";
+    createISOWithFiles(iso_path);
+    
+    ISOExtractor extractor;
+    EXPECT_TRUE(extractor.open(iso_path.string()));
+    
+    auto files = extractor.listFiles();
+    EXPECT_EQ(files.size(), 2u);
+    EXPECT_TRUE(std::find(files.begin(), files.end(), "D2DATA.MPQ") != files.end());
+    EXPECT_TRUE(std::find(files.begin(), files.end(), "D2EXP.MPQ") != files.end());
 }

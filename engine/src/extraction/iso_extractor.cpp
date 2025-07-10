@@ -52,6 +52,14 @@ bool ISOExtractor::open(const std::string& filepath) {
         return false;
     }
     
+    // Extract root directory location from PVD
+    // Root directory record is at offset 156 in PVD
+    // Location of extent (LBA) is at offset 2 in directory record
+    rootDirSector = pvd[156 + 2] | (pvd[156 + 3] << 8) | 
+                    (pvd[156 + 4] << 16) | (pvd[156 + 5] << 24);
+    rootDirSize = pvd[156 + 10] | (pvd[156 + 11] << 8) | 
+                  (pvd[156 + 12] << 16) | (pvd[156 + 13] << 24);
+    
     isoPath = filepath;
     isOpenFlag = true;
     lastError.clear();
@@ -60,7 +68,64 @@ bool ISOExtractor::open(const std::string& filepath) {
 
 std::vector<std::string> ISOExtractor::listFiles() const {
     // Return empty vector when not open
-    return {};
+    if (!isOpen()) {
+        return {};
+    }
+    
+    std::vector<std::string> files;
+    
+    // Seek to root directory
+    isoFile.seekg(rootDirSector * 2048);
+    
+    // Read the root directory
+    std::vector<uint8_t> dirData(rootDirSize);
+    isoFile.read(reinterpret_cast<char*>(dirData.data()), dirData.size());
+    
+    if (!isoFile.good()) {
+        return {};
+    }
+    
+    // Parse directory entries
+    size_t offset = 0;
+    while (offset < dirData.size()) {
+        uint8_t recordLength = dirData[offset];
+        
+        // End of directory entries
+        if (recordLength == 0) {
+            break;
+        }
+        
+        // Skip if we'd go past the end
+        if (offset + recordLength > dirData.size()) {
+            break;
+        }
+        
+        // Extract file flags (offset 25)
+        uint8_t flags = dirData[offset + 25];
+        
+        // Skip directories (flag 0x02)
+        if (!(flags & 0x02)) {
+            // Extract identifier length (offset 32)
+            uint8_t identLength = dirData[offset + 32];
+            
+            // Extract identifier (offset 33)
+            if (identLength > 0) {
+                std::string filename(reinterpret_cast<char*>(&dirData[offset + 33]), identLength);
+                
+                // ISO 9660 Level 1 uses ";1" version suffix, remove it
+                size_t semicolon = filename.find(';');
+                if (semicolon != std::string::npos) {
+                    filename = filename.substr(0, semicolon);
+                }
+                
+                files.push_back(filename);
+            }
+        }
+        
+        offset += recordLength;
+    }
+    
+    return files;
 }
 
 bool ISOExtractor::extractFile(const std::string& source_path, const std::string& dest_path) {
@@ -80,6 +145,8 @@ void ISOExtractor::close() {
     }
     isOpenFlag = false;
     isoPath.clear();
+    rootDirSector = 0;
+    rootDirSize = 0;
 }
 
 } // namespace d2
