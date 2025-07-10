@@ -80,6 +80,12 @@ public:
      */
     std::string getLastError() const { return lastError; }
     
+    /**
+     * List all files in the ISO recursively (including files in subdirectories)
+     * @return Vector of file paths found in the ISO with subdirectory paths
+     */
+    std::vector<std::string> listFilesRecursive() const;
+    
 private:
     std::string lastError;
     mutable std::ifstream isoFile;  // mutable for const listFiles()

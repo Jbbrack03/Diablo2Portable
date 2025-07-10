@@ -3,6 +3,7 @@
 #include <fstream>
 #include <vector>
 #include <cstring>
+#include <functional>
 
 namespace d2 {
 
@@ -335,6 +336,95 @@ ISOFileInfo ISOExtractor::getFileInfo(const std::string& filename) const {
     }
     
     return info;
+}
+
+std::vector<std::string> ISOExtractor::listFilesRecursive() const {
+    if (!isOpen()) {
+        return {};
+    }
+    
+    std::vector<std::string> allFiles;
+    
+    // Helper function to process directories recursively
+    std::function<void(uint32_t, uint32_t, const std::string&)> processDirectory = 
+        [&](uint32_t dirSector, uint32_t dirSize, const std::string& parentPath) {
+        
+        // Seek to directory
+        isoFile.seekg(dirSector * 2048);
+        
+        // Read the directory
+        std::vector<uint8_t> dirData(dirSize);
+        isoFile.read(reinterpret_cast<char*>(dirData.data()), dirData.size());
+        
+        if (!isoFile.good()) {
+            return;
+        }
+        
+        // Parse directory entries
+        size_t offset = 0;
+        while (offset < dirData.size()) {
+            uint8_t recordLength = dirData[offset];
+            
+            // End of directory entries
+            if (recordLength == 0) {
+                break;
+            }
+            
+            // Skip if we'd go past the end
+            if (offset + recordLength > dirData.size()) {
+                break;
+            }
+            
+            // Extract identifier length (offset 32)
+            uint8_t identLength = dirData[offset + 32];
+            
+            // Skip special entries "." and ".."
+            if (identLength == 1) {
+                uint8_t identifier = dirData[offset + 33];
+                if (identifier == 0x00 || identifier == 0x01) {
+                    offset += recordLength;
+                    continue;
+                }
+            }
+            
+            // Extract file flags (offset 25)
+            uint8_t flags = dirData[offset + 25];
+            
+            // Extract identifier (offset 33)
+            if (identLength > 0) {
+                std::string name(reinterpret_cast<char*>(&dirData[offset + 33]), identLength);
+                
+                // ISO 9660 Level 1 uses ";1" version suffix, remove it
+                size_t semicolon = name.find(';');
+                if (semicolon != std::string::npos) {
+                    name = name.substr(0, semicolon);
+                }
+                
+                // Build full path
+                std::string fullPath = parentPath.empty() ? name : parentPath + "/" + name;
+                
+                if (flags & 0x02) {
+                    // It's a directory - recurse into it
+                    uint32_t subDirSector = dirData[offset + 2] | (dirData[offset + 3] << 8) | 
+                                           (dirData[offset + 4] << 16) | (dirData[offset + 5] << 24);
+                    uint32_t subDirSize = dirData[offset + 10] | (dirData[offset + 11] << 8) | 
+                                         (dirData[offset + 12] << 16) | (dirData[offset + 13] << 24);
+                    
+                    processDirectory(subDirSector, subDirSize, fullPath);
+                } else {
+                    // It's a file - add to list
+                    allFiles.push_back(fullPath);
+                }
+            }
+            
+            offset += recordLength;
+        }
+    };
+    
+    // Start processing from root directory
+    processDirectory(rootDirSector, rootDirSize, "");
+    
+    return allFiles;
 }
 
 } // namespace d2

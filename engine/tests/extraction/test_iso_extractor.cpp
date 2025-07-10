@@ -304,7 +304,21 @@ protected:
         uint8_t record_len = 33 + dirname.length() + (dirname.length() % 2 == 0 ? 1 : 0);
         root_dir[offset + 0] = record_len;
         root_dir[offset + 2] = 21; // DATA directory at sector 21
-        root_dir[offset + 10] = 0x08; // 2048 bytes
+        root_dir[offset + 3] = 0;
+        root_dir[offset + 4] = 0;
+        root_dir[offset + 5] = 0;
+        root_dir[offset + 6] = 0;
+        root_dir[offset + 7] = 0;
+        root_dir[offset + 8] = 0;
+        root_dir[offset + 9] = 21;
+        root_dir[offset + 10] = 0x00; // Size low byte
+        root_dir[offset + 11] = 0x08; // Size 2048 bytes (0x0800)
+        root_dir[offset + 12] = 0;
+        root_dir[offset + 13] = 0;
+        root_dir[offset + 14] = 0;
+        root_dir[offset + 15] = 0;
+        root_dir[offset + 16] = 0x08;
+        root_dir[offset + 17] = 0x00;
         root_dir[offset + 25] = 0x02; // Directory flag
         root_dir[offset + 32] = dirname.length();
         std::memcpy(root_dir.data() + offset + 33, dirname.c_str(), dirname.length());
@@ -320,7 +334,8 @@ protected:
         // Self entry "."
         data_dir[offset + 0] = 34;
         data_dir[offset + 2] = 21;
-        data_dir[offset + 10] = 0x08;
+        data_dir[offset + 10] = 0x00;
+        data_dir[offset + 11] = 0x08;
         data_dir[offset + 25] = 0x02;
         data_dir[offset + 32] = 1;
         data_dir[offset + 33] = 0x00;
@@ -329,7 +344,8 @@ protected:
         // Parent entry ".."
         data_dir[offset + 0] = 34;
         data_dir[offset + 2] = 20;
-        data_dir[offset + 10] = 0x08;
+        data_dir[offset + 10] = 0x00;
+        data_dir[offset + 11] = 0x08;
         data_dir[offset + 25] = 0x02;
         data_dir[offset + 32] = 1;
         data_dir[offset + 33] = 0x01;
