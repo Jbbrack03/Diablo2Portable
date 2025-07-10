@@ -2,6 +2,7 @@
 #include <fstream>
 #include <regex>
 #include <algorithm>
+#include <vector>
 
 namespace d2 {
 
@@ -105,13 +106,13 @@ bool PatchSystem::extractPatchFromExecutable(const std::filesystem::path& exePat
     auto file_size = input.tellg();
     
     const size_t buffer_size = 4096;
-    char buffer[buffer_size];
+    std::vector<char> buffer(buffer_size);
     size_t mpq_offset = 0;
     bool found_mpq = false;
     
     for (size_t offset = 0; offset < static_cast<size_t>(file_size) && !found_mpq; offset += buffer_size - 3) {
         input.seekg(offset);
-        input.read(buffer, buffer_size);
+        input.read(buffer.data(), buffer_size);
         auto bytes_read = input.gcount();
         
         // Search for MPQ signature in buffer
@@ -147,24 +148,28 @@ bool PatchSystem::extractPatchFromExecutable(const std::filesystem::path& exePat
     }
     
     // Copy MPQ data
-    const size_t copy_buffer_size = 65536;
-    char copy_buffer[copy_buffer_size];
-    size_t remaining = archive_size;
+    std::vector<char> copy_buffer(archive_size);
+    input.read(copy_buffer.data(), archive_size);
+    auto bytes_read = input.gcount();
     
-    while (remaining > 0 && input.good()) {
-        size_t to_read = std::min(remaining, copy_buffer_size);
-        input.read(copy_buffer, to_read);
-        size_t bytes_read = input.gcount();
-        if (bytes_read == 0) break;
-        
-        output.write(copy_buffer, bytes_read);
-        remaining -= bytes_read;
+    if (bytes_read == static_cast<std::streamsize>(archive_size)) {
+        output.write(copy_buffer.data(), bytes_read);
+        output.close();
+        input.close();
+        return true;
     }
     
-    output.close();
-    input.close();
-    
-    return remaining == 0;
+    return false;
+}
+
+bool PatchSystem::applyPatch(const std::filesystem::path& baseMpq, const std::filesystem::path& patchMpq, const std::filesystem::path& outputDir) {
+    // For now, just create the output directory
+    try {
+        std::filesystem::create_directories(outputDir);
+        return true;
+    } catch (...) {
+        return false;
+    }
 }
 
 } // namespace d2
