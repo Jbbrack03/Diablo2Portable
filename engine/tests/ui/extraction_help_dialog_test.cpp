@@ -71,4 +71,29 @@ TEST_F(ExtractionHelpDialogTest, GetContextSpecificHelp) {
     EXPECT_TRUE(help.title.find("Extraction Progress") != std::string::npos);
 }
 
+// Test 5: Get troubleshooting tips
+TEST_F(ExtractionHelpDialogTest, GetTroubleshootingTips) {
+    // Get troubleshooting tips for file selection issues
+    helpDialog->setContext(ExtractionHelpContext::FILE_SELECTION);
+    auto tips = helpDialog->getTroubleshootingTips();
+    EXPECT_FALSE(tips.empty());
+    EXPECT_GE(tips.size(), 2); // At least 2 tips
+    
+    // Verify we have tips about common file selection issues
+    bool foundPermissionTip = false;
+    bool foundLocationTip = false;
+    for (const auto& tip : tips) {
+        if (tip.find("permission") != std::string::npos || 
+            tip.find("Permission") != std::string::npos) {
+            foundPermissionTip = true;
+        }
+        if (tip.find("location") != std::string::npos || 
+            tip.find("Location") != std::string::npos) {
+            foundLocationTip = true;
+        }
+    }
+    EXPECT_TRUE(foundPermissionTip);
+    EXPECT_TRUE(foundLocationTip);
+}
+
 } // namespace d2

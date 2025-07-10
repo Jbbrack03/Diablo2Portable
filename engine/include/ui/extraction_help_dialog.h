@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <vector>
 
 namespace d2 {
 
@@ -44,6 +45,25 @@ public:
                 break;
         }
         return help;
+    }
+    
+    std::vector<std::string> getTroubleshootingTips() const {
+        std::vector<std::string> tips;
+        switch (context) {
+            case ExtractionHelpContext::FILE_SELECTION:
+                tips.push_back("Check file permissions if you cannot access the installation directory.");
+                tips.push_back("Verify the correct location - look for folders containing .mpq files.");
+                break;
+            case ExtractionHelpContext::EXTRACTION_OPTIONS:
+                tips.push_back("Ensure you have enough disk space for extracted assets.");
+                tips.push_back("Try extracting fewer asset types if running out of space.");
+                break;
+            case ExtractionHelpContext::PROGRESS:
+                tips.push_back("If extraction fails, check available disk space.");
+                tips.push_back("Verify MPQ files are not corrupted.");
+                break;
+        }
+        return tips;
     }
 
 private:
