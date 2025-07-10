@@ -111,5 +111,23 @@ TEST_F(ExtractionWizardUITest, FileSelectionStepInfo) {
     EXPECT_TRUE(stepInfo.instructions.size() >= 1);
 }
 
+TEST_F(ExtractionWizardUITest, ProgressStepInfo) {
+    // Test that the progress step has proper information
+    
+    // Navigate to the progress step
+    wizard->nextStep(); // FILE_SELECTION
+    wizard->nextStep(); // EXTRACTION_OPTIONS
+    wizard->nextStep(); // PROGRESS
+    
+    auto stepInfo = wizard->getCurrentStepInfo();
+    
+    EXPECT_EQ(stepInfo.title, "Extracting Assets");
+    EXPECT_EQ(stepInfo.description, "Please wait while your Diablo II assets are being extracted and optimized.");
+    EXPECT_FALSE(stepInfo.instructions.empty());
+    
+    // Should have instructions for progress monitoring
+    EXPECT_TRUE(stepInfo.instructions.size() >= 1);
+}
+
 } // namespace
 } // namespace d2

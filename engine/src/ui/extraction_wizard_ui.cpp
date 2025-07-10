@@ -32,6 +32,11 @@ StepInfo ExtractionWizardUI::getCurrentStepInfo() const {
                 "Select which asset types you want to extract (sprites, audio, data tables, videos)."
             };
             break;
+        case ExtractionWizardStep::PROGRESS:
+            info.title = "Extracting Assets";
+            info.description = "Please wait while your Diablo II assets are being extracted and optimized.";
+            info.instructions = {"The extraction process may take several minutes depending on your system performance."};
+            break;
         default:
             info.title = "Unknown Step";
             info.description = "Step information not available.";
