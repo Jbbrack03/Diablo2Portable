@@ -213,6 +213,154 @@ protected:
         file.seekp(22 * 2048);
         file.write(fileContent2.c_str(), fileContent2.length());
     }
+    
+    // Helper to create an ISO with subdirectories
+    void createISOWithSubdirectories(const fs::path& iso_path) {
+        std::ofstream file(iso_path, std::ios::binary);
+        
+        // Write 16 sectors of zeros (system area)
+        std::vector<uint8_t> sector(2048, 0);
+        for (int i = 0; i < 16; ++i) {
+            file.write(reinterpret_cast<char*>(sector.data()), sector.size());
+        }
+        
+        // Write Primary Volume Descriptor at sector 16
+        std::vector<uint8_t> pvd(2048, 0);
+        pvd[0] = 0x01; // Type code for Primary Volume Descriptor
+        std::memcpy(pvd.data() + 1, "CD001", 5); // Standard identifier
+        pvd[6] = 0x01; // Version
+        
+        // Volume Space Size
+        uint32_t volume_size = 100;
+        pvd[80] = volume_size & 0xFF;
+        pvd[81] = (volume_size >> 8) & 0xFF;
+        pvd[82] = (volume_size >> 16) & 0xFF;
+        pvd[83] = (volume_size >> 24) & 0xFF;
+        pvd[84] = (volume_size >> 24) & 0xFF;
+        pvd[85] = (volume_size >> 16) & 0xFF;
+        pvd[86] = (volume_size >> 8) & 0xFF;
+        pvd[87] = volume_size & 0xFF;
+        
+        // Root directory at sector 20
+        uint32_t root_dir_sector = 20;
+        pvd[156 + 2] = root_dir_sector & 0xFF;
+        pvd[156 + 3] = (root_dir_sector >> 8) & 0xFF;
+        pvd[156 + 4] = (root_dir_sector >> 16) & 0xFF;
+        pvd[156 + 5] = (root_dir_sector >> 24) & 0xFF;
+        pvd[156 + 6] = (root_dir_sector >> 24) & 0xFF;
+        pvd[156 + 7] = (root_dir_sector >> 16) & 0xFF;
+        pvd[156 + 8] = (root_dir_sector >> 8) & 0xFF;
+        pvd[156 + 9] = root_dir_sector & 0xFF;
+        
+        uint32_t root_dir_size = 2048;
+        pvd[156 + 10] = root_dir_size & 0xFF;
+        pvd[156 + 11] = (root_dir_size >> 8) & 0xFF;
+        pvd[156 + 12] = (root_dir_size >> 16) & 0xFF;
+        pvd[156 + 13] = (root_dir_size >> 24) & 0xFF;
+        pvd[156 + 14] = (root_dir_size >> 24) & 0xFF;
+        pvd[156 + 15] = (root_dir_size >> 16) & 0xFF;
+        pvd[156 + 16] = (root_dir_size >> 8) & 0xFF;
+        pvd[156 + 17] = root_dir_size & 0xFF;
+        
+        pvd[156 + 0] = 34;
+        pvd[156 + 25] = 0x02;
+        pvd[156 + 32] = 1;
+        pvd[156 + 33] = 0x00;
+        
+        file.write(reinterpret_cast<char*>(pvd.data()), pvd.size());
+        
+        // Write Volume Descriptor Set Terminator at sector 17
+        std::vector<uint8_t> terminator(2048, 0);
+        terminator[0] = 0xFF;
+        std::memcpy(terminator.data() + 1, "CD001", 5);
+        terminator[6] = 0x01;
+        file.write(reinterpret_cast<char*>(terminator.data()), terminator.size());
+        
+        // Write root directory at sector 20
+        file.seekp(20 * 2048);
+        std::vector<uint8_t> root_dir(2048, 0);
+        size_t offset = 0;
+        
+        // Self entry "."
+        root_dir[offset + 0] = 34;
+        root_dir[offset + 2] = 20;
+        root_dir[offset + 10] = 0x08;
+        root_dir[offset + 25] = 0x02;
+        root_dir[offset + 32] = 1;
+        root_dir[offset + 33] = 0x00;
+        offset += 34;
+        
+        // Parent entry ".."
+        root_dir[offset + 0] = 34;
+        root_dir[offset + 2] = 20;
+        root_dir[offset + 10] = 0x08;
+        root_dir[offset + 25] = 0x02;
+        root_dir[offset + 32] = 1;
+        root_dir[offset + 33] = 0x01;
+        offset += 34;
+        
+        // Add a subdirectory: "DATA"
+        std::string dirname = "DATA";
+        uint8_t record_len = 33 + dirname.length() + (dirname.length() % 2 == 0 ? 1 : 0);
+        root_dir[offset + 0] = record_len;
+        root_dir[offset + 2] = 21; // DATA directory at sector 21
+        root_dir[offset + 10] = 0x08; // 2048 bytes
+        root_dir[offset + 25] = 0x02; // Directory flag
+        root_dir[offset + 32] = dirname.length();
+        std::memcpy(root_dir.data() + offset + 33, dirname.c_str(), dirname.length());
+        offset += record_len;
+        
+        file.write(reinterpret_cast<char*>(root_dir.data()), root_dir.size());
+        
+        // Write DATA directory at sector 21
+        file.seekp(21 * 2048);
+        std::vector<uint8_t> data_dir(2048, 0);
+        offset = 0;
+        
+        // Self entry "."
+        data_dir[offset + 0] = 34;
+        data_dir[offset + 2] = 21;
+        data_dir[offset + 10] = 0x08;
+        data_dir[offset + 25] = 0x02;
+        data_dir[offset + 32] = 1;
+        data_dir[offset + 33] = 0x00;
+        offset += 34;
+        
+        // Parent entry ".."
+        data_dir[offset + 0] = 34;
+        data_dir[offset + 2] = 20;
+        data_dir[offset + 10] = 0x08;
+        data_dir[offset + 25] = 0x02;
+        data_dir[offset + 32] = 1;
+        data_dir[offset + 33] = 0x01;
+        offset += 34;
+        
+        // Add a file in subdirectory: "GLOBAL.MPQ"
+        std::string filename = "GLOBAL.MPQ";
+        std::string fileContent = "Global MPQ content";
+        uint32_t fileSize = fileContent.length();
+        
+        record_len = 33 + filename.length() + (filename.length() % 2 == 0 ? 1 : 0);
+        data_dir[offset + 0] = record_len;
+        data_dir[offset + 2] = 22; // File at sector 22
+        data_dir[offset + 10] = fileSize & 0xFF;
+        data_dir[offset + 11] = (fileSize >> 8) & 0xFF;
+        data_dir[offset + 12] = (fileSize >> 16) & 0xFF;
+        data_dir[offset + 13] = (fileSize >> 24) & 0xFF;
+        data_dir[offset + 14] = (fileSize >> 24) & 0xFF;
+        data_dir[offset + 15] = (fileSize >> 16) & 0xFF;
+        data_dir[offset + 16] = (fileSize >> 8) & 0xFF;
+        data_dir[offset + 17] = fileSize & 0xFF;
+        data_dir[offset + 25] = 0x00; // File flag
+        data_dir[offset + 32] = filename.length();
+        std::memcpy(data_dir.data() + offset + 33, filename.c_str(), filename.length());
+        
+        file.write(reinterpret_cast<char*>(data_dir.data()), data_dir.size());
+        
+        // Write file content at sector 22
+        file.seekp(22 * 2048);
+        file.write(fileContent.c_str(), fileContent.length());
+    }
 };
 
 // Test 1: Create ISOExtractor instance
@@ -528,4 +676,20 @@ TEST_F(ISOExtractorTest, ExtractFromRealISO) {
         EXPECT_TRUE(fs::exists(output_file));
         EXPECT_GT(fs::file_size(output_file), 0u);
     }
+}
+
+// Test 13: List files with subdirectories should show all files recursively
+TEST_F(ISOExtractorTest, ListFilesRecursively) {
+    fs::path iso_path = test_dir / "test_with_subdirs.iso";
+    createISOWithSubdirectories(iso_path);
+    
+    ISOExtractor extractor;
+    EXPECT_TRUE(extractor.open(iso_path.string()));
+    
+    // Call the recursive version
+    auto files = extractor.listFilesRecursive();
+    
+    // Should find the file in the subdirectory
+    EXPECT_EQ(files.size(), 1u);
+    EXPECT_EQ(files[0], "DATA/GLOBAL.MPQ");
 }
