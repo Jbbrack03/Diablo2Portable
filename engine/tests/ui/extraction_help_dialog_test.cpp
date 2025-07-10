@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 #include "ui/extraction_help_dialog.h"
+#include "ui/help_system.h"
 
 namespace d2 {
 
@@ -94,6 +95,28 @@ TEST_F(ExtractionHelpDialogTest, GetTroubleshootingTips) {
     }
     EXPECT_TRUE(foundPermissionTip);
     EXPECT_TRUE(foundLocationTip);
+}
+
+// Test 6: Integration with HelpSystem
+TEST_F(ExtractionHelpDialogTest, IntegrationWithHelpSystem) {
+    // Set help system
+    auto helpSystem = std::make_shared<HelpSystem>();
+    helpDialog->setHelpSystem(helpSystem);
+    
+    // Verify help dialog can access help system topics
+    helpDialog->setContext(ExtractionHelpContext::FILE_SELECTION);
+    auto relatedTopics = helpDialog->getRelatedHelpTopics();
+    EXPECT_FALSE(relatedTopics.empty());
+    
+    // Should find asset extraction topic
+    bool foundAssetExtraction = false;
+    for (const auto& topicId : relatedTopics) {
+        if (topicId == "asset-extraction") {
+            foundAssetExtraction = true;
+            break;
+        }
+    }
+    EXPECT_TRUE(foundAssetExtraction);
 }
 
 } // namespace d2

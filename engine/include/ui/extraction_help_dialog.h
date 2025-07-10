@@ -2,8 +2,12 @@
 
 #include <string>
 #include <vector>
+#include <memory>
 
 namespace d2 {
+
+// Forward declaration
+class HelpSystem;
 
 enum class ExtractionHelpContext {
     FILE_SELECTION,
@@ -65,10 +69,32 @@ public:
         }
         return tips;
     }
+    
+    void setHelpSystem(std::shared_ptr<HelpSystem> system) { helpSystem = system; }
+    
+    std::vector<std::string> getRelatedHelpTopics() const {
+        std::vector<std::string> topics;
+        switch (context) {
+            case ExtractionHelpContext::FILE_SELECTION:
+                topics.push_back("asset-extraction");
+                topics.push_back("getting-started");
+                break;
+            case ExtractionHelpContext::EXTRACTION_OPTIONS:
+                topics.push_back("asset-extraction");
+                topics.push_back("performance-tips");
+                break;
+            case ExtractionHelpContext::PROGRESS:
+                topics.push_back("troubleshooting");
+                topics.push_back("asset-extraction");
+                break;
+        }
+        return topics;
+    }
 
 private:
     bool visible = false;
     ExtractionHelpContext context = ExtractionHelpContext::FILE_SELECTION;
+    std::shared_ptr<HelpSystem> helpSystem;
 };
 
 } // namespace d2
