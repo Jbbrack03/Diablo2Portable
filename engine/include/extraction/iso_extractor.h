@@ -3,6 +3,7 @@
 
 #include <string>
 #include <vector>
+#include <fstream>
 
 namespace d2 {
 
@@ -12,7 +13,11 @@ namespace d2 {
 class ISOExtractor {
 public:
     ISOExtractor() = default;
-    ~ISOExtractor() = default;
+    ~ISOExtractor() {
+        if (isoFile.is_open()) {
+            isoFile.close();
+        }
+    }
     
     /**
      * Open an ISO file for extraction
@@ -25,7 +30,7 @@ public:
      * Check if an ISO file is currently open
      * @return true if ISO is open, false otherwise
      */
-    bool isOpen() const { return false; }
+    bool isOpen() const { return isOpenFlag; }
     
     /**
      * List all files in the ISO
@@ -49,6 +54,9 @@ public:
     
 private:
     std::string lastError;
+    std::ifstream isoFile;
+    std::string isoPath;
+    bool isOpenFlag = false;
 };
 
 } // namespace d2
