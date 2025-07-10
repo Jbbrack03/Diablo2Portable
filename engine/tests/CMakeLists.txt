@@ -173,6 +173,7 @@ set(TEST_SOURCES
     security/security_privacy_test.cpp
     extraction/test_iso_extractor.cpp
     extraction/test_patch_system.cpp
+    extraction/test_extraction_coordinator.cpp
     integration/gameplay_integration_test.cpp
     integration/end_to_end_test.cpp
     integration/test_real_mpq_files.cpp
