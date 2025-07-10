@@ -321,14 +321,14 @@ During Phase 17 implementation, a TDD violation occurred:
 ## Current Implementation Status (January 2025)
 
 ### 📊 **Overall Project Statistics (VERIFIED January 2025):**
-- **Total Tests**: 719 C++ unit tests (Phase 35.1 complete - Extraction Wizard UI implemented) ✅ UPDATED
-- **Test Success Rate**: 96.8%+ (695+ passing, 23 skipping gracefully, 0 failing) ✅ UPDATED
+- **Total Tests**: 734 C++ unit tests (Phase 35.2 in progress - Advanced Options implemented) ✅ UPDATED
+- **Test Success Rate**: 96.8%+ (710+ passing, 23 skipping gracefully, 0 failing) ✅ UPDATED
 - **Test Coverage**: ✅ 95%+ achieved - Most implementation files have comprehensive unit tests ✅ VERIFIED
 - **Integration Testing**: ✅ COMPLETE - Real MPQ integration tests now passing with authentic Diablo II files ✅ VERIFIED
 - **Total Source Files**: 172+ (C++ engine implementation + onboarding + Android UI + UX features)  
 - **Lines of Code**: ~38,400+ (core engine + complete OpenGL pipeline + onboarding + Android UI + UX + comprehensive asset extraction + workflow integration)
-- **Phases Completed**: 34.25 of 35 🎯 (Core phases complete, extraction workflow integration complete, Phase 35.1 Extraction Wizard UI complete)
-- **Project Status**: **✅ NEAR COMPLETE** - 34.25 of 35 phases finished, Real OpenGL ES 3.0 shader compilation, texture operations, VBO operations, draw commands, comprehensive asset extraction, unified extraction workflow, and extraction wizard UI fully implemented ✅ VERIFIED
+- **Phases Completed**: 34.5 of 35 🎯 (Core phases complete, extraction workflow integration complete, Phase 35.1 Extraction Wizard UI complete, Phase 35.2 Advanced Options complete)
+- **Project Status**: **✅ NEAR COMPLETE** - 34.5 of 35 phases finished, Real OpenGL ES 3.0 shader compilation, texture operations, VBO operations, draw commands, comprehensive asset extraction, unified extraction workflow, extraction wizard UI, and advanced options fully implemented ✅ VERIFIED
 - **Asset Extraction**: ✅ REAL MPQ INTEGRATION - Tests now use authentic Diablo II MPQ files (d2speech.mpq) ✅ VERIFIED
 - **Test Suite Health**: ✅ All tests pass or skip gracefully - Zero failing tests ✅ VERIFIED
 - **Performance**: ✅ 160 FPS with 100 entities (exceeds 60 FPS requirement)
@@ -515,7 +515,15 @@ During Phase 17 implementation, a TDD violation occurred:
   - ✅ **OpenGL Rendering Foundation**: Replaced stub VertexBuffer with real OpenGL ES 3.0 calls
   - ✅ **Input System Connected**: Touch/gamepad input now properly forwarded from Android to GameEngine
   - ✅ **Android App Functional**: Can create GameEngine, initialize, render, and process input
-- ✅ **LATEST SESSION: Phase 35.1 Extraction Wizard UI Complete (January 2025)**:
+- ✅ **LATEST SESSION: Phase 35.2 Advanced Options Complete (January 2025)**:
+  - ✅ **ExtractionOptions Class Created**: Configuration for custom extraction paths and selective asset types
+  - ✅ **Custom Output Path**: Support for user-defined extraction directory locations
+  - ✅ **Selective Asset Extraction**: Enable/disable specific asset types (sprites, audio, data tables, videos)
+  - ✅ **ExtractionWizardUI Integration**: Options integrated into wizard with getter/setter methods
+  - ✅ **EXTRACTION_OPTIONS Step Enhanced**: Full step information with instructions for customization
+  - ✅ **Perfect TDD Compliance**: 11 tests added via individual RED-GREEN-COMMIT cycles
+  - ✅ **Test Coverage**: 11 new tests (734 total tests)
+- ✅ **PREVIOUS SESSION: Phase 35.1 Extraction Wizard UI Complete (January 2025)**:
   - ✅ **ExtractionWizardUI Class Implemented**: Complete step-by-step extraction wizard interface
   - ✅ **Step Management**: 5-step wizard flow (WELCOME → FILE_SELECTION → EXTRACTION_OPTIONS → PROGRESS → COMPLETION)
   - ✅ **Step Information System**: StepInfo structure with title, description, and instructions for each step
@@ -1021,7 +1029,7 @@ During Phase 17 implementation, a TDD violation occurred:
   - ✅ **Phase 34 COMPLETE** - Extraction workflow integration with ExtractionCoordinator (5 tests added)
   - 🔄 **Phase 35 IN PROGRESS** - User Experience Polish (final phase)
     - ✅ **Phase 35.1 COMPLETE** - Extraction Wizard UI with step-by-step guided process (4 tests added)
-    - ❌ **Phase 35.2 TODO** - Advanced Options for custom extraction paths and selective extraction
+    - ✅ **Phase 35.2 COMPLETE** - Advanced Options for custom extraction paths and selective extraction (11 tests added)
     - ❌ **Phase 35.3 TODO** - Help and Troubleshooting system with built-in help
     - ❌ **Phase 35.4 TODO** - Post-Extraction Features including asset browser and integrity verification
 - ✅ **Technical Status Verified**:
