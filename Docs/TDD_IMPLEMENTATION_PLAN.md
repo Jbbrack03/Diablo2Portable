@@ -4879,11 +4879,15 @@ All 30 phases of the TDD Implementation Plan have been successfully completed. T
    - **Tests Added**: 4 comprehensive tests with perfect TDD compliance
    - **Implementation**: ExtractionWizardUI class with complete step management
 
-2. **Advanced Options**
-   - Custom extraction paths
-   - Selective extraction
-   - Compression options
-   - Language selection
+2. **✅ COMPLETED: Advanced Options**
+   - ✅ Custom extraction paths (ExtractionOptions::setOutputPath)
+   - ✅ Selective extraction (setAssetTypeEnabled/getEnabledAssetTypes)
+   - ✅ ExtractionWizardUI integration (getExtractionOptions/setters)
+   - ✅ EXTRACTION_OPTIONS step with full instructions
+   - **Tests Added**: 11 tests with perfect TDD compliance
+   - **Implementation**: ExtractionOptions class with full configuration support
+   - ⚠️ Compression options (not implemented - out of scope)
+   - ⚠️ Language selection (not implemented - out of scope)
 
 3. **Help and Troubleshooting**
    - Built-in help system
