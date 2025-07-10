@@ -18,4 +18,18 @@ TEST_F(ExtractionHelpDialogTest, CreateExtractionHelpDialog) {
     EXPECT_FALSE(helpDialog->isVisible());
 }
 
+// Test 2: Show and hide help dialog
+TEST_F(ExtractionHelpDialogTest, ShowAndHideHelpDialog) {
+    // Initially not visible
+    EXPECT_FALSE(helpDialog->isVisible());
+    
+    // Show the dialog
+    helpDialog->show();
+    EXPECT_TRUE(helpDialog->isVisible());
+    
+    // Hide the dialog
+    helpDialog->hide();
+    EXPECT_FALSE(helpDialog->isVisible());
+}
+
 } // namespace d2
