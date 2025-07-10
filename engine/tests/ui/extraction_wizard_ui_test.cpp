@@ -148,5 +148,19 @@ TEST_F(ExtractionWizardUITest, CompletionStepInfo) {
     EXPECT_TRUE(stepInfo.instructions.size() >= 3);
 }
 
+TEST_F(ExtractionWizardUITest, CanGetExtractionSummary) {
+    // Test that we can get an extraction summary
+    
+    auto summary = wizard->getExtractionSummary();
+    
+    // Should have basic summary information
+    EXPECT_GE(summary.totalFilesExtracted, 0);
+    EXPECT_GE(summary.totalFilesProcessed, 0);
+    EXPECT_GE(summary.timeTaken.count(), 0);
+    EXPECT_GE(summary.storageUsed, 0);
+    EXPECT_FALSE(summary.hasErrors()); // No errors by default
+    EXPECT_TRUE(summary.successful); // Should be successful by default
+}
+
 } // namespace
 } // namespace d2

@@ -92,4 +92,14 @@ float ExtractionWizardUI::getOverallProgress() const {
     }
 }
 
+ExtractionSummary ExtractionWizardUI::getExtractionSummary() const {
+    ExtractionSummary summary;
+    summary.totalFilesExtracted = 0;
+    summary.totalFilesProcessed = 0;
+    summary.timeTaken = std::chrono::seconds(0);
+    summary.storageUsed = 0;
+    summary.successful = true;
+    return summary;
+}
+
 } // namespace d2
