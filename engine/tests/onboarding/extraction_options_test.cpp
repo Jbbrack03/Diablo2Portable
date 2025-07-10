@@ -24,5 +24,15 @@ TEST_F(ExtractionOptionsTest, CreateWithDefaultSettings) {
     EXPECT_TRUE(options.isAssetTypeEnabled(AssetType::VIDEOS));
 }
 
+// Test 2: Set custom output path
+TEST_F(ExtractionOptionsTest, SetCustomOutputPath) {
+    ExtractionOptions options;
+    
+    // Set a custom output path
+    options.setOutputPath("/custom/extraction/path");
+    
+    EXPECT_EQ("/custom/extraction/path", options.getOutputPath());
+}
+
 } // namespace onboarding
 } // namespace d2
