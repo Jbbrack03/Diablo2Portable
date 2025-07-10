@@ -47,4 +47,28 @@ TEST_F(ExtractionHelpDialogTest, SetHelpContext) {
     EXPECT_EQ(helpDialog->getCurrentContext(), ExtractionHelpContext::PROGRESS);
 }
 
+// Test 4: Get context-specific help content
+TEST_F(ExtractionHelpDialogTest, GetContextSpecificHelp) {
+    // File selection context
+    helpDialog->setContext(ExtractionHelpContext::FILE_SELECTION);
+    auto help = helpDialog->getHelpContent();
+    EXPECT_FALSE(help.title.empty());
+    EXPECT_FALSE(help.content.empty());
+    EXPECT_TRUE(help.title.find("File Selection") != std::string::npos);
+    
+    // Extraction options context
+    helpDialog->setContext(ExtractionHelpContext::EXTRACTION_OPTIONS);
+    help = helpDialog->getHelpContent();
+    EXPECT_FALSE(help.title.empty());
+    EXPECT_FALSE(help.content.empty());
+    EXPECT_TRUE(help.title.find("Extraction Options") != std::string::npos);
+    
+    // Progress context
+    helpDialog->setContext(ExtractionHelpContext::PROGRESS);
+    help = helpDialog->getHelpContent();
+    EXPECT_FALSE(help.title.empty());
+    EXPECT_FALSE(help.content.empty());
+    EXPECT_TRUE(help.title.find("Extraction Progress") != std::string::npos);
+}
+
 } // namespace d2
