@@ -2,8 +2,14 @@
 
 #include <string>
 #include <functional>
+#include <memory>
 
 namespace d2 {
+
+// Forward declarations for existing extraction systems
+class ISOExtractor;
+class PatchSystem;
+class AssetExtractor;
 
 /**
  * ExtractionCoordinator - Master class that orchestrates the entire extraction workflow
@@ -13,8 +19,8 @@ namespace d2 {
  */
 class ExtractionCoordinator {
 public:
-    ExtractionCoordinator() = default;
-    ~ExtractionCoordinator() = default;
+    ExtractionCoordinator();
+    ~ExtractionCoordinator();
     
     /**
      * Extract game assets from any supported source to output directory
@@ -36,9 +42,32 @@ public:
      * @param callback Function called with progress (0.0-1.0) and current file
      */
     void setProgressCallback(std::function<void(float, const std::string&)> callback);
+    
+    /**
+     * Check if ISO extractor is available
+     * @return true if ISO extraction is supported
+     */
+    bool hasISOExtractor() const;
+    
+    /**
+     * Check if patch system is available
+     * @return true if patch processing is supported
+     */
+    bool hasPatchSystem() const;
+    
+    /**
+     * Check if asset extractor is available
+     * @return true if asset extraction is supported
+     */
+    bool hasAssetExtractor() const;
 
 private:
     std::function<void(float, const std::string&)> progressCallback;
+    
+    // Instances of existing extraction systems
+    std::unique_ptr<ISOExtractor> isoExtractor;
+    std::unique_ptr<PatchSystem> patchSystem;
+    std::unique_ptr<AssetExtractor> assetExtractor;
 };
 
 } // namespace d2

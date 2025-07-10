@@ -107,4 +107,19 @@ TEST_F(ExtractionCoordinatorTest, CanProvideProgressUpdates) {
     EXPECT_LE(lastProgress, 1.0f);
 }
 
+// Test that ExtractionCoordinator has access to existing extraction systems
+TEST_F(ExtractionCoordinatorTest, CanAccessExistingExtractionSystems) {
+    ExtractionCoordinator coordinator;
+    
+    // The coordinator should be able to indicate if it has the required extractors
+    bool hasISOExtractor = coordinator.hasISOExtractor();
+    bool hasPatchSystem = coordinator.hasPatchSystem();
+    bool hasAssetExtractor = coordinator.hasAssetExtractor();
+    
+    // These should all be true for a properly integrated coordinator
+    EXPECT_TRUE(hasISOExtractor);
+    EXPECT_TRUE(hasPatchSystem);
+    EXPECT_TRUE(hasAssetExtractor);
+}
+
 } // namespace d2
