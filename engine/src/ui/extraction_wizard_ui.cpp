@@ -35,4 +35,21 @@ bool ExtractionWizardUI::nextStep() {
     return false;
 }
 
+float ExtractionWizardUI::getOverallProgress() const {
+    switch (currentStep) {
+        case ExtractionWizardStep::WELCOME:
+            return 0.0f;
+        case ExtractionWizardStep::FILE_SELECTION:
+            return 0.25f;
+        case ExtractionWizardStep::EXTRACTION_OPTIONS:
+            return 0.5f;
+        case ExtractionWizardStep::PROGRESS:
+            return 0.75f;
+        case ExtractionWizardStep::COMPLETION:
+            return 1.0f;
+        default:
+            return 0.0f;
+    }
+}
+
 } // namespace d2

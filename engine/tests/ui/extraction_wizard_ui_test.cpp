@@ -37,5 +37,15 @@ TEST_F(ExtractionWizardUITest, CanGetStepInformation) {
     EXPECT_FALSE(stepInfo.instructions.empty());
 }
 
+TEST_F(ExtractionWizardUITest, CanTrackProgress) {
+    // Test that we can track overall progress through the wizard
+    float progress = wizard->getOverallProgress();
+    EXPECT_EQ(progress, 0.0f); // At the beginning (WELCOME step)
+    
+    wizard->nextStep(); // Move to FILE_SELECTION
+    progress = wizard->getOverallProgress();
+    EXPECT_EQ(progress, 0.25f); // 1 of 4 steps completed (WELCOME done)
+}
+
 } // namespace
 } // namespace d2

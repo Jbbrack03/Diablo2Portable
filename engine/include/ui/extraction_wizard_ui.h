@@ -27,6 +27,7 @@ public:
     ExtractionWizardStep getCurrentStep() const;
     StepInfo getCurrentStepInfo() const;
     bool nextStep();
+    float getOverallProgress() const;
 
 private:
     ExtractionWizardStep currentStep;
