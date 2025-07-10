@@ -34,6 +34,14 @@ public:
     std::vector<std::string> listFiles() const;
     
     /**
+     * Extract a file from the ISO
+     * @param source_path Path to file within the ISO
+     * @param dest_path Destination path to save the extracted file
+     * @return true if extraction successful, false otherwise
+     */
+    bool extractFile(const std::string& source_path, const std::string& dest_path);
+    
+    /**
      * Get the last error message
      * @return Error message string
      */

@@ -20,4 +20,15 @@ std::vector<std::string> ISOExtractor::listFiles() const {
     return {};
 }
 
+bool ISOExtractor::extractFile(const std::string& source_path, const std::string& dest_path) {
+    // Can't extract when not open
+    if (!isOpen()) {
+        lastError = "No ISO file is open";
+        return false;
+    }
+    
+    // Not implemented yet
+    return false;
+}
+
 } // namespace d2

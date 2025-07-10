@@ -43,3 +43,12 @@ TEST_F(ISOExtractorTest, ListFilesWhenNotOpen) {
     auto files = extractor.listFiles();
     EXPECT_TRUE(files.empty());
 }
+
+// Test 4: Extract file from unopened ISO should fail
+TEST_F(ISOExtractorTest, ExtractFileWhenNotOpen) {
+    ISOExtractor extractor;
+    fs::path output_path = test_dir / "extracted_file.mpq";
+    
+    EXPECT_FALSE(extractor.extractFile("some_file.mpq", output_path.string()));
+    EXPECT_FALSE(fs::exists(output_path));
+}
