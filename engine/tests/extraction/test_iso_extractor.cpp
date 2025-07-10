@@ -481,3 +481,51 @@ TEST_F(ISOExtractorTest, GetFileInfo) {
     info = extractor.getFileInfo("NOTEXIST.MPQ");
     EXPECT_FALSE(info.exists);
 }
+
+// Test 12: Extract from real ISO file should work with actual Diablo II ISOs
+TEST_F(ISOExtractorTest, ExtractFromRealISO) {
+    // Check if real ISO files are available
+    fs::path real_iso_dir = "/Users/jbbrack03/Diablo2Portable/vendor/Diablo II CD Images";
+    fs::path install_iso = real_iso_dir / "Diablo II install.iso";
+    
+    if (!fs::exists(install_iso)) {
+        GTEST_SKIP() << "Real Diablo II ISO not available for testing";
+    }
+    
+    ISOExtractor extractor;
+    EXPECT_TRUE(extractor.open(install_iso.string()));
+    
+    // List files to see what's in the ISO
+    auto files = extractor.listFiles();
+    EXPECT_GT(files.size(), 0u);
+    
+    // Debug: Print some files found
+    std::cout << "Found " << files.size() << " files in ISO:\n";
+    for (size_t i = 0; i < std::min(size_t(10), files.size()); ++i) {
+        std::cout << "  " << files[i] << "\n";
+    }
+    
+    // Look for common Diablo II files
+    bool found_mpq = false;
+    std::string mpq_file;
+    for (const auto& file : files) {
+        if (file.find(".MPQ") != std::string::npos || 
+            file.find(".mpq") != std::string::npos) {
+            found_mpq = true;
+            mpq_file = file;
+            break;
+        }
+    }
+    EXPECT_TRUE(found_mpq) << "No MPQ files found in Diablo II ISO";
+    
+    if (found_mpq) {
+        // Try to extract an MPQ file
+        fs::path extract_dir = test_dir / "real_iso_extract";
+        fs::create_directories(extract_dir);
+        
+        fs::path output_file = extract_dir / mpq_file;
+        EXPECT_TRUE(extractor.extractFile(mpq_file, output_file.string()));
+        EXPECT_TRUE(fs::exists(output_file));
+        EXPECT_GT(fs::file_size(output_file), 0u);
+    }
+}
