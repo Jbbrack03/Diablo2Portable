@@ -52,6 +52,13 @@ public:
     bool extractFile(const std::string& source_path, const std::string& dest_path);
     
     /**
+     * Extract all files from the ISO to a directory
+     * @param dest_dir Destination directory to extract files to
+     * @return true if extraction successful, false otherwise
+     */
+    bool extractAll(const std::string& dest_dir);
+    
+    /**
      * Get the last error message
      * @return Error message string
      */

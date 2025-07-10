@@ -243,4 +243,29 @@ void ISOExtractor::close() {
     rootDirSize = 0;
 }
 
+bool ISOExtractor::extractAll(const std::string& dest_dir) {
+    if (!isOpen()) {
+        lastError = "No ISO file is open";
+        return false;
+    }
+    
+    // Get list of all files
+    auto files = listFiles();
+    if (files.empty()) {
+        // No files to extract, but that's not an error
+        return true;
+    }
+    
+    // Extract each file
+    for (const auto& file : files) {
+        std::filesystem::path destPath = std::filesystem::path(dest_dir) / file;
+        if (!extractFile(file, destPath.string())) {
+            // extractFile already sets lastError
+            return false;
+        }
+    }
+    
+    return true;
+}
+
 } // namespace d2

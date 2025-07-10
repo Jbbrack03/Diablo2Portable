@@ -164,11 +164,20 @@ protected:
         
         // Add a file entry: "D2DATA.MPQ"
         std::string filename = "D2DATA.MPQ";
+        std::string fileContent1 = "D2DATA.MPQ test content";
+        uint32_t fileSize1 = fileContent1.length();
+        
         uint8_t record_len = 33 + filename.length() + (filename.length() % 2 == 0 ? 1 : 0);
         root_dir[offset + 0] = record_len; // Record length
         root_dir[offset + 2] = 21; // Location (sector 21)
-        root_dir[offset + 10] = 0x00; // Data length (0 for empty file)
-        root_dir[offset + 11] = 0x10; // 4096 bytes
+        root_dir[offset + 10] = fileSize1 & 0xFF; // Data length
+        root_dir[offset + 11] = (fileSize1 >> 8) & 0xFF;
+        root_dir[offset + 12] = (fileSize1 >> 16) & 0xFF;
+        root_dir[offset + 13] = (fileSize1 >> 24) & 0xFF;
+        root_dir[offset + 14] = (fileSize1 >> 24) & 0xFF;
+        root_dir[offset + 15] = (fileSize1 >> 16) & 0xFF;
+        root_dir[offset + 16] = (fileSize1 >> 8) & 0xFF;
+        root_dir[offset + 17] = fileSize1 & 0xFF;
         root_dir[offset + 25] = 0x00; // File flag (not directory)
         root_dir[offset + 32] = filename.length(); // Identifier length
         std::memcpy(root_dir.data() + offset + 33, filename.c_str(), filename.length());
@@ -176,16 +185,33 @@ protected:
         
         // Add another file: "D2EXP.MPQ"
         filename = "D2EXP.MPQ";
+        std::string fileContent2 = "D2EXP.MPQ test content";
+        uint32_t fileSize2 = fileContent2.length();
+        
         record_len = 33 + filename.length() + (filename.length() % 2 == 0 ? 1 : 0);
         root_dir[offset + 0] = record_len; // Record length
         root_dir[offset + 2] = 22; // Location (sector 22)
-        root_dir[offset + 10] = 0x00; // Data length
-        root_dir[offset + 11] = 0x20; // 8192 bytes
+        root_dir[offset + 10] = fileSize2 & 0xFF; // Data length
+        root_dir[offset + 11] = (fileSize2 >> 8) & 0xFF;
+        root_dir[offset + 12] = (fileSize2 >> 16) & 0xFF;
+        root_dir[offset + 13] = (fileSize2 >> 24) & 0xFF;
+        root_dir[offset + 14] = (fileSize2 >> 24) & 0xFF;
+        root_dir[offset + 15] = (fileSize2 >> 16) & 0xFF;
+        root_dir[offset + 16] = (fileSize2 >> 8) & 0xFF;
+        root_dir[offset + 17] = fileSize2 & 0xFF;
         root_dir[offset + 25] = 0x00; // File flag
         root_dir[offset + 32] = filename.length(); // Identifier length
         std::memcpy(root_dir.data() + offset + 33, filename.c_str(), filename.length());
         
         file.write(reinterpret_cast<char*>(root_dir.data()), root_dir.size());
+        
+        // Write file content at sector 21
+        file.seekp(21 * 2048);
+        file.write(fileContent1.c_str(), fileContent1.length());
+        
+        // Write file content at sector 22
+        file.seekp(22 * 2048);
+        file.write(fileContent2.c_str(), fileContent2.length());
     }
 };
 
@@ -409,4 +435,26 @@ TEST_F(ISOExtractorTest, ExtractNonExistentFileFails) {
     EXPECT_FALSE(fs::exists(output_path));
     EXPECT_FALSE(extractor.getLastError().empty());
     EXPECT_TRUE(extractor.getLastError().find("File not found") != std::string::npos);
+}
+
+// Test 10: Extract all files from ISO should succeed
+TEST_F(ISOExtractorTest, ExtractAllFilesFromISO) {
+    fs::path iso_path = test_dir / "test_with_files.iso";
+    createISOWithFiles(iso_path);
+    
+    ISOExtractor extractor;
+    EXPECT_TRUE(extractor.open(iso_path.string()));
+    
+    fs::path output_dir = test_dir / "extracted_all";
+    fs::create_directories(output_dir);
+    
+    // Debug: Check what files are listed
+    auto files = extractor.listFiles();
+    EXPECT_EQ(files.size(), 2u);
+    
+    EXPECT_TRUE(extractor.extractAll(output_dir.string())) << "Error: " << extractor.getLastError();
+    
+    // Verify both files were extracted
+    EXPECT_TRUE(fs::exists(output_dir / "D2DATA.MPQ"));
+    EXPECT_TRUE(fs::exists(output_dir / "D2EXP.MPQ"));
 }
