@@ -709,3 +709,25 @@ TEST_F(ISOExtractorTest, ListFilesRecursively) {
     EXPECT_EQ(files.size(), 1u);
     EXPECT_EQ(files[0], "DATA/GLOBAL.MPQ");
 }
+
+// Test 14: Extract file from subdirectory
+TEST_F(ISOExtractorTest, ExtractFileFromSubdirectory) {
+    fs::path iso_path = test_dir / "test_with_subdirs.iso";
+    createISOWithSubdirectories(iso_path);
+    
+    ISOExtractor extractor;
+    EXPECT_TRUE(extractor.open(iso_path.string()));
+    
+    // Extract file from subdirectory
+    fs::path output_path = test_dir / "extracted_global.mpq";
+    EXPECT_TRUE(extractor.extractFile("DATA/GLOBAL.MPQ", output_path.string()));
+    
+    // Verify the file was extracted
+    EXPECT_TRUE(fs::exists(output_path));
+    
+    // Verify content
+    std::ifstream extracted(output_path);
+    std::string content((std::istreambuf_iterator<char>(extracted)),
+                        std::istreambuf_iterator<char>());
+    EXPECT_EQ(content, "Global MPQ content");
+}

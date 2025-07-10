@@ -136,71 +136,101 @@ bool ISOExtractor::extractFile(const std::string& source_path, const std::string
         return false;
     }
     
-    // First, find the file in the directory
-    // Seek to root directory
-    isoFile.seekg(rootDirSector * 2048);
-    
-    // Read the root directory
-    std::vector<uint8_t> dirData(rootDirSize);
-    isoFile.read(reinterpret_cast<char*>(dirData.data()), dirData.size());
-    
-    if (!isoFile.good()) {
-        lastError = "Failed to read root directory";
-        return false;
-    }
-    
-    // Parse directory entries to find the file
-    size_t offset = 0;
-    bool found = false;
-    uint32_t fileSector = 0;
-    uint32_t fileSize = 0;
-    
-    while (offset < dirData.size() && !found) {
-        uint8_t recordLength = dirData[offset];
+    // Helper function to find a file in a directory
+    std::function<bool(uint32_t, uint32_t, const std::string&, const std::string&, uint32_t&, uint32_t&)> findFileInDirectory = 
+        [&](uint32_t dirSector, uint32_t dirSize, const std::string& parentPath, const std::string& targetPath, 
+            uint32_t& outFileSector, uint32_t& outFileSize) -> bool {
         
-        // End of directory entries
-        if (recordLength == 0) {
-            break;
+        // Seek to directory
+        isoFile.seekg(dirSector * 2048);
+        
+        // Read the directory
+        std::vector<uint8_t> dirData(dirSize);
+        isoFile.read(reinterpret_cast<char*>(dirData.data()), dirData.size());
+        
+        if (!isoFile.good()) {
+            return false;
         }
         
-        // Skip if we'd go past the end
-        if (offset + recordLength > dirData.size()) {
-            break;
-        }
-        
-        // Extract file flags (offset 25)
-        uint8_t flags = dirData[offset + 25];
-        
-        // Skip directories (flag 0x02)
-        if (!(flags & 0x02)) {
+        // Parse directory entries
+        size_t offset = 0;
+        while (offset < dirData.size()) {
+            uint8_t recordLength = dirData[offset];
+            
+            // End of directory entries
+            if (recordLength == 0) {
+                break;
+            }
+            
+            // Skip if we'd go past the end
+            if (offset + recordLength > dirData.size()) {
+                break;
+            }
+            
             // Extract identifier length (offset 32)
             uint8_t identLength = dirData[offset + 32];
             
-            // Extract identifier (offset 33)
-            if (identLength > 0) {
-                std::string filename(reinterpret_cast<char*>(&dirData[offset + 33]), identLength);
-                
-                // ISO 9660 Level 1 uses ";1" version suffix, remove it
-                size_t semicolon = filename.find(';');
-                if (semicolon != std::string::npos) {
-                    filename = filename.substr(0, semicolon);
-                }
-                
-                if (filename == source_path) {
-                    // Found the file! Extract location and size
-                    fileSector = dirData[offset + 2] | (dirData[offset + 3] << 8) | 
-                                (dirData[offset + 4] << 16) | (dirData[offset + 5] << 24);
-                    fileSize = dirData[offset + 10] | (dirData[offset + 11] << 8) | 
-                              (dirData[offset + 12] << 16) | (dirData[offset + 13] << 24);
-                    found = true;
+            // Skip special entries "." and ".."
+            if (identLength == 1) {
+                uint8_t identifier = dirData[offset + 33];
+                if (identifier == 0x00 || identifier == 0x01) {
+                    offset += recordLength;
+                    continue;
                 }
             }
+            
+            // Extract file flags (offset 25)
+            uint8_t flags = dirData[offset + 25];
+            
+            // Extract identifier (offset 33)
+            if (identLength > 0) {
+                std::string name(reinterpret_cast<char*>(&dirData[offset + 33]), identLength);
+                
+                // ISO 9660 Level 1 uses ";1" version suffix, remove it
+                size_t semicolon = name.find(';');
+                if (semicolon != std::string::npos) {
+                    name = name.substr(0, semicolon);
+                }
+                
+                // Build full path
+                std::string fullPath = parentPath.empty() ? name : parentPath + "/" + name;
+                
+                if (flags & 0x02) {
+                    // It's a directory - check if target path starts with this directory
+                    if (targetPath.find(fullPath + "/") == 0) {
+                        // Recurse into subdirectory
+                        uint32_t subDirSector = dirData[offset + 2] | (dirData[offset + 3] << 8) | 
+                                               (dirData[offset + 4] << 16) | (dirData[offset + 5] << 24);
+                        uint32_t subDirSize = dirData[offset + 10] | (dirData[offset + 11] << 8) | 
+                                             (dirData[offset + 12] << 16) | (dirData[offset + 13] << 24);
+                        
+                        return findFileInDirectory(subDirSector, subDirSize, fullPath, targetPath, 
+                                                 outFileSector, outFileSize);
+                    }
+                } else {
+                    // It's a file - check if it matches
+                    if (fullPath == targetPath) {
+                        // Found the file!
+                        outFileSector = dirData[offset + 2] | (dirData[offset + 3] << 8) | 
+                                       (dirData[offset + 4] << 16) | (dirData[offset + 5] << 24);
+                        outFileSize = dirData[offset + 10] | (dirData[offset + 11] << 8) | 
+                                     (dirData[offset + 12] << 16) | (dirData[offset + 13] << 24);
+                        return true;
+                    }
+                }
+            }
+            
+            offset += recordLength;
         }
         
-        offset += recordLength;
-    }
+        return false;
+    };
     
-    if (!found) {
+    // Find the file starting from root directory
+    uint32_t fileSector = 0;
+    uint32_t fileSize = 0;
+    
+    if (!findFileInDirectory(rootDirSector, rootDirSize, "", source_path, fileSector, fileSize)) {
         lastError = "File not found in ISO: " + source_path;
         return false;
     }
