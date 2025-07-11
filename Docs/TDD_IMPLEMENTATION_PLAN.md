@@ -16,9 +16,117 @@ This document provides a comprehensive Test-Driven Development (TDD) implementat
 - **Integration Testing**: Custom test harness
 - **Performance Testing**: Android Profiler + custom benchmarks
 
-## Project Timeline: 24 Weeks
+## Project Timeline: 24 Weeks + Additional Corrective Phases
 
 ---
+
+## CRITICAL CORRECTIVE PHASES (Added January 2025)
+
+### Phase 37: Documentation Accuracy and Test Validation (CRITICAL)
+**Priority: IMMEDIATE - Fix inaccuracies in documentation**
+
+#### 37.1: Test Count Verification and Documentation Update
+**Issue**: Documentation claims 745 tests (728 passing, 17 skipped, 0 failing), but actual count is 780 tests (763 passing, 17 skipped, 0 failing)
+
+**Tasks**:
+- Update all documentation to reflect actual test counts
+- Verify test suite health regularly
+- Fix any discrepancies between claimed and actual test results
+- Add automated test count validation
+
+#### 37.2: MPQ File Status Clarification
+**Issue**: Several MPQ files are 1MB placeholder files (ASCII 'X' characters) not authentic game files
+
+**Tasks**:
+- Document which MPQ files are authentic vs placeholder
+- Update integration tests to handle placeholder files gracefully
+- Clarify asset extraction limitations in documentation
+- Add MPQ file validation checks
+
+#### 37.3: Phase Completion Claims Verification
+**Issue**: Claims of "All 36 phases complete" not substantiated by actual implementation plan
+
+**Tasks**:
+- Document actual completion status accurately
+- Remove unsupported phase completion claims
+- Create accurate project status documentation
+- Align documentation with actual implementation
+
+### Phase 38: Android Build System Validation (HIGH PRIORITY)
+**Priority: HIGH - Android integration may be broken**
+
+#### 38.1: Android Build Configuration Fix
+**Issue**: Android build fails due to missing SDK configuration
+
+**Tasks**:
+- Fix Android SDK path configuration
+- Validate Android build process end-to-end
+- Test actual APK generation and installation
+- Verify JNI bridge functionality on real devices
+
+#### 38.2: Android Integration Testing
+**Issue**: Cannot validate Android functionality without working builds
+
+**Tasks**:
+- Test Android app deployment to real devices
+- Validate OpenGL ES functionality on Android
+- Test JNI bridge with actual game engine
+- Verify touch input and gamepad integration
+
+#### 38.3: Android Performance Validation
+**Issue**: Performance claims based on desktop mocks, not Android reality
+
+**Tasks**:
+- Test actual performance on Android devices
+- Validate memory usage on mobile hardware
+- Test OpenGL rendering pipeline on Android
+- Verify 60+ FPS claims on target devices
+
+### Phase 39: Asset Integration System Repair (MEDIUM PRIORITY)
+**Priority: MEDIUM - Asset pipeline needs validation**
+
+#### 39.1: MPQ Integration Validation
+**Issue**: Many MPQ integration tests skipped due to missing files
+
+**Tasks**:
+- Validate asset extraction with real game files
+- Test MPQ loading performance on Android
+- Verify sprite rendering with actual DC6 files
+- Test audio extraction and playback
+
+#### 39.2: Asset Pipeline End-to-End Testing
+**Issue**: Asset extraction tools exist but pipeline not validated
+
+**Tasks**:
+- Test complete asset extraction workflow
+- Validate asset optimization for mobile
+- Test texture atlas generation
+- Verify asset loading performance
+
+### Phase 40: Production Readiness Assessment (LOW PRIORITY)
+**Priority: LOW - Final validation before release**
+
+#### 40.1: Real-World Testing
+**Issue**: Need validation with actual game content
+
+**Tasks**:
+- Test with complete Diablo II installation
+- Validate gameplay with real assets
+- Test multiplayer functionality
+- Verify save/load with actual game data
+
+#### 40.2: Release Preparation
+**Issue**: Project readiness claims need validation
+
+**Tasks**:
+- Create actual release builds
+- Test installation on target devices
+- Validate all claimed features work
+- Prepare accurate release documentation
+
+---
+
+## ORIGINAL IMPLEMENTATION PLAN
 
 ## Phase 0: Environment Setup and Foundation (Week 1) - **COMPLETED**
 

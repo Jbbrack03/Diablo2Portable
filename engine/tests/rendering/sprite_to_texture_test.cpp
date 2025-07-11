@@ -109,8 +109,8 @@ TEST_F(SpriteToTextureTest, CreateTextureFromDC6SpriteWithProperDimensions) {
     d2::sprites::DC6Frame testFrame;
     testFrame.width = 32;
     testFrame.height = 48;
-    testFrame.offset_x = -16;
-    testFrame.offset_y = -40;
+    testFrame.offsetX = -16;
+    testFrame.offsetY = -40;
     
     // Create RGBA data matching the frame dimensions (32x48)
     std::vector<uint8_t> rgbaData(32 * 48 * 4, 255); // All white pixels

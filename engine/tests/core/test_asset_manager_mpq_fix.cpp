@@ -8,8 +8,10 @@ using namespace d2portable::core;
 TEST(AssetManagerMPQFixTest, InitializeWithUppercaseMPQExtensions) {
     AssetManager asset_manager;
     
-    // The vendor directory has .MPQ files (uppercase)
-    std::string mpq_dir = "/Users/jbbrack03/Diablo2Portable/vendor/mpq";
+    // Get the path relative to the test executable
+    std::filesystem::path exe_dir = std::filesystem::path(__FILE__).parent_path();
+    std::filesystem::path project_root = exe_dir.parent_path().parent_path().parent_path();
+    std::string mpq_dir = (project_root / "vendor" / "mpq").string();
     
     // First check if we have the critical d2data.mpq file
     std::string d2data_path = mpq_dir + "/d2data.mpq";

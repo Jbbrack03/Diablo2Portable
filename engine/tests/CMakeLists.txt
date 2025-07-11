@@ -96,6 +96,9 @@ set(TEST_SOURCES
     utils/pkware_test.cpp
     utils/huffman_decompress_test.cpp
     utils/sparse_decompress_test.cpp
+    test_pkware_explode_refactor.cpp
+    test_file_utils.cpp
+    test_menu_screen_refactor.cpp
     audio/test_audio_engine.cpp
     audio/audio_playback_test.cpp
     network/test_network_manager.cpp

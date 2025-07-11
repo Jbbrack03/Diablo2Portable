@@ -15,9 +15,9 @@ namespace sprites {
 struct DC6Frame {
     uint32_t width;
     uint32_t height;
-    int32_t offset_x;
-    int32_t offset_y;
-    std::vector<uint8_t> pixel_data;
+    int32_t offsetX;
+    int32_t offsetY;
+    std::vector<uint8_t> pixelData;
 };
 
 /**

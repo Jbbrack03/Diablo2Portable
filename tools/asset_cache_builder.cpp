@@ -158,8 +158,8 @@ private:
                 // Write frame header
                 cache_file.write(reinterpret_cast<const char*>(&frame_data.width), 4);
                 cache_file.write(reinterpret_cast<const char*>(&frame_data.height), 4);
-                cache_file.write(reinterpret_cast<const char*>(&frame_data.offset_x), 4);
-                cache_file.write(reinterpret_cast<const char*>(&frame_data.offset_y), 4);
+                cache_file.write(reinterpret_cast<const char*>(&frame_data.offsetX), 4);
+                cache_file.write(reinterpret_cast<const char*>(&frame_data.offsetY), 4);
                 
                 uint32_t data_size = rgba_data.size();
                 cache_file.write(reinterpret_cast<const char*>(&data_size), 4);

@@ -29,9 +29,9 @@ public:
         d2portable::sprites::DC6Frame frame_info;
         frame_info.width = width_;
         frame_info.height = height_;
-        frame_info.offset_x = 0;
-        frame_info.offset_y = 0;
-        frame_info.pixel_data = pixel_data_;
+        frame_info.offsetX = 0;
+        frame_info.offsetY = 0;
+        frame_info.pixelData = pixel_data_;
         return frame_info;
     }
     

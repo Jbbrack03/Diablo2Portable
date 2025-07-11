@@ -178,8 +178,8 @@ TEST_F(DC6ParserTest, GetFrameDimensions) {
     auto frame = sprite->getFrame(0, 0);  // Direction 0, Frame 0
     EXPECT_EQ(frame.width, 32);
     EXPECT_EQ(frame.height, 32);
-    EXPECT_EQ(frame.offset_x, -16);
-    EXPECT_EQ(frame.offset_y, -16);
+    EXPECT_EQ(frame.offsetX, -16);
+    EXPECT_EQ(frame.offsetY, -16);
 }
 
 // Test: Convert frame to image data

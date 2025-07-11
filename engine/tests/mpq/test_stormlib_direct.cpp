@@ -12,8 +12,10 @@
 class StormLibDirectTest : public ::testing::Test {
 protected:
     void SetUp() override {
-        // Use the real MPQ file that exists in our project
-        mpq_path = "/Users/jbbrack03/Diablo2Portable/vendor/mpq/d2data.mpq";
+        // Get the path relative to the test executable
+        std::filesystem::path exe_dir = std::filesystem::path(__FILE__).parent_path();
+        std::filesystem::path project_root = exe_dir.parent_path().parent_path().parent_path();
+        mpq_path = (project_root / "vendor" / "mpq" / "d2data.mpq").string();
         
         // Skip test if file doesn't exist
         if (!std::filesystem::exists(mpq_path)) {

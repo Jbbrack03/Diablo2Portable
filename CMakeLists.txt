@@ -50,10 +50,10 @@ add_subdirectory(third_party/StormLib)
 # Add subdirectories
 add_subdirectory(engine)
 
-# Tools subdirectory (optional)
-if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/tools/CMakeLists.txt)
-    add_subdirectory(tools)
-endif()
+# Tools subdirectory (optional) - disabled due to missing source files
+# if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/tools/CMakeLists.txt)
+#     add_subdirectory(tools)
+# endif()
 
 # Enable testing if requested
 if(BUILD_TESTS)

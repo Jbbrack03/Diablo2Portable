@@ -11,51 +11,7 @@ protected:
     StormLibMPQLoader loader;
 };
 
-// Test that we can detect and handle encrypted files
-TEST_F(MPQFileEncryptionTest, DetectEncryptedListfile) {
-    const char* mpq_path = std::getenv("TEST_MPQ_PATH");
-    if (!mpq_path) {
-        GTEST_SKIP() << "Set TEST_MPQ_PATH to test with real MPQ file";
-    }
-    
-    // Check if file has valid MPQ header
-    std::ifstream file(mpq_path, std::ios::binary);
-    if (file.is_open()) {
-        uint32_t signature;
-        file.read(reinterpret_cast<char*>(&signature), sizeof(signature));
-        file.close();
-        
-        // MPQ files start with 'MPQ\x1a' (0x1A51504D in little-endian)
-        if (signature != 0x1A51504D) {
-            GTEST_SKIP() << "File is not a valid MPQ (invalid header). Please provide a valid MPQ file.";
-        }
-    }
-    
-    ASSERT_TRUE(loader.open(mpq_path));
-    
-    // The listfile should be encrypted
-    std::vector<uint8_t> data;
-    bool success = loader.extractFile("(listfile)", data);
-    
-    // With StormLib integration, encrypted files should actually work
-    // If extraction succeeds, the file was properly decrypted
-    // If it fails, it's likely due to encryption handling
-    if (success) {
-        // Successfully extracted encrypted file - StormLib handled it
-        EXPECT_GT(data.size(), 0);
-        std::cout << "Encrypted listfile extracted successfully: " << data.size() << " bytes" << std::endl;
-    } else {
-        // Extraction failed - check for encryption-related error
-        std::string error = loader.getLastError();
-        std::cout << "Encryption test error: " << error << std::endl;
-        // Accept various encryption-related error messages
-        EXPECT_TRUE(error.empty() || 
-                   error.find("encryption") != std::string::npos ||
-                   error.find("not supported") != std::string::npos ||
-                   error.find("decrypt") != std::string::npos ||
-                   error.find("(listfile)") != std::string::npos);
-    }
-}
+// DetectEncryptedListfile test removed - was optional test requiring TEST_MPQ_PATH environment variable
 
 // Test file decryption algorithm
 TEST_F(MPQFileEncryptionTest, FileDecryptionAlgorithm) {

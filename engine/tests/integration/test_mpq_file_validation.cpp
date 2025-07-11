@@ -32,7 +32,10 @@ protected:
 
 // Test that checks if vendor MPQ files are valid
 TEST_F(MPQFileValidationTest, CheckVendorMPQFiles) {
-    std::string vendor_mpq_dir = "/Users/jbbrack03/Diablo2Portable/vendor/mpq";
+    // Get the path relative to the test executable
+    std::filesystem::path exe_dir = std::filesystem::path(__FILE__).parent_path();
+    std::filesystem::path project_root = exe_dir.parent_path().parent_path().parent_path();
+    std::string vendor_mpq_dir = (project_root / "vendor" / "mpq").string();
     
     // List of required MPQ files
     std::vector<std::string> required_mpqs = {

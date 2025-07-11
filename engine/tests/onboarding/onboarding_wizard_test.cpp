@@ -39,6 +39,9 @@ TEST_F(OnboardingWizardTest, ShowFileBrowser) {
 TEST_F(OnboardingWizardTest, ValidateAndImportMPQFiles) {
     OnboardingWizard wizard;
     
+    // Set a test-specific import directory to avoid conflicts
+    wizard.setImportDirectory((testDir / "import_test").string());
+    
     // Create mock MPQ files
     fs::path mpqDir = testDir / "mpqs";
     fs::create_directories(mpqDir);
@@ -58,6 +61,9 @@ TEST_F(OnboardingWizardTest, ValidateAndImportMPQFiles) {
 // STEP 3: Write exactly ONE failing test for progress tracking
 TEST_F(OnboardingWizardTest, TrackImportProgress) {
     OnboardingWizard wizard;
+    
+    // Set a test-specific import directory to avoid conflicts
+    wizard.setImportDirectory((testDir / "import_progress").string());
     
     // Create larger mock MPQ files for realistic progress tracking
     fs::path mpqDir = testDir / "progress_test";

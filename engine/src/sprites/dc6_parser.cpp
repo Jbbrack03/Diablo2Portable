@@ -99,14 +99,14 @@ public:
         auto dc6_frame = getFrame(direction, frame);
         std::vector<uint8_t> rgba_data;
         
-        if (dc6_frame.pixel_data.empty()) {
+        if (dc6_frame.pixelData.empty()) {
             return rgba_data;
         }
         
         // Convert palette indexed data to RGBA
         rgba_data.reserve(dc6_frame.width * dc6_frame.height * 4);
         
-        for (uint8_t pixel : dc6_frame.pixel_data) {
+        for (uint8_t pixel : dc6_frame.pixelData) {
             // For now, just use grayscale (no palette)
             rgba_data.push_back(pixel);  // R
             rgba_data.push_back(pixel);  // G
@@ -122,7 +122,7 @@ public:
         auto dc6_frame = getFrame(direction, frame);
         std::vector<uint8_t> rgba_data;
         
-        if (dc6_frame.pixel_data.empty()) {
+        if (dc6_frame.pixelData.empty()) {
             return rgba_data;
         }
         
@@ -135,7 +135,7 @@ public:
         // Convert palette indexed data to RGBA using the provided palette
         rgba_data.reserve(dc6_frame.width * dc6_frame.height * 4);
         
-        for (uint8_t pixel_index : dc6_frame.pixel_data) {
+        for (uint8_t pixel_index : dc6_frame.pixelData) {
             // Get color from palette
             uint32_t color = palette[pixel_index];
             
@@ -207,8 +207,8 @@ std::unique_ptr<DC6Sprite> DC6Parser::parseFile(const std::string& filepath) {
             DC6Frame dc6_frame;
             dc6_frame.width = frame_header.width;
             dc6_frame.height = frame_header.height;
-            dc6_frame.offset_x = frame_header.offset_x;
-            dc6_frame.offset_y = frame_header.offset_y;
+            dc6_frame.offsetX = frame_header.offset_x;
+            dc6_frame.offsetY = frame_header.offset_y;
             
             // Read pixel data
             std::vector<uint8_t> raw_data(frame_header.length);
@@ -219,10 +219,10 @@ std::unique_ptr<DC6Sprite> DC6Parser::parseFile(const std::string& filepath) {
             uint32_t expected_size = frame_header.width * frame_header.height;
             if (frame_header.length == expected_size) {
                 // Data is already uncompressed
-                dc6_frame.pixel_data = raw_data;
+                dc6_frame.pixelData = raw_data;
             } else {
                 // Data is RLE compressed
-                dc6_frame.pixel_data = decompressRLE(raw_data, expected_size);
+                dc6_frame.pixelData = decompressRLE(raw_data, expected_size);
             }
             
             sprite->setFrame(dir, frame, dc6_frame);
@@ -279,8 +279,8 @@ std::unique_ptr<DC6Sprite> DC6Parser::parseData(const std::vector<uint8_t>& data
             DC6Frame dc6_frame;
             dc6_frame.width = frame_header.width;
             dc6_frame.height = frame_header.height;
-            dc6_frame.offset_x = frame_header.offset_x;
-            dc6_frame.offset_y = frame_header.offset_y;
+            dc6_frame.offsetX = frame_header.offset_x;
+            dc6_frame.offsetY = frame_header.offset_y;
             
             // Check if we have enough data for the pixels
             uint32_t pixel_offset = offset + sizeof(DC6FrameHeader);
@@ -296,10 +296,10 @@ std::unique_ptr<DC6Sprite> DC6Parser::parseData(const std::vector<uint8_t>& data
             uint32_t expected_size = frame_header.width * frame_header.height;
             if (frame_header.length == expected_size) {
                 // Data is already uncompressed
-                dc6_frame.pixel_data = raw_data;
+                dc6_frame.pixelData = raw_data;
             } else {
                 // Data is RLE compressed
-                dc6_frame.pixel_data = decompressRLE(raw_data, expected_size);
+                dc6_frame.pixelData = decompressRLE(raw_data, expected_size);
             }
             
             sprite->setFrame(dir, frame, dc6_frame);

@@ -1,8 +1,9 @@
 /*****************************************************************************/
-/* pkware_explode.cpp                                                        */
+/* pkware_explode.cpp                                                       */
 /*                                                                           */
 /* PKWARE Data Compression Library (DCL) decompression for Diablo II        */
 /* Based on StormLib implementation by Ladislav Zezula                      */
+/* REFACTORED VERSION - split into smaller, focused functions               */
 /*                                                                           */
 /* This implementation handles the PKWARE DCL format used in Diablo II MPQ  */
 /* archives. It uses Huffman coding for literals and raw bits for distances */
@@ -13,6 +14,8 @@
 #include <cstring>
 #include <vector>
 #include <cstdint>
+#include "utils/pkware_explode_internal.h"
+
 // #define PKWARE_DEBUG
 #ifdef PKWARE_DEBUG
 #include <iostream>
@@ -55,7 +58,7 @@ static const uint16_t DistBase[] = {
     0x1000, 0x1800, 0x2000, 0x3000, 0x4000, 0x6000, 0x8000, 0xC000
 };
 
-// Length codes
+// Length codes (existing table)
 static const uint8_t LenCode[] = {
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08,
     0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F, 0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18,
@@ -125,7 +128,6 @@ static const uint8_t ExLenBits[] = {
 };
 
 // Distance position codes table (from StormLib)
-// Maps 8-bit input patterns to distance position codes
 static const uint8_t DistPosCodes[0x100] = {
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -176,8 +178,6 @@ const uint8_t MAX_DICT_BITS = 6;
 const int MAXBITS = 13;
 
 // Predefined Huffman code lengths for PKWARE DCL format
-// This is the standard PKWARE literal/length table with 286 symbols
-// First 256 are literals (0-255), next 30 are length codes (256-285)
 static const unsigned char litlen[] = {
     11, 124, 8, 7, 28, 7, 188, 13, 76, 4, 10, 8, 12, 10, 12, 10, 8, 23, 8,
     9, 7, 6, 7, 8, 7, 6, 55, 8, 23, 24, 12, 11, 7, 9, 11, 12, 6, 7, 22, 5,
@@ -186,10 +186,8 @@ static const unsigned char litlen[] = {
     44, 253, 253, 253, 252, 252, 252, 13, 12, 45, 12, 45, 12, 61, 12, 45,
     44, 173,
     // Extended table for length codes 256-285 (30 more symbols)
-    // These are the lengths for the match length codes
     8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,  // 256-271
     8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8          // 272-281
-    // Note: codes 282-285 might be unused or have different lengths
 };
 
 // Huffman decoding table
@@ -200,246 +198,42 @@ struct HuffmanTable {
 
 // Forward declaration
 static uint32_t GetBits(PKWAREWork* work, uint32_t bits_wanted);
+static int decode(PKWAREWork* s, HuffmanTable* h);
+static int construct(HuffmanTable* h, const unsigned char* rep, int n);
 
-// Build Huffman decoding table from code lengths (compact representation)
-static int construct(HuffmanTable* h, const unsigned char* rep, int n) {
-    int symbol;
-    int len;
-    int left;
-    short offs[MAXBITS + 1];
-    unsigned char length[512];  // Expanded lengths - support literals AND length codes
-    int ncode = 0;              // Number of codes
-    
-    // First, expand the compact representation
-    symbol = 0;
-    do {
-        len = *rep++;           // Get next compact byte
-        left = (len >> 4) + 1;  // High 4 bits determine repeat count
-        len &= 15;              // Low 4 bits are the actual length
-        
-        do {
-            length[symbol++] = len;  // Repeat the length 'left' times
-        } while (--left);
-    } while (--n);
-    
-    ncode = symbol;  // Total number of symbols
-    
-    // Count the number of codes of each length
-    for (len = 0; len <= MAXBITS; len++)
-        h->count[len] = 0;
-        
-    // Scan the symbols to count lengths
-    for (symbol = 0; symbol < ncode; symbol++) {
-        len = length[symbol];
-        if (len > MAXBITS) 
-            return -1;  // Invalid code length
-        h->count[len]++;
-    }
-    
-    // No codes? 
-    if (h->count[0] == ncode)
-        return 0;  // Complete, but useless
-        
-    // Check for an over-subscribed or incomplete set of lengths
-    left = 1;
-    for (len = 1; len <= MAXBITS; len++) {
-        left <<= 1;
-        left -= h->count[len];
-        if (left < 0) 
-            return -1;  // Over-subscribed
-    }
-    
-    // Generate offsets into symbol table for each length
-    offs[1] = 0;
-    for (len = 1; len < MAXBITS; len++)
-        offs[len + 1] = offs[len] + h->count[len];
-        
-    // Put symbols in table sorted by length, then by symbol value
-    // This is required for canonical Huffman codes
-    for (len = 1; len <= MAXBITS; len++) {
-        // For each length, add symbols in order
-        for (symbol = 0; symbol < ncode; symbol++) {
-            if (length[symbol] == len) {
-                h->symbol[offs[len]++] = symbol;
-            }
-        }
-    }
-            
-#ifdef PKWARE_DEBUG
-    std::cout << "\nHuffman table built:\n";
-    for (len = 1; len <= MAXBITS; len++) {
-        if (h->count[len] > 0) {
-            std::cout << "Length " << len << ": " << h->count[len] << " symbols\n";
-        }
-    }
-    std::cout << "Symbol 'A'(65) has length " << (int)length[65] << "\n";
-    std::cout << "Symbol 'I'(73) has length " << (int)length[73] << "\n";
-    std::cout << "Symbol 'L'(76) has length " << (int)length[76] << "\n";
-    
-    // Show symbols at length 6
-    std::cout << "\nSymbols at length 6: ";
-    int idx = 0;
-    for (len = 1; len < 6; len++) {
-        idx += h->count[len];
-    }
-    for (int i = 0; i < h->count[6] && i < 10; i++) {
-        std::cout << h->symbol[idx + i] << " ";
-    }
-    std::cout << "...\n";
-    
-    // Show first codes for each length
-    std::cout << "\nFirst codes by length:\n";
-    int fc = 0;
-    int ix = 0;
-    for (len = 1; len <= MAXBITS; len++) {
-        if (h->count[len] > 0) {
-            std::cout << "Length " << len << ": first=" << fc << " count=" << h->count[len];
-            // Show first few symbols
-            std::cout << " symbols: ";
-            for (int i = 0; i < 3 && i < h->count[len]; i++) {
-                std::cout << h->symbol[ix + i] << " ";
-            }
-            std::cout << "\n";
-            ix += h->count[len];
-        }
-        fc += h->count[len];
-        fc <<= 1;
-    }
-#endif
-            
-    return left;  // 0 for complete set, positive for incomplete
-}
+// Helper function implementations
+namespace pkware_internal {
 
-// Decode a code from the stream
-static int decode(PKWAREWork* s, HuffmanTable* h) {
-    int len;            // current code length
-    int code;           // current code  
-    int first;          // first code of length len
-    int count;          // number of codes of length len
-    int index;          // index of first code of length len in symbol table
-    
-    code = first = index = 0;
-#ifdef PKWARE_DEBUG
-    std::cout << "\n[DECODE START]" << std::flush;
-#endif
-    for (len = 1; len <= MAXBITS; len++) {
-        uint32_t bit = GetBits(s, 1);
-        if (bit == 0xFFFFFFFF) return -9;  // Read error
-#ifdef PKWARE_DEBUG
-        std::cout << "\n  len=" << len << " bit=" << bit << " inv=" << (bit^1);
-#endif
-        // Build code by shifting left first, then adding inverted bit
-        code <<= 1;
-        code |= (bit ^ 1);  // Invert bit for canonical Huffman decode
-#ifdef PKWARE_DEBUG
-        std::cout << " code=" << code << " first=" << first << " count[" << len << "]=" << h->count[len];
-        
-        // Debug: show what symbols would be decoded for codes at this length
-        if (h->count[len] > 0 && code >= first && code < first + h->count[len]) {
-            int dbg_idx = index + (code - first);
-            std::cout << " [would decode to symbol " << h->symbol[dbg_idx] << "]";
-        }
-#endif
-        count = h->count[len];
-        if (code - count < first) {  // if code is in this length
-#ifdef PKWARE_DEBUG
-            int symbol_index = index + (code - first);
-            int symbol = h->symbol[symbol_index];
-            std::cout << " [decode: code=" << code 
-                      << " at len=" << len
-                      << " index=" << index
-                      << " first=" << first
-                      << " symbol_index=" << symbol_index
-                      << " -> symbol " << symbol << " '" << (char)symbol << "']";
-#endif
-            return h->symbol[index + (code - first)];
-        }
-        index += count;             // else update for next length
-        first += count;
-        first <<= 1;
-    }
-#ifdef PKWARE_DEBUG
-    std::cout << " ERROR]";
-#endif
-    return -9;  // Ran out of codes
-}
-
-// Get bits from input stream
-static uint32_t GetBits(PKWAREWork* work, uint32_t bits_wanted) {
-    uint32_t result = 0;
-    
-    // Fill bit buffer if needed
-    while (work->extra_bits < bits_wanted) {
-        if (work->in_pos >= work->in_end) {
-            return 0xFFFFFFFF; // No more input
-        }
-        
-        work->bit_buff |= (*work->in_pos++) << work->extra_bits;
-        work->extra_bits += 8;
-    }
-    
-    // Extract wanted bits
-    result = work->bit_buff & ((1 << bits_wanted) - 1);
-    work->bit_buff >>= bits_wanted;
-    work->extra_bits -= bits_wanted;
-    
-#ifdef PKWARE_DEBUG
-    if (bits_wanted > 1) {
-        std::cout << " [GetBits(" << bits_wanted << ")=" << result << "]";
-    }
-#endif
-    
-    return result;
-}
-
-// Decompress data using PKWARE DCL
-bool PKWAREExplode(const std::vector<uint8_t>& compressed_data,
-                   std::vector<uint8_t>& output,
-                   size_t expected_size) {
-#ifdef PKWARE_DEBUG
-    std::cout << "\n=== PKWARE DEBUG ===\n";
-    std::cout << "Input size: " << compressed_data.size() << " bytes\n";
-    std::cout << "Expected output size: " << expected_size << " bytes\n";
-    std::cout << "First 8 bytes: ";
-    for (size_t i = 0; i < std::min((size_t)8, compressed_data.size()); i++) {
-        std::cout << std::hex << (int)compressed_data[i] << " ";
-    }
-    std::cout << std::dec << std::endl;
-#endif
-    
+bool validateAndParseHeader(const std::vector<uint8_t>& compressed_data, PKWAREWork& work) {
     if (compressed_data.size() < 2) {
-#ifdef PKWARE_DEBUG
-        std::cout << "ERROR: Not enough data for header\n";
-#endif
         return false; // Not enough data for header
     }
-    
-    PKWAREWork work;
-    memset(&work, 0, sizeof(work));
     
     // Initialize work structure
     work.in_buff = compressed_data.data();
     work.in_pos = work.in_buff;
     work.in_end = work.in_buff + compressed_data.size();
     
-    // Debug: Print the first few bytes to understand the format
-#ifdef PKWARE_DEBUG
-    std::cout << "Compressed data header bytes:\n";
-    for (size_t i = 0; i < std::min((size_t)16, compressed_data.size()); i++) {
-        std::cout << "  [" << i << "] = 0x" << std::hex << std::setw(2) << std::setfill('0') 
-                  << (int)compressed_data[i] << std::dec;
-        if (i < 2) {
-            if (i == 0) std::cout << " (ctype)";
-            if (i == 1) std::cout << " (dict_size_encoded)";
-        }
-        std::cout << "\n";
-    }
-#endif
+    // Read compression type and dictionary size
+    work.ctype = *work.in_pos++;
+    uint8_t dict_size_encoded = *work.in_pos++;
     
+    // Validate dictionary size (encoded value should be 4, 5, or 6)
+    if (dict_size_encoded < 4 || dict_size_encoded > 6) {
+        return false;
+    }
+    
+    work.dsize_bits = dict_size_encoded;
+    work.dsize_mask = (1 << work.dsize_bits) - 1;
+    
+    return true;
+}
+
+bool handleTestDataFormat(const std::vector<uint8_t>& compressed_data, 
+                         std::vector<uint8_t>& output, 
+                         size_t expected_size) {
     // Check if this looks like test data (simplified format)
-    // Test data starts with control bytes (0xFF for all literals)
     if (compressed_data.size() > 0 && compressed_data[0] == 0xFF) {
-        // Handle simplified test format
         output.clear();
         output.reserve(expected_size);
         
@@ -460,36 +254,194 @@ bool PKWAREExplode(const std::vector<uint8_t>& compressed_data,
         return output.size() == expected_size;
     }
     
-    // Read compression type and dictionary size
-    work.ctype = *work.in_pos++;
-    uint8_t dict_size_encoded = *work.in_pos++;
-    
-#ifdef PKWARE_DEBUG
-    std::cout << "Header: ctype=" << (int)work.ctype 
-              << " dict_size_encoded=" << (int)dict_size_encoded << "\n";
-#endif
-    
-    // Validate dictionary size (encoded value should be 4, 5, or 6)
-    if (dict_size_encoded < 4 || dict_size_encoded > 6) {
-        return false;
-    }
-    
-    work.dsize_bits = dict_size_encoded;  // Use raw dictionary size bits (4-6)
-    work.dsize_mask = (1 << work.dsize_bits) - 1;
-    
-    // Check if literals are coded (0 = uncoded, 1 = coded)
-    bool literals_coded = (work.ctype == 1);
-    
-    // Build Huffman table for coded literals
-    HuffmanTable litcode;
+    return false; // Not test data format
+}
+
+bool buildHuffmanTable(PKWAREWork& work, bool literals_coded, HuffmanTable& litcode) {
     if (literals_coded) {
-#ifdef PKWARE_DEBUG
-        std::cout << "\n*** BUILDING HUFFMAN TABLE ***\n" << std::flush;
-#endif
         // Build Huffman decoding table from compact representation
         if (construct(&litcode, litlen, sizeof(litlen)) < 0) {
             return false;  // Invalid Huffman code
         }
+    }
+    return true;
+}
+
+bool processLiteral(PKWAREWork& work, bool literals_coded, const HuffmanTable& litcode) {
+    int lit_code;
+    
+    if (literals_coded) {
+        // Use Huffman decoding
+        lit_code = decode(&work, const_cast<HuffmanTable*>(&litcode));
+        if (lit_code < 0) return false;  // Decoding error
+    } else {
+        // Uncoded: read 8 bits directly
+        lit_code = GetBits(&work, 8);
+        if (lit_code == 0xFFFFFFFF) return false;
+    }
+    
+    // Store literal byte
+    if (work.out_pos < work.out_end) {
+        *work.out_pos++ = (uint8_t)lit_code;
+    }
+    
+    return true;
+}
+
+uint32_t getBinaryModeLength(PKWAREWork& work) {
+    uint32_t len_code = GetBits(&work, 8);
+    if (len_code == 0xFFFFFFFF) return 0;
+    
+    // Convert length code to actual match length
+    if (len_code < 8) {
+        return len_code + 2;  // Short lengths: 2-9
+    } else if (len_code < 16) {
+        return (len_code - 8) + 10;  // Medium lengths: 10-17
+    } else if (len_code < 32) {
+        return (len_code - 16) + 18;  // Longer lengths: 18-33
+    } else {
+        // For very large codes, use a simpler mapping
+        return 2 + (len_code % 8);  // Conservative fallback: 2-9
+    }
+}
+
+uint32_t getASCIIModeLength(PKWAREWork& work, const HuffmanTable& litcode, bool& is_literal) {
+    int next_literal = decode(&work, const_cast<HuffmanTable*>(&litcode));
+    if (next_literal < 0) return 0;  // Decoding error
+    
+    if (next_literal >= 0x100) {
+        // This is a match length code
+        is_literal = false;
+        return next_literal - 0xFE;  // StormLib: rep_length = next_literal - 0xFE
+    } else {
+        // This should be treated as a literal
+        is_literal = true;
+        return next_literal;
+    }
+}
+
+uint32_t calculateDistance(PKWAREWork& work, uint32_t length, uint32_t dist_pos_code) {
+    uint32_t distance;
+    
+    if (length == 2) {
+        // Special case for length 2: only use 2 extra bits
+        uint32_t extra_bits = GetBits(&work, 2);
+        if (extra_bits == 0xFFFFFFFF) return 0;
+        distance = (dist_pos_code << 2) | extra_bits;
+    } else {
+        // Normal case: use dsize_bits extra bits  
+        uint32_t extra_bits = GetBits(&work, work.dsize_bits);
+        if (extra_bits == 0xFFFFFFFF) return 0;
+        distance = (dist_pos_code << work.dsize_bits) | extra_bits;
+    }
+    
+    // Add 1 to distance (StormLib does this)
+    return distance + 1;
+}
+
+bool performCopy(PKWAREWork& work, uint32_t distance, uint32_t length) {
+    size_t current_pos = work.out_pos - work.out_buff;
+    uint8_t* copy_src;
+    
+    if (distance > current_pos) {
+        // Distance goes before start of output buffer
+        // In PKWARE DCL, this wraps to a pre-initialized pattern
+        static uint8_t pre_init_buffer[4096];
+        static bool pre_init_done = false;
+        if (!pre_init_done) {
+            memset(pre_init_buffer, 0x20, sizeof(pre_init_buffer));
+            pre_init_done = true;
+        }
+        
+        // Calculate position in pre-init buffer
+        size_t pre_init_offset = distance - current_pos;
+        if (pre_init_offset > sizeof(pre_init_buffer)) {
+            return false;  // Invalid distance
+        }
+        copy_src = pre_init_buffer + sizeof(pre_init_buffer) - pre_init_offset;
+    } else {
+        // Normal case - copy from within output buffer
+        copy_src = work.out_pos - distance;
+    }
+    
+    // Copy bytes
+    while (length-- && work.out_pos < work.out_end) {
+        *work.out_pos++ = *copy_src++;
+    }
+    
+    return true;
+}
+
+bool processLengthDistancePair(PKWAREWork& work, bool literals_coded, const HuffmanTable& litcode) {
+    uint32_t length;
+    
+    if (literals_coded) {
+        // ASCII mode: Use Huffman decoding to get length code
+        bool is_literal;
+        uint32_t result = getASCIIModeLength(work, litcode, is_literal);
+        if (result == 0) return false;  // Error
+        
+        if (is_literal) {
+            // This should be treated as a literal even though flag=1
+            if (work.out_pos < work.out_end) {
+                *work.out_pos++ = (uint8_t)result;
+            }
+            return true;
+        } else {
+            length = result;
+        }
+    } else {
+        // Binary mode: flag=1 always means match
+        length = getBinaryModeLength(work);
+        if (length == 0) return false;
+    }
+    
+    if (length > 0) {
+        // Get distance position code using DistPosCodes table
+        uint32_t bit_pattern = work.bit_buff & 0xFF;
+        uint32_t dist_pos_code = DistPosCodes[bit_pattern];
+        
+        // Advance the bit buffer by the appropriate amount
+        uint32_t bits_to_consume = DistBits[dist_pos_code];
+        GetBits(&work, bits_to_consume);
+        
+        // Calculate distance
+        uint32_t distance = calculateDistance(work, length, dist_pos_code);
+        if (distance == 0) return false;
+        
+        // Perform copy operation
+        return performCopy(work, distance, length);
+    }
+    
+    return true;
+}
+
+} // namespace pkware_internal
+
+// Main decompression function (refactored)
+bool PKWAREExplode(const std::vector<uint8_t>& compressed_data,
+                   std::vector<uint8_t>& output,
+                   size_t expected_size) {
+    // Handle test data format first
+    if (pkware_internal::handleTestDataFormat(compressed_data, output, expected_size)) {
+        return true;
+    }
+    
+    PKWAREWork work;
+    memset(&work, 0, sizeof(work));
+    
+    // Validate and parse header
+    if (!pkware_internal::validateAndParseHeader(compressed_data, work)) {
+        return false;
+    }
+    
+    // Check if literals are coded
+    bool literals_coded = (work.ctype == 1);
+    
+    // Build Huffman table for coded literals
+    HuffmanTable litcode;
+    if (!pkware_internal::buildHuffmanTable(work, literals_coded, litcode)) {
+        return false;
     }
     
     // Allocate output buffer
@@ -499,185 +451,20 @@ bool PKWAREExplode(const std::vector<uint8_t>& compressed_data,
     work.out_end = work.out_buff + expected_size;
     
     // Main decompression loop
-    int decompressed_count = 0;
     while (work.out_pos < work.out_end) {
-#ifdef PKWARE_DEBUG
-        std::cout << "\n[BEFORE FLAG] bit_buff=0x" << std::hex << work.bit_buff 
-                  << " extra_bits=" << std::dec << work.extra_bits
-                  << " in_pos offset=" << (work.in_pos - work.in_buff) << std::flush;
-#endif
-        
         // Get flag bit
         uint32_t flag = GetBits(&work, 1);
         if (flag == 0xFFFFFFFF) break;
         
-#ifdef PKWARE_DEBUG
-        size_t output_pos = work.out_pos - work.out_buff;
-        std::cout << "\nPosition " << output_pos << ": flag=" << flag;
-        std::cout << " (bit_buff=0x" << std::hex << work.bit_buff 
-                  << " extra_bits=" << std::dec << work.extra_bits << ")";
-#endif
-        
         if (flag) {
             // Flag=1: This is a length/distance pair (match)
-            uint32_t length;
-            
-            if (literals_coded) {
-                // ASCII mode: Use Huffman decoding to get length code
-                int next_literal = decode(&work, &litcode);
-                if (next_literal < 0) break;  // Decoding error
-                
-#ifdef PKWARE_DEBUG
-                std::cout << " next_literal=" << next_literal;
-#endif
-                
-                if (next_literal >= 0x100) {
-                    // This is a match length code
-                    length = next_literal - 0xFE;  // StormLib: rep_length = next_literal - 0xFE
-                } else {
-                    // This should be treated as a literal even though flag=1 in ASCII mode
-                    if (work.out_pos < work.out_end) {
-                        *work.out_pos++ = (uint8_t)next_literal;
-#ifdef PKWARE_DEBUG
-                        std::cout << " literal_via_flag='" << (char)next_literal << "' (0x" 
-                                  << std::hex << next_literal << std::dec << ")\n";
-#endif
-                    }
-                    continue;
-                }
-            } else {
-                // Binary mode: flag=1 always means match, length is encoded differently
-                // Read length directly using the LenCode table approach
-                uint32_t len_code = GetBits(&work, 8);
-                if (len_code == 0xFFFFFFFF) break;
-                
-#ifdef PKWARE_DEBUG
-                std::cout << " len_code=" << len_code;
-#endif
-                
-                // Convert length code to actual match length
-                // In PKWARE binary mode, length is encoded more simply
-                if (len_code < 8) {
-                    length = len_code + 2;  // Short lengths: 2-9
-                } else if (len_code < 16) {
-                    length = (len_code - 8) + 10;  // Medium lengths: 10-17
-                } else if (len_code < 32) {
-                    length = (len_code - 16) + 18;  // Longer lengths: 18-33
-                } else {
-                    // For very large codes, use a simpler mapping
-                    // This might need to be adjusted based on actual PKWARE spec
-                    length = 2 + (len_code % 8);  // Conservative fallback: 2-9
-                }
+            if (!pkware_internal::processLengthDistancePair(work, literals_coded, litcode)) {
+                break;
             }
-            
-#ifdef PKWARE_DEBUG
-            std::cout << " length=" << length;
-#endif
-            
-            if (length > 0) {
-                // Step 2: Get distance position code using DistPosCodes table
-                uint32_t bit_pattern = work.bit_buff & 0xFF;  // Use current buffer state
-                uint32_t dist_pos_code = DistPosCodes[bit_pattern];
-                
-                // Advance the bit buffer by the appropriate amount
-                // StormLib seems to consume bits based on the distance code
-                uint32_t bits_to_consume = DistBits[dist_pos_code];
-                GetBits(&work, bits_to_consume);
-                
-#ifdef PKWARE_DEBUG
-                std::cout << " bit_pattern=0x" << std::hex << bit_pattern 
-                          << std::dec << " dist_pos_code=" << dist_pos_code 
-                          << " bits_consumed=" << bits_to_consume;
-#endif
-                
-                // Step 3: Calculate distance using StormLib algorithm
-                uint32_t distance;
-                if (length == 2) {
-                    // Special case for length 2: only use 2 extra bits
-                    uint32_t extra_bits = GetBits(&work, 2);
-                    if (extra_bits == 0xFFFFFFFF) break;
-                    distance = (dist_pos_code << 2) | extra_bits;
-                } else {
-                    // Normal case: use dsize_bits extra bits  
-                    uint32_t extra_bits = GetBits(&work, work.dsize_bits);
-                    if (extra_bits == 0xFFFFFFFF) break;
-                    distance = (dist_pos_code << work.dsize_bits) | extra_bits;
-                }
-                
-                // Add 1 to distance (StormLib does this)
-                distance++;
-                
-#ifdef PKWARE_DEBUG
-                std::cout << " final_distance=" << distance;
-#endif
-                
-                // Validate distance
-                size_t current_pos = work.out_pos - work.out_buff;
-                
-                // Handle distance that goes before the start of output buffer
-                // PKWARE DCL uses a sliding window that can wrap around
-                uint8_t* copy_src;
-                
-                if (distance > current_pos) {
-                    // Distance goes before start of output buffer
-                    // In PKWARE DCL, this wraps to a pre-initialized pattern
-                    // For Diablo II, the dictionary is often initialized with spaces (0x20)
-#ifdef PKWARE_DEBUG
-                    std::cout << " WRAP: distance=" << distance 
-                              << " exceeds position=" << current_pos 
-                              << " (wrap to pre-init)\n";
-#endif
-                    // For now, treat as spaces (0x20) which is common in text files
-                    // This is a temporary fix - we should investigate the exact pattern
-                    static uint8_t pre_init_buffer[4096];
-                    static bool pre_init_done = false;
-                    if (!pre_init_done) {
-                        memset(pre_init_buffer, 0x20, sizeof(pre_init_buffer));
-                        pre_init_done = true;
-                    }
-                    
-                    // Calculate position in pre-init buffer
-                    size_t pre_init_offset = distance - current_pos;
-                    if (pre_init_offset > sizeof(pre_init_buffer)) {
-                        // This shouldn't happen with valid PKWARE data
-                        return false;
-                    }
-                    copy_src = pre_init_buffer + sizeof(pre_init_buffer) - pre_init_offset;
-                } else {
-                    // Normal case - copy from within output buffer
-                    copy_src = work.out_pos - distance;
-                }
-#ifdef PKWARE_DEBUG
-                std::cout << " match: distance=" << distance << " length=" << length << "\n";
-#endif
-                
-                // Copy bytes
-                while (length-- && work.out_pos < work.out_end) {
-                    *work.out_pos++ = *copy_src++;
-                }
-            }
-            
         } else {
             // Flag=0: This is a literal byte
-            int lit_code;
-            
-            if (literals_coded) {
-                // Use Huffman decoding
-                lit_code = decode(&work, &litcode);
-                if (lit_code < 0) break;  // Decoding error
-            } else {
-                // Uncoded: read 8 bits directly
-                lit_code = GetBits(&work, 8);
-                if (lit_code == 0xFFFFFFFF) break;
-            }
-            
-            // Store literal byte
-            if (work.out_pos < work.out_end) {
-                *work.out_pos++ = (uint8_t)lit_code;
-#ifdef PKWARE_DEBUG
-                std::cout << " literal='" << (char)lit_code << "' (0x" 
-                          << std::hex << lit_code << std::dec << ")\n";
-#endif
+            if (!pkware_internal::processLiteral(work, literals_coded, litcode)) {
+                break;
             }
         }
     }
@@ -690,7 +477,122 @@ bool PKWAREExplode(const std::vector<uint8_t>& compressed_data,
         output.resize(actual_size);
     }
     
-    return actual_size > 0;  // Return true if we decompressed anything
+    return actual_size > 0;
+}
+
+// Keep the original helper functions for compatibility
+// (GetBits, decode, construct implementations from original file)
+
+// Get bits from input stream
+static uint32_t GetBits(PKWAREWork* work, uint32_t bits_wanted) {
+    uint32_t result = 0;
+    
+    // Fill bit buffer if needed
+    while (work->extra_bits < bits_wanted) {
+        if (work->in_pos >= work->in_end) {
+            return 0xFFFFFFFF; // No more input
+        }
+        
+        work->bit_buff |= (*work->in_pos++) << work->extra_bits;
+        work->extra_bits += 8;
+    }
+    
+    // Extract wanted bits
+    result = work->bit_buff & ((1 << bits_wanted) - 1);
+    work->bit_buff >>= bits_wanted;
+    work->extra_bits -= bits_wanted;
+    
+    return result;
+}
+
+// Build Huffman decoding table from code lengths (compact representation)
+static int construct(HuffmanTable* h, const unsigned char* rep, int n) {
+    int symbol;
+    int len;
+    int left;
+    short offs[MAXBITS + 1];
+    unsigned char length[512];  // Expanded lengths
+    int ncode = 0;
+    
+    // Expand the compact representation
+    symbol = 0;
+    do {
+        len = *rep++;
+        left = (len >> 4) + 1;
+        len &= 15;
+        
+        do {
+            length[symbol++] = len;
+        } while (--left);
+    } while (--n);
+    
+    ncode = symbol;
+    
+    // Count the number of codes of each length
+    for (len = 0; len <= MAXBITS; len++)
+        h->count[len] = 0;
+        
+    for (symbol = 0; symbol < ncode; symbol++) {
+        len = length[symbol];
+        if (len > MAXBITS) 
+            return -1;
+        h->count[len]++;
+    }
+    
+    if (h->count[0] == ncode)
+        return 0;
+        
+    // Check for an over-subscribed or incomplete set of lengths
+    left = 1;
+    for (len = 1; len <= MAXBITS; len++) {
+        left <<= 1;
+        left -= h->count[len];
+        if (left < 0) 
+            return -1;
+    }
+    
+    // Generate offsets into symbol table for each length
+    offs[1] = 0;
+    for (len = 1; len < MAXBITS; len++)
+        offs[len + 1] = offs[len] + h->count[len];
+        
+    // Put symbols in table sorted by length, then by symbol value
+    for (len = 1; len <= MAXBITS; len++) {
+        for (symbol = 0; symbol < ncode; symbol++) {
+            if (length[symbol] == len) {
+                h->symbol[offs[len]++] = symbol;
+            }
+        }
+    }
+            
+    return left;
+}
+
+// Decode a code from the stream
+static int decode(PKWAREWork* s, HuffmanTable* h) {
+    int len;
+    int code;
+    int first;
+    int count;
+    int index;
+    
+    code = first = index = 0;
+    for (len = 1; len <= MAXBITS; len++) {
+        uint32_t bit = GetBits(s, 1);
+        if (bit == 0xFFFFFFFF) return -9;
+        
+        code <<= 1;
+        code |= (bit ^ 1);
+        
+        count = h->count[len];
+        if (code - count < first) {
+            return h->symbol[index + (code - first)];
+        }
+        index += count;
+        first += count;
+        first <<= 1;
+    }
+    return -9;
 }
 
 } // namespace utils
