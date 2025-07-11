@@ -150,6 +150,7 @@ set(TEST_SOURCES
     android/test_apk_asset_loader.cpp
     android/android_build_validator_test.cpp
     android/android_sdk_setup_test.cpp
+    android/android_apk_build_test.cpp
     performance/test_performance_metrics.cpp
     performance/test_game_performance.cpp
     performance/memory_monitor_test.cpp
