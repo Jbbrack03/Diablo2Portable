@@ -127,19 +127,16 @@ bool ExtractionWizardUI::launchAssetBrowser(const std::string& assetPath) {
 }
 
 VerificationResult ExtractionWizardUI::verifyExtractedAssets(const std::string& assetPath) {
-    // Simple implementation - create a basic verification result
-    VerificationResult result;
-    
     if (assetPath.empty()) {
+        VerificationResult result;
         result.isComplete = false;
         result.validatedFiles = 0;
         return result;
     }
     
-    // For now, return a successful verification
-    result.isComplete = true;
-    result.validatedFiles = 0;
-    return result;
+    // Create an AssetVerifier and perform full verification
+    AssetVerifier verifier;
+    return verifier.fullVerification(assetPath);
 }
 
 } // namespace d2

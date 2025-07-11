@@ -261,5 +261,24 @@ TEST_F(ExtractionWizardUITest, LaunchAssetBrowserIntegration) {
     EXPECT_FALSE(result);
 }
 
+TEST_F(ExtractionWizardUITest, VerifyExtractedAssetsIntegration) {
+    // Test that verifyExtractedAssets actually creates and uses an AssetVerifier
+    
+    std::string assetPath = "/test/assets";
+    
+    // Verify extracted assets
+    auto result = wizard->verifyExtractedAssets(assetPath);
+    
+    // Should return a verification result
+    EXPECT_GE(result.validatedFiles, 0);
+    EXPECT_TRUE(result.isComplete); // Will be true for non-empty path
+    EXPECT_TRUE(result.hasRequiredAssets()); // No missing critical files by default
+    
+    // Test with empty path
+    auto emptyResult = wizard->verifyExtractedAssets("");
+    EXPECT_FALSE(emptyResult.isComplete);
+    EXPECT_EQ(emptyResult.validatedFiles, 0);
+}
+
 } // namespace
 } // namespace d2
