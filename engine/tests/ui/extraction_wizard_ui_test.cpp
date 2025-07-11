@@ -186,5 +186,41 @@ TEST_F(ExtractionWizardUITest, CanVerifyExtractedAssets) {
     EXPECT_TRUE(result.hasRequiredAssets()); // Should have required assets
 }
 
+TEST_F(ExtractionWizardUITest, CompletionStepInfoShowsPostExtractionActions) {
+    // Test that the completion step shows available post-extraction actions
+    
+    // Navigate to the completion step
+    wizard->nextStep(); // FILE_SELECTION
+    wizard->nextStep(); // EXTRACTION_OPTIONS
+    wizard->nextStep(); // PROGRESS
+    wizard->nextStep(); // COMPLETION
+    
+    auto stepInfo = wizard->getCurrentStepInfo();
+    
+    // Verify the instructions include post-extraction actions
+    EXPECT_GE(stepInfo.instructions.size(), 3);
+    
+    // Check that specific actions are mentioned
+    bool hasBrowseAssets = false;
+    bool hasVerifyIntegrity = false;
+    bool hasFinish = false;
+    
+    for (const auto& instruction : stepInfo.instructions) {
+        if (instruction.find("Browse Assets") != std::string::npos) {
+            hasBrowseAssets = true;
+        }
+        if (instruction.find("Verify Integrity") != std::string::npos) {
+            hasVerifyIntegrity = true;
+        }
+        if (instruction.find("Finish") != std::string::npos) {
+            hasFinish = true;
+        }
+    }
+    
+    EXPECT_TRUE(hasBrowseAssets);
+    EXPECT_TRUE(hasVerifyIntegrity);
+    EXPECT_TRUE(hasFinish);
+}
+
 } // namespace
 } // namespace d2
