@@ -48,6 +48,8 @@ public:
     
     // Extraction summary functionality
     ExtractionSummary getExtractionSummary() const;
+    void updateExtractionSummary(int filesExtracted, int filesProcessed, 
+                                std::chrono::seconds timeTaken, size_t storageUsed);
     
     // Asset browser integration
     bool launchAssetBrowser(const std::string& assetPath);
@@ -68,6 +70,7 @@ public:
 private:
     ExtractionWizardStep currentStep;
     onboarding::ExtractionOptions extractionOptions;
+    ExtractionSummary extractionSummary;
 };
 
 } // namespace d2

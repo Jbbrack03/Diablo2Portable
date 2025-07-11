@@ -222,5 +222,26 @@ TEST_F(ExtractionWizardUITest, CompletionStepInfoShowsPostExtractionActions) {
     EXPECT_TRUE(hasFinish);
 }
 
+TEST_F(ExtractionWizardUITest, CanUpdateExtractionSummary) {
+    // Test that we can update the extraction summary with actual results
+    
+    // Get initial summary
+    auto summary = wizard->getExtractionSummary();
+    EXPECT_EQ(summary.totalFilesExtracted, 0);
+    EXPECT_EQ(summary.totalFilesProcessed, 0);
+    
+    // Update the summary with extraction results
+    wizard->updateExtractionSummary(1500, 1520, std::chrono::seconds(180), 1024 * 1024 * 350);
+    
+    // Get updated summary
+    summary = wizard->getExtractionSummary();
+    EXPECT_EQ(summary.totalFilesExtracted, 1500);
+    EXPECT_EQ(summary.totalFilesProcessed, 1520);
+    EXPECT_EQ(summary.timeTaken.count(), 180);
+    EXPECT_EQ(summary.storageUsed, 1024 * 1024 * 350);
+    EXPECT_TRUE(summary.successful);
+    EXPECT_FALSE(summary.hasErrors());
+}
+
 } // namespace
 } // namespace d2

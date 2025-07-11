@@ -3,6 +3,12 @@
 namespace d2 {
 
 ExtractionWizardUI::ExtractionWizardUI() : currentStep(ExtractionWizardStep::WELCOME) {
+    // Initialize extraction summary with default values
+    extractionSummary.totalFilesExtracted = 0;
+    extractionSummary.totalFilesProcessed = 0;
+    extractionSummary.timeTaken = std::chrono::seconds(0);
+    extractionSummary.storageUsed = 0;
+    extractionSummary.successful = true;
 }
 
 ExtractionWizardUI::~ExtractionWizardUI() = default;
@@ -93,13 +99,16 @@ float ExtractionWizardUI::getOverallProgress() const {
 }
 
 ExtractionSummary ExtractionWizardUI::getExtractionSummary() const {
-    ExtractionSummary summary;
-    summary.totalFilesExtracted = 0;
-    summary.totalFilesProcessed = 0;
-    summary.timeTaken = std::chrono::seconds(0);
-    summary.storageUsed = 0;
-    summary.successful = true;
-    return summary;
+    return extractionSummary;
+}
+
+void ExtractionWizardUI::updateExtractionSummary(int filesExtracted, int filesProcessed, 
+                                                std::chrono::seconds timeTaken, size_t storageUsed) {
+    extractionSummary.totalFilesExtracted = filesExtracted;
+    extractionSummary.totalFilesProcessed = filesProcessed;
+    extractionSummary.timeTaken = timeTaken;
+    extractionSummary.storageUsed = storageUsed;
+    extractionSummary.successful = true;
 }
 
 bool ExtractionWizardUI::launchAssetBrowser(const std::string& assetPath) {
