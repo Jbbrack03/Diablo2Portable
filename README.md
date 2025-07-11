@@ -70,6 +70,8 @@ You must provide your own legally purchased Diablo II game files. The app includ
 
 For manual extraction, see `Docs/ASSET_EXTRACTION_GUIDE.md`
 
+**Important**: Some MPQ files in `vendor/mpq/` are placeholders. See [vendor/mpq/README_MPQ_STATUS.md](vendor/mpq/README_MPQ_STATUS.md) for details.
+
 ## Documentation
 
 - [Deployment Guide](Docs/DEPLOYMENT_GUIDE.md) - Detailed deployment instructions

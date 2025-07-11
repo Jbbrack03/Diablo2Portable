@@ -375,7 +375,9 @@ During Phase 17 implementation, a TDD violation occurred:
 17. **Real OpenGL Draw Commands** - ✅ NEW: Actual glDrawElements implementation with full parameter tracking
 
 ### 🟡 **REMAINING IMPLEMENTATION:**
-1. **MPQ Archive System** - ⚠️ KNOWN ISSUE: All MPQ integration tests failing, cannot load game assets
+1. **MPQ Archive System** - ⚠️ KNOWN ISSUE: Some MPQ files in vendor/mpq/ are placeholders (d2data.mpq, d2exp.mpq, d2sfx.mpq)
+   - Integration tests skip gracefully when encountering placeholder files
+   - See vendor/mpq/README_MPQ_STATUS.md for full details
 2. **Production Polish** - ⚠️ TODO: Performance optimization, error handling, edge cases
 
 ### ✅ **Working Features:**

@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 #include "core/asset_manager.h"
 #include "utils/stormlib_mpq_loader.h"
+#include "utils/mpq_validator.h"
 #include <filesystem>
 #include <fstream>
 
@@ -45,14 +46,13 @@ protected:
             GTEST_SKIP() << "MPQ file is empty (0 bytes). Please copy valid Diablo II MPQ files to " << vendor_mpq_dir;
         }
         
-        // Check MPQ header signature
-        std::ifstream file(test_mpq_path.string(), std::ios::binary);
-        if (file.is_open()) {
-            uint32_t signature;
-            file.read(reinterpret_cast<char*>(&signature), sizeof(signature));
-            if (signature != 0x1A51504D) { // 'MPQ\x1A'
-                GTEST_SKIP() << "Invalid MPQ file format. Please copy valid Diablo II MPQ files to " << vendor_mpq_dir;
-            }
+        // Use MPQValidator to check if file is valid
+        auto validation = d2::utils::MPQValidator::validateMPQFile(test_mpq_path.string());
+        if (validation.isPlaceholder) {
+            GTEST_SKIP() << "MPQ file is a placeholder. " << validation.error;
+        }
+        if (!validation.isValid) {
+            GTEST_SKIP() << "Invalid MPQ file: " << validation.error << ". Please copy valid Diablo II MPQ files to " << vendor_mpq_dir;
         }
     }
     

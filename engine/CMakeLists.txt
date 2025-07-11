@@ -28,6 +28,7 @@ add_library(d2engine STATIC
     src/utils/security_utils.cpp
     src/utils/file_utils.cpp
     src/utils/validation_framework.cpp
+    src/utils/mpq_validator.cpp
     src/core/resource_manager.cpp
     src/sprites/dc6_parser.cpp
     src/core/asset_manager.cpp

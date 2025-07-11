@@ -96,6 +96,8 @@ set(TEST_SOURCES
     utils/pkware_test.cpp
     utils/huffman_decompress_test.cpp
     utils/sparse_decompress_test.cpp
+    utils/mpq_validator_test.cpp
+    utils/mpq_validator_vendor_test.cpp
     test_pkware_explode_refactor.cpp
     test_file_utils.cpp
     test_menu_screen_refactor.cpp
