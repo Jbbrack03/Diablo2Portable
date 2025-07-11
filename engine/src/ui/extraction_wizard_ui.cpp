@@ -112,14 +112,18 @@ void ExtractionWizardUI::updateExtractionSummary(int filesExtracted, int filesPr
 }
 
 bool ExtractionWizardUI::launchAssetBrowser(const std::string& assetPath) {
-    // Simple implementation - just verify the path is not empty
+    // Verify the path is not empty
     if (assetPath.empty()) {
         return false;
     }
     
-    // For now, just return true indicating successful launch
-    // In a real implementation, this would initialize and show the asset browser
-    return true;
+    // Create and initialize an AssetBrowserBackend
+    AssetBrowserBackend browser;
+    bool initialized = browser.initialize(assetPath);
+    
+    // If initialization succeeds, the browser is ready to use
+    // In a real implementation, this would show the asset browser UI
+    return initialized;
 }
 
 VerificationResult ExtractionWizardUI::verifyExtractedAssets(const std::string& assetPath) {

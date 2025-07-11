@@ -243,5 +243,23 @@ TEST_F(ExtractionWizardUITest, CanUpdateExtractionSummary) {
     EXPECT_FALSE(summary.hasErrors());
 }
 
+TEST_F(ExtractionWizardUITest, LaunchAssetBrowserIntegration) {
+    // Test that launchAssetBrowser actually creates and initializes an AssetBrowserBackend
+    
+    std::string assetPath = "/test/assets";
+    
+    // Launch the asset browser
+    bool result = wizard->launchAssetBrowser(assetPath);
+    EXPECT_TRUE(result);
+    
+    // The implementation should create and initialize an AssetBrowserBackend
+    // For now we just verify that the method returns true for valid paths
+    // and false for empty paths
+    
+    // Test with empty path
+    result = wizard->launchAssetBrowser("");
+    EXPECT_FALSE(result);
+}
+
 } // namespace
 } // namespace d2
