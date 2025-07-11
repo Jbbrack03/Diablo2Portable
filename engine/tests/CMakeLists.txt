@@ -194,6 +194,7 @@ set(TEST_SOURCES
     integration/test_mpq_file_validation.cpp
     integration/test_mock_mpq_integration.cpp
     integration/critical_systems_validation_test.cpp
+    integration/asset_pipeline_repair_test.cpp
     meta/test_count_validator_test.cpp
     meta/phase_completion_validator_test.cpp
     meta/phase_audit_test.cpp
