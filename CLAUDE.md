@@ -4,14 +4,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## 🚨 **PROJECT STATUS UPDATE (January 2025)**
 
-**PROJECT STATUS: PHASES 0-37.1 COMPLETE - PHASES 37.2-40 PENDING FOR FULL COMPLETION**
+**PROJECT STATUS: PHASES 0-37.2 COMPLETE - PHASES 37.3-40 PENDING FOR FULL COMPLETION**
 
-Major milestone achieved - Phases 0-37.1 of development are now complete:
+Major milestone achieved - Phases 0-37.2 of development are now complete:
 
 - ✅ **Phases 1-30 COMPLETE** - Core engine and OpenGL pipeline finished
 - ✅ **Phases 31-35 COMPLETE** - Asset extraction system fully implemented
 - ✅ **Phase 36 COMPLETE** - Critical bug fixes applied, all tests passing
 - ✅ **Phase 37.1 COMPLETE** - Documentation accuracy verified, automated test count validation added
+- ✅ **Phase 37.2 COMPLETE** - MPQ file status clarified, placeholder detection implemented
 - ✅ **JNI BRIDGE FIXED** - Android app now creates functional GameEngine instances
 - ✅ **OPENGL RENDERING COMPLETE** - Full OpenGL ES 3.0 pipeline with all features
 - ✅ **INPUT CONNECTED** - Touch/gamepad inputs now properly forwarded to engine
@@ -332,8 +333,8 @@ During Phase 17 implementation, a TDD violation occurred:
 - **Integration Testing**: ✅ COMPLETE - Real MPQ integration tests now passing with authentic Diablo II files ✅ VERIFIED
 - **Total Source Files**: 172+ (C++ engine implementation + onboarding + Android UI + UX features)  
 - **Lines of Code**: ~38,400+ (core engine + complete OpenGL pipeline + onboarding + Android UI + UX + comprehensive asset extraction + workflow integration)
-- **Phases Completed**: 36 of 40 (Phases 0-36 complete, Phases 37-40 pending)
-- **Project Status**: **⏳ NEAR COMPLETE** - PHASES 0-36 FINISHED! Real OpenGL ES 3.0 shader compilation, texture operations, VBO operations, draw commands, comprehensive asset extraction, unified extraction workflow, extraction wizard UI, advanced options, help system, post-extraction features, and all critical bugs fixed. Phases 37-40 pending for documentation accuracy and production readiness.
+- **Phases Completed**: 37.2 of 40 (Phases 0-37.2 complete, Phases 37.3-40 pending)
+- **Project Status**: **⏳ NEAR COMPLETE** - PHASES 0-37.2 FINISHED! Real OpenGL ES 3.0 shader compilation, texture operations, VBO operations, draw commands, comprehensive asset extraction, unified extraction workflow, extraction wizard UI, advanced options, help system, post-extraction features, MPQ validation system, and all critical bugs fixed. Phases 37.3-40 pending for final documentation and production readiness.
 - **Asset Extraction**: ✅ REAL MPQ INTEGRATION - Tests now use authentic Diablo II MPQ files (d2speech.mpq) ✅ VERIFIED
 - **Test Suite Health**: ✅ All tests pass or skip gracefully - Zero failing tests ✅ VERIFIED
 - **Performance**: ✅ 160 FPS with 100 entities (exceeds 60 FPS requirement)
@@ -1333,7 +1334,7 @@ These phases have successfully addressed all gaps in asset extraction to properl
 
 ## 🚧 PROJECT NEAR COMPLETION
 
-Phases 0-36 of the TDD Implementation Plan have been successfully completed as of January 2025. The Diablo II Android port project has achieved:
+Phases 0-37.2 of the TDD Implementation Plan have been successfully completed as of January 2025. The Diablo II Android port project has achieved:
 
 ### Core Achievements:
 - ✅ **773 comprehensive unit tests** with 100% success rate (760 passing, 13 skipped, 0 failing)
