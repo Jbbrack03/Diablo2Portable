@@ -85,6 +85,100 @@ public:
             cache.erase(oldest);
         }
     }
+    
+    // Helper methods for loadSprite refactoring
+    std::shared_ptr<sprites::DC6Sprite> checkSpriteCache(const std::string& relative_path) {
+        auto cache_it = cache.find(relative_path);
+        if (cache_it != cache.end() && cache_it->second.sprite) {
+            updateLastAccessed(relative_path);
+            return cache_it->second.sprite;
+        }
+        return nullptr;
+    }
+    
+    std::unique_ptr<sprites::DC6Sprite> loadSpriteFromMPQ(const std::string& relative_path) {
+        if (!use_mpq) {
+            return nullptr;
+        }
+        
+        // Convert forward slashes to backslashes for MPQ compatibility
+        std::string mpq_path = relative_path;
+        std::replace(mpq_path.begin(), mpq_path.end(), '/', '\\');
+        
+        sprites::DC6Parser parser;
+        
+        // Try each MPQ loader
+        for (const auto& loader : mpq_loaders) {
+            std::vector<uint8_t> data;
+            if (loader->extractFile(mpq_path, data)) {
+                auto sprite = parser.parseData(data);
+                if (sprite) {
+                    return sprite;
+                }
+            }
+        }
+        
+        return nullptr;
+    }
+    
+    std::unique_ptr<sprites::DC6Sprite> loadSpriteFromFallback(const std::string& relative_path) {
+        if (fallback_path.empty()) {
+            return nullptr;
+        }
+        
+        std::string fallback_file = (std::filesystem::path(fallback_path) / relative_path).string();
+        if (std::filesystem::exists(fallback_file)) {
+            sprites::DC6Parser parser;
+            return parser.parseFile(fallback_file);
+        }
+        
+        return nullptr;
+    }
+    
+    std::unique_ptr<sprites::DC6Sprite> loadSpriteFromFilesystem(const std::string& relative_path) {
+        std::string full_path = resolveFilePath(relative_path);
+        if (std::filesystem::exists(full_path)) {
+            sprites::DC6Parser parser;
+            return parser.parseFile(full_path);
+        }
+        
+        return nullptr;
+    }
+    
+    size_t calculateSpriteMemorySize(const std::shared_ptr<sprites::DC6Sprite>& sprite) {
+        size_t memory_size = 1024; // Base overhead
+        
+        try {
+            uint32_t dirs = sprite->getDirectionCount();
+            uint32_t frames = sprite->getFramesPerDirection();
+            if (dirs > 0 && frames > 0) {
+                auto dc6_frame = sprite->getFrame(0, 0);
+                size_t frame_size = dc6_frame.width * dc6_frame.height * 4; // RGBA
+                memory_size += frame_size * dirs * frames;
+            }
+        } catch (...) {
+            // If there's any issue calculating size, just use base overhead
+            memory_size = 1024;
+        }
+        
+        return memory_size;
+    }
+    
+    void cacheSpriteResult(const std::string& relative_path, const std::shared_ptr<sprites::DC6Sprite>& sprite) {
+        CacheEntry entry;
+        entry.sprite = sprite;
+        entry.status = AssetStatus::LOADED;
+        entry.last_accessed = std::chrono::steady_clock::now();
+        entry.memory_size = calculateSpriteMemorySize(sprite);
+        
+        cache[relative_path] = entry;
+        enforceCacheLimit();
+        
+        // Report memory usage to memory monitor if set
+        if (memory_monitor) {
+            memory_monitor->recordAllocation("sprite:" + relative_path, entry.memory_size);
+        }
+    }
 };
 
 AssetManager::AssetManager() : pImpl(std::make_unique<Impl>()) {}
@@ -218,45 +312,25 @@ std::shared_ptr<sprites::DC6Sprite> AssetManager::loadSprite(const std::string& 
     std::lock_guard<std::mutex> lock(pImpl->cache_mutex);
     
     // Check cache first
-    auto cache_it = pImpl->cache.find(relative_path);
-    if (cache_it != pImpl->cache.end() && cache_it->second.sprite) {
-        pImpl->updateLastAccessed(relative_path);
-        return cache_it->second.sprite;
+    auto cached_sprite = pImpl->checkSpriteCache(relative_path);
+    if (cached_sprite) {
+        return cached_sprite;
     }
     
-    sprites::DC6Parser parser;
+    // Try loading from various sources
     std::unique_ptr<sprites::DC6Sprite> sprite;
     
-    // Try loading from MPQ first if enabled
-    if (pImpl->use_mpq) {
-        // Convert forward slashes to backslashes for MPQ compatibility
-        std::string mpq_path = relative_path;
-        std::replace(mpq_path.begin(), mpq_path.end(), '/', '\\');
-        
-        // Try each MPQ loader
-        for (const auto& loader : pImpl->mpq_loaders) {
-            std::vector<uint8_t> data;
-            if (loader->extractFile(mpq_path, data)) {
-                sprite = parser.parseData(data);
-                if (sprite) {
-                    break;
-                }
-            }
-        }
-        
-        // Try fallback path if sprite not found in MPQs
-        if (!sprite && !pImpl->fallback_path.empty()) {
-            std::string fallback_file = (std::filesystem::path(pImpl->fallback_path) / relative_path).string();
-            if (std::filesystem::exists(fallback_file)) {
-                sprite = parser.parseFile(fallback_file);
-            }
-        }
-    } else {
-        // Original filesystem loading
-        std::string full_path = pImpl->resolveFilePath(relative_path);
-        if (std::filesystem::exists(full_path)) {
-            sprite = parser.parseFile(full_path);
-        }
+    // Try MPQ first if enabled
+    sprite = pImpl->loadSpriteFromMPQ(relative_path);
+    
+    // Try fallback path if sprite not found in MPQs
+    if (!sprite) {
+        sprite = pImpl->loadSpriteFromFallback(relative_path);
+    }
+    
+    // Try filesystem loading if MPQ not enabled
+    if (!sprite) {
+        sprite = pImpl->loadSpriteFromFilesystem(relative_path);
     }
     
     if (!sprite) {
@@ -264,37 +338,9 @@ std::shared_ptr<sprites::DC6Sprite> AssetManager::loadSprite(const std::string& 
         return nullptr;
     }
     
-    // Convert unique_ptr to shared_ptr properly
+    // Convert unique_ptr to shared_ptr and cache the result
     std::shared_ptr<sprites::DC6Sprite> shared_sprite = std::move(sprite);
-    
-    // Add to cache
-    CacheEntry entry;
-    entry.sprite = shared_sprite;
-    entry.status = AssetStatus::LOADED;
-    entry.last_accessed = std::chrono::steady_clock::now();
-    
-    // Estimate memory size (rough approximation)
-    entry.memory_size = 1024; // Base overhead
-    try {
-        uint32_t dirs = shared_sprite->getDirectionCount();
-        uint32_t frames = shared_sprite->getFramesPerDirection();
-        if (dirs > 0 && frames > 0) {
-            auto dc6_frame = shared_sprite->getFrame(0, 0);
-            size_t frame_size = dc6_frame.width * dc6_frame.height * 4; // RGBA
-            entry.memory_size += frame_size * dirs * frames;
-        }
-    } catch (...) {
-        // If there's any issue calculating size, just use base overhead
-        entry.memory_size = 1024;
-    }
-    
-    pImpl->cache[relative_path] = entry;
-    pImpl->enforceCacheLimit();
-    
-    // Report memory usage to memory monitor if set
-    if (pImpl->memory_monitor) {
-        pImpl->memory_monitor->recordAllocation("sprite:" + relative_path, entry.memory_size);
-    }
+    pImpl->cacheSpriteResult(relative_path, shared_sprite);
     
     return shared_sprite;
 }

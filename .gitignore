@@ -9,6 +9,7 @@ _deps/
 # Android build files
 android/.gradle/
 android/app/build/
+android/app/.cxx/
 android/local.properties
 *.apk
 *.aab
@@ -38,6 +39,7 @@ Thumbs.db
 
 # Test output
 test-results/
+test_output.txt
 coverage/
 *.gcda
 *.gcno
@@ -45,8 +47,8 @@ coverage/
 # Game assets (users must provide their own)
 assets/
 extracted_assets/
-vendor/
-!vendor/StormLib/
+vendor/mpq_temp/
+vendor/Diablo II CD Images/
 
 # Temporary files
 *.tmp
@@ -57,3 +59,6 @@ temp/
 # Personal signing keys
 *.keystore
 *.jks
+
+# Project notes and temporary documentation
+project_memory.md

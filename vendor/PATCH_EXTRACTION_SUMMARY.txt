@@ -1,0 +1,18 @@
+=== PATCH EXTRACTION SUMMARY ===
+Source: LODPatch_114d.exe
+Total files extracted: 223
+
+File types:
+  67 bin
+  63 txt
+  36 DC6
+  14 dc6
+  10 ds1
+   9 tbl
+   5 wav
+   5 lst
+   4 rsrc
+   4 exe
+   3 dll
+   1 COF
+   1 cmd

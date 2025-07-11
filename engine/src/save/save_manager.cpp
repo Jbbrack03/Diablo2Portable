@@ -2,6 +2,7 @@
 #include "game/character.h"
 #include "game/inventory.h"
 #include "utils/security_utils.h"
+#include "utils/file_utils.h"
 #include <fstream>
 #include <filesystem>
 
@@ -30,9 +31,9 @@ bool SaveManager::saveCharacter(const d2::game::Character& character, const std:
         return false; // Path is not safe
     }
     
-    // Open file in binary mode
-    std::ofstream file(fullPath, std::ios::binary);
-    if (!file.is_open()) {
+    // Open file in binary mode using FileUtils
+    std::ofstream file;
+    if (!d2::utils::FileUtils::safeOpenBinaryFileForWriting(fullPath.string(), file)) {
         return false;
     }
     
@@ -77,7 +78,10 @@ bool SaveManager::saveCharacter(const d2::game::Character& character, const std:
     uint8_t level = static_cast<uint8_t>(character.getLevel());
     file.write(reinterpret_cast<const char*>(&level), sizeof(level));
     
-    file.close();
+    // Close file safely
+    if (!d2::utils::FileUtils::safeCloseFile(file, fullPath.string())) {
+        return false;
+    }
     
     // Set proper file permissions (owner read/write only)
     std::filesystem::permissions(fullPath,
@@ -91,9 +95,9 @@ std::unique_ptr<d2::game::Character> SaveManager::loadCharacter(const std::strin
     // Create full path
     std::filesystem::path fullPath = std::filesystem::path(m_saveDirectory) / filename;
     
-    // Open file in binary mode
-    std::ifstream file(fullPath, std::ios::binary);
-    if (!file.is_open()) {
+    // Open file in binary mode using FileUtils
+    std::ifstream file;
+    if (!d2::utils::FileUtils::safeOpenBinaryFileForReading(fullPath.string(), file)) {
         return nullptr;
     }
     
@@ -120,7 +124,8 @@ std::unique_ptr<d2::game::Character> SaveManager::loadCharacter(const std::strin
     auto character = std::make_unique<d2::game::Character>(static_cast<d2::game::CharacterClass>(charClass));
     character->setLevel(level);
     
-    file.close();
+    // Close file safely
+    d2::utils::FileUtils::safeCloseFile(file, fullPath.string());
     
     return character;
 }
