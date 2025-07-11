@@ -311,6 +311,17 @@ std::vector<uint8_t> AssetManager::loadFileData(const std::string& relative_path
         return {};
     }
     
+    std::lock_guard<std::mutex> lock(pImpl->cache_mutex);
+    
+    // Check cache first
+    auto cache_it = pImpl->cache.find(relative_path);
+    if (cache_it != pImpl->cache.end() && !cache_it->second.raw_data.empty()) {
+        pImpl->updateLastAccessed(relative_path);
+        return cache_it->second.raw_data;
+    }
+    
+    std::vector<uint8_t> data;
+    
     // Try loading from MPQ first if enabled
     if (pImpl->use_mpq) {
         // Convert forward slashes to backslashes for MPQ compatibility
@@ -319,8 +330,16 @@ std::vector<uint8_t> AssetManager::loadFileData(const std::string& relative_path
         
         // Try each MPQ loader
         for (const auto& loader : pImpl->mpq_loaders) {
-            std::vector<uint8_t> data;
             if (loader->extractFile(mpq_path, data)) {
+                // Cache the data
+                CacheEntry entry;
+                entry.raw_data = data;
+                entry.memory_size = data.size();
+                entry.last_accessed = std::chrono::steady_clock::now();
+                entry.status = AssetStatus::LOADED;
+                pImpl->cache[relative_path] = entry;
+                pImpl->enforceCacheLimit();
+                
                 return data;
             }
         }
@@ -334,10 +353,19 @@ std::vector<uint8_t> AssetManager::loadFileData(const std::string& relative_path
                     auto size = file.tellg();
                     file.seekg(0, std::ios::beg);
                     
-                    std::vector<uint8_t> data(size);
+                    data.resize(size);
                     file.read(reinterpret_cast<char*>(data.data()), size);
                     
                     if (file.good()) {
+                        // Cache the data
+                        CacheEntry entry;
+                        entry.raw_data = data;
+                        entry.memory_size = data.size();
+                        entry.last_accessed = std::chrono::steady_clock::now();
+                        entry.status = AssetStatus::LOADED;
+                        pImpl->cache[relative_path] = entry;
+                        pImpl->enforceCacheLimit();
+                        
                         return data;
                     }
                 }
@@ -364,13 +392,22 @@ std::vector<uint8_t> AssetManager::loadFileData(const std::string& relative_path
     auto size = file.tellg();
     file.seekg(0, std::ios::beg);
     
-    std::vector<uint8_t> data(size);
+    data.resize(size);
     file.read(reinterpret_cast<char*>(data.data()), size);
     
     if (!file.good()) {
         pImpl->last_error = "Failed to read file: " + relative_path;
         return {};
     }
+    
+    // Cache the data
+    CacheEntry entry;
+    entry.raw_data = data;
+    entry.memory_size = data.size();
+    entry.last_accessed = std::chrono::steady_clock::now();
+    entry.status = AssetStatus::LOADED;
+    pImpl->cache[relative_path] = entry;
+    pImpl->enforceCacheLimit();
     
     return data;
 }
