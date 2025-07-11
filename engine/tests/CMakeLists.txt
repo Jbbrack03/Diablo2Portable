@@ -187,6 +187,7 @@ set(TEST_SOURCES
     integration/test_mpq_file_validation.cpp
     integration/test_mock_mpq_integration.cpp
     integration/critical_systems_validation_test.cpp
+    meta/test_count_validator_test.cpp
     # Tests will be added as we implement features following TDD
     # core/game_state_test.cpp
     # audio/sound_system_test.cpp

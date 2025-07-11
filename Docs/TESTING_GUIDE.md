@@ -6,11 +6,11 @@ This guide provides comprehensive testing procedures and instructions for the Di
 
 ## 📊 Test Statistics
 
-- **Total Tests**: 745 (728 passing, 17 skipped, 0 failing)
+- **Total Tests**: 775 (762 passing, 13 skipped, 0 failing)
 - **Test Coverage**: 95%+ across core systems
-- **C++ Unit Tests**: 693 tests
+- **C++ Unit Tests**: 756 tests
 - **Android UI Tests**: 19 Espresso tests
-- **Integration Tests**: 33 tests (including MPQ validation)
+- **Total Tests**: 775 tests (including all test types)
 
 ## 🛠️ Prerequisites Setup
 
@@ -93,10 +93,9 @@ cd android/
 ./run_all_tests.sh
 
 # This runs:
-# - 693 C++ unit tests
+# - 756 C++ tests
 # - 19 Android Espresso tests
-# - 33 integration tests
-# Total: 745 tests
+# Total: 775 tests
 ```
 
 ## 📱 APK Building and Deployment

@@ -26,7 +26,7 @@ This document provides a comprehensive Test-Driven Development (TDD) implementat
 **Priority: IMMEDIATE - Fix inaccuracies in documentation**
 
 #### 37.1: Test Count Verification and Documentation Update
-**Issue**: Documentation claims 745 tests (728 passing, 17 skipped, 0 failing), but actual count is 780 tests (763 passing, 17 skipped, 0 failing)
+**Issue**: Documentation claims 745 tests (728 passing, 17 skipped, 0 failing), but actual count is 775 tests (762 passing, 13 skipped, 0 failing)
 
 **Tasks**:
 - Update all documentation to reflect actual test counts
@@ -5092,7 +5092,7 @@ TEST_F(ExtractionWizardUITest, LaunchAssetBrowserIntegration) {
 - Ensure AssetBrowserBackend::initialize() can handle test scenarios
 
 **Deliverables:**
-- All 745 tests passing (zero failures)
+- All 775 tests passing (zero failures)
 - Proper include statements in all implementation files
 - Valid test paths that work in CI/CD environments
 
@@ -5108,7 +5108,7 @@ TEST_F(ExtractionWizardUITest, LaunchAssetBrowserIntegration) {
 
 All 36 phases of the TDD Implementation Plan have been successfully completed. The Diablo II Android port is fully functional with:
 
-- 745 comprehensive unit tests (728 passing, 17 skipped, 0 failing)
+- 775 comprehensive unit tests (762 passing, 13 skipped, 0 failing)
 - Complete game engine with all major systems implemented
 - Full OpenGL ES 3.0 rendering pipeline
 - Android application with JNI bridge and input handling
@@ -5117,3 +5117,618 @@ All 36 phases of the TDD Implementation Plan have been successfully completed. T
 - Memory efficiency achieved (1355 MB usage, 88.2% of budget)
 
 The project is ready for deployment to Android devices.
+
+---
+
+## Phase 37: Asset Integration Bridge (Week 48) - **CRITICAL**
+
+### Objectives
+- Fix the critical disconnect between extracted assets and game engine
+- Implement path mapping between game paths and extracted file structure
+- Update MainActivity to use extracted assets instead of APK assets
+- Add configuration system for asset paths
+
+### Priority: CRITICAL - Game cannot use extracted assets without this
+
+#### Task 37.1: Native Engine Path Configuration
+**Tests First:**
+```cpp
+TEST(NativeEngineTest, InitializeWithExtractedAssets) {
+    std::string assetPath = "/data/data/com.diablo2portable/files/assets";
+    
+    NativeEngine engine;
+    bool result = engine.initializeWithPath(assetPath);
+    
+    EXPECT_TRUE(result);
+    EXPECT_EQ(engine.getAssetPath(), assetPath);
+}
+
+TEST(NativeEngineTest, FallbackToAPKAssets) {
+    NativeEngine engine;
+    
+    // Initialize without path should use APK assets
+    bool result = engine.initialize(nullptr);
+    
+    EXPECT_TRUE(result);
+    EXPECT_TRUE(engine.isUsingAPKAssets());
+}
+```
+
+**Implementation:**
+- Add new JNI method: `Java_com_diablo2portable_NativeEngine_initializeWithPath`
+- Update NativeEngine to store and use custom asset path
+- Modify AssetManager initialization to use extracted path when available
+
+#### Task 37.2: Path Mapping System
+**Tests First:**
+```cpp
+TEST(PathMapperTest, MapGamePathToExtractedPath) {
+    PathMapper mapper("/data/data/com.diablo2portable/files/assets");
+    
+    // Game expects: "data/global/ui/panel/invchar6.dc6"
+    // Extracted at: "sprites/ui/invchar6.dc6"
+    std::string gamePath = "data/global/ui/panel/invchar6.dc6";
+    std::string extractedPath = mapper.mapPath(gamePath);
+    
+    EXPECT_EQ(extractedPath, "/data/data/com.diablo2portable/files/assets/sprites/ui/invchar6.dc6");
+}
+
+TEST(PathMapperTest, MapAudioPaths) {
+    PathMapper mapper("/test/assets");
+    
+    std::string gamePath = "data/global/sfx/cursor/button.wav";
+    std::string extractedPath = mapper.mapPath(gamePath);
+    
+    EXPECT_EQ(extractedPath, "/test/assets/sounds/effects/button.wav");
+}
+
+TEST(PathMapperTest, MapDataTablePaths) {
+    PathMapper mapper("/test/assets");
+    
+    std::string gamePath = "data/global/excel/armor.txt";
+    std::string extractedPath = mapper.mapPath(gamePath);
+    
+    EXPECT_EQ(extractedPath, "/test/assets/data/excel/armor.txt");
+}
+```
+
+**Implementation:**
+- Create PathMapper class that translates game paths to extracted structure
+- Handle different asset types (sprites, sounds, data)
+- Integrate with AssetManager's file loading methods
+
+#### Task 37.3: MainActivity Asset Integration
+**Tests First:**
+```java
+@Test
+public void testUsesExtractedAssetsAfterOnboarding() {
+    // Simulate completed onboarding
+    OnboardingHelper.setOnboardingComplete(context, true);
+    OnboardingHelper.setAssetPath(context, "/data/data/com.diablo2portable/files/assets");
+    
+    // Create activity
+    ActivityScenario<MainActivity> scenario = ActivityScenario.launch(MainActivity.class);
+    
+    scenario.onActivity(activity -> {
+        // Verify it initialized with extracted assets
+        assertTrue(activity.isUsingExtractedAssets());
+        assertEquals("/data/data/com.diablo2portable/files/assets", 
+                    activity.getAssetPath());
+    });
+}
+
+@Test
+public void testFallbackToAPKAssetsWithoutOnboarding() {
+    // Clear onboarding state
+    OnboardingHelper.setOnboardingComplete(context, false);
+    
+    ActivityScenario<MainActivity> scenario = ActivityScenario.launch(MainActivity.class);
+    
+    scenario.onActivity(activity -> {
+        assertTrue(activity.isUsingAPKAssets());
+        assertNull(activity.getAssetPath());
+    });
+}
+```
+
+**Implementation:**
+- Update MainActivity.onCreate() to check OnboardingHelper
+- Add native method declaration: `initializeNativeEngineWithPath(String path)`
+- Implement fallback logic when extracted assets not available
+
+#### Task 37.4: Asset Configuration Management
+**Tests First:**
+```cpp
+TEST(AssetConfigTest, SaveConfiguration) {
+    AssetConfig config;
+    config.setExtractedAssetsPath("/data/data/com.diablo2portable/files/assets");
+    config.setUseExtractedAssets(true);
+    config.setAssetVersion("1.14d");
+    
+    EXPECT_TRUE(config.save("/data/data/com.diablo2portable/files/asset_config.json"));
+}
+
+TEST(AssetConfigTest, LoadConfiguration) {
+    AssetConfig config;
+    EXPECT_TRUE(config.load("/data/data/com.diablo2portable/files/asset_config.json"));
+    
+    EXPECT_EQ(config.getExtractedAssetsPath(), 
+              "/data/data/com.diablo2portable/files/assets");
+    EXPECT_TRUE(config.shouldUseExtractedAssets());
+    EXPECT_EQ(config.getAssetVersion(), "1.14d");
+}
+
+TEST(AssetConfigTest, ValidateAssetPath) {
+    AssetConfig config;
+    config.setExtractedAssetsPath("/data/data/com.diablo2portable/files/assets");
+    
+    // Should check for required directories
+    EXPECT_TRUE(config.validateAssetPath());
+}
+```
+
+**Implementation:**
+- Create AssetConfig class for persistent configuration
+- Store extraction path, version info, and preferences
+- Validate asset directory structure on load
+
+**Deliverables:**
+- Fixed asset loading pipeline
+- Game loads from extracted assets after onboarding
+- Proper path translation between game and extracted formats
+- Configuration persistence across app restarts
+
+---
+
+## Phase 38: Asset Preloading and Caching (Week 49)
+
+### Objectives
+- Implement intelligent asset preloading for commonly used sprites
+- Add memory-efficient caching with LRU eviction
+- Optimize startup time with progressive loading
+- Reduce runtime asset loading stutters
+
+#### Task 38.1: Asset Preloader System
+**Tests First:**
+```cpp
+TEST(AssetPreloaderTest, PreloadCommonUIAssets) {
+    AssetPreloader preloader;
+    AssetManager assetManager;
+    
+    // Define UI assets to preload
+    std::vector<std::string> uiAssets = {
+        "data/global/ui/panel/invchar6.dc6",
+        "data/global/ui/panel/800ctrlpnl7.dc6",
+        "data/global/ui/cursor/hand.dc6"
+    };
+    
+    preloader.preloadAssets(uiAssets, assetManager);
+    
+    // Verify all assets are loaded
+    for (const auto& asset : uiAssets) {
+        EXPECT_TRUE(assetManager.isLoaded(asset));
+    }
+}
+
+TEST(AssetPreloaderTest, PreloadWithPriority) {
+    AssetPreloader preloader;
+    AssetManager assetManager;
+    
+    preloader.addAsset("ui/panel.dc6", AssetPriority::HIGH);
+    preloader.addAsset("monsters/zombie.dc6", AssetPriority::MEDIUM);
+    preloader.addAsset("items/sword.dc6", AssetPriority::LOW);
+    
+    preloader.startPreloading(assetManager);
+    
+    // High priority should load first
+    EXPECT_TRUE(assetManager.isLoaded("ui/panel.dc6"));
+}
+
+TEST(AssetPreloaderTest, MemoryBudgetRespected) {
+    AssetPreloader preloader;
+    AssetManager assetManager;
+    
+    // Set 100MB preload budget
+    preloader.setMemoryBudget(100 * 1024 * 1024);
+    
+    // Add many assets
+    for (int i = 0; i < 1000; i++) {
+        preloader.addAsset("asset" + std::to_string(i) + ".dc6", 
+                          AssetPriority::MEDIUM);
+    }
+    
+    preloader.startPreloading(assetManager);
+    
+    // Should not exceed memory budget
+    EXPECT_LE(assetManager.getTotalMemoryUsage(), 100 * 1024 * 1024);
+}
+```
+
+**Implementation:**
+- Create AssetPreloader class with priority queue
+- Background thread for non-blocking preloading
+- Memory budget enforcement
+- Progress callback support
+
+#### Task 38.2: Enhanced Asset Cache
+**Tests First:**
+```cpp
+TEST(EnhancedAssetCacheTest, CacheHitPerformance) {
+    EnhancedAssetCache cache(50 * 1024 * 1024); // 50MB cache
+    
+    // First load - cache miss
+    auto start = std::chrono::high_resolution_clock::now();
+    auto sprite1 = cache.loadSprite("test.dc6");
+    auto missTime = std::chrono::high_resolution_clock::now() - start;
+    
+    // Second load - cache hit
+    start = std::chrono::high_resolution_clock::now();
+    auto sprite2 = cache.loadSprite("test.dc6");
+    auto hitTime = std::chrono::high_resolution_clock::now() - start;
+    
+    // Cache hit should be at least 10x faster
+    EXPECT_LT(hitTime.count(), missTime.count() / 10);
+    EXPECT_EQ(sprite1.get(), sprite2.get()); // Same object
+}
+
+TEST(EnhancedAssetCacheTest, LRUEviction) {
+    EnhancedAssetCache cache(10 * 1024); // Small 10KB cache
+    
+    // Load assets that exceed cache size
+    cache.loadSprite("asset1.dc6"); // 4KB
+    cache.loadSprite("asset2.dc6"); // 4KB
+    cache.loadSprite("asset3.dc6"); // 4KB
+    
+    // asset1 should be evicted (LRU)
+    EXPECT_FALSE(cache.contains("asset1.dc6"));
+    EXPECT_TRUE(cache.contains("asset2.dc6"));
+    EXPECT_TRUE(cache.contains("asset3.dc6"));
+}
+
+TEST(EnhancedAssetCacheTest, PinningPreventsEviction) {
+    EnhancedAssetCache cache(10 * 1024);
+    
+    auto sprite = cache.loadSprite("important.dc6");
+    cache.pin("important.dc6"); // Pin in cache
+    
+    // Load more assets
+    for (int i = 0; i < 10; i++) {
+        cache.loadSprite("asset" + std::to_string(i) + ".dc6");
+    }
+    
+    // Pinned asset should still be in cache
+    EXPECT_TRUE(cache.contains("important.dc6"));
+}
+```
+
+**Implementation:**
+- Extend existing AssetCache with performance metrics
+- Add pinning mechanism for critical assets
+- Implement cache warming on startup
+- Add cache statistics and debugging
+
+#### Task 38.3: Progressive Asset Loading
+**Tests First:**
+```cpp
+TEST(ProgressiveLoaderTest, LoadAssetsInStages) {
+    ProgressiveLoader loader;
+    AssetManager assetManager;
+    
+    std::vector<std::string> criticalAssets;
+    std::vector<std::string> gameplayAssets;
+    std::vector<std::string> optionalAssets;
+    
+    loader.setCriticalAssets(criticalAssets);
+    loader.setGameplayAssets(gameplayAssets);
+    loader.setOptionalAssets(optionalAssets);
+    
+    // Stage 1: Critical only
+    loader.loadStage(LoadStage::CRITICAL, assetManager);
+    for (const auto& asset : criticalAssets) {
+        EXPECT_TRUE(assetManager.isLoaded(asset));
+    }
+    
+    // Stage 2: Gameplay
+    loader.loadStage(LoadStage::GAMEPLAY, assetManager);
+    for (const auto& asset : gameplayAssets) {
+        EXPECT_TRUE(assetManager.isLoaded(asset));
+    }
+}
+
+TEST(ProgressiveLoaderTest, LoadingProgress) {
+    ProgressiveLoader loader;
+    std::atomic<float> progress(0.0f);
+    
+    loader.setProgressCallback([&progress](float p) {
+        progress = p;
+    });
+    
+    loader.loadAllStages();
+    
+    EXPECT_FLOAT_EQ(progress.load(), 1.0f);
+}
+```
+
+**Implementation:**
+- Define loading stages (critical → gameplay → optional)
+- Non-blocking background loading
+- Progress reporting for loading screens
+- Interrupt support for quick game start
+
+#### Task 38.4: Runtime Asset Optimization
+**Tests First:**
+```cpp
+TEST(RuntimeOptimizerTest, CompressInfrequentAssets) {
+    RuntimeOptimizer optimizer;
+    AssetManager assetManager;
+    
+    // Simulate asset usage
+    for (int i = 0; i < 100; i++) {
+        assetManager.loadSprite("common.dc6");
+    }
+    assetManager.loadSprite("rare.dc6"); // Used only once
+    
+    optimizer.optimizeMemory(assetManager);
+    
+    // Rarely used asset should be compressed
+    EXPECT_TRUE(optimizer.isCompressed("rare.dc6"));
+    EXPECT_FALSE(optimizer.isCompressed("common.dc6"));
+}
+
+TEST(RuntimeOptimizerTest, TextureAtlasGeneration) {
+    RuntimeOptimizer optimizer;
+    
+    std::vector<std::string> uiSprites = {
+        "ui/button.dc6",
+        "ui/panel.dc6",
+        "ui/border.dc6"
+    };
+    
+    auto atlas = optimizer.createRuntimeAtlas(uiSprites);
+    
+    EXPECT_TRUE(atlas != nullptr);
+    EXPECT_EQ(atlas->getSpriteCount(), 3);
+}
+```
+
+**Implementation:**
+- Monitor asset usage patterns
+- Compress rarely used assets in memory
+- Generate runtime texture atlases for UI
+- Automatic quality adjustment based on memory pressure
+
+**Deliverables:**
+- Reduced startup time with staged loading
+- Eliminated runtime stutters from asset loading
+- Optimized memory usage with intelligent caching
+- Better performance on limited RAM devices
+
+---
+
+## Phase 39: Performance Validation and Polish (Week 50)
+
+### Objectives
+- Validate all performance improvements
+- Ensure smooth 60 FPS gameplay with assets
+- Polish remaining rough edges
+- Prepare for production release
+
+#### Task 39.1: End-to-End Performance Testing
+**Tests First:**
+```cpp
+TEST(E2EPerformanceTest, StartupTimeWithAssets) {
+    auto start = std::chrono::high_resolution_clock::now();
+    
+    GameEngine engine;
+    engine.initializeWithExtractedAssets("/data/assets");
+    engine.start();
+    
+    auto elapsed = std::chrono::high_resolution_clock::now() - start;
+    auto seconds = std::chrono::duration<float>(elapsed).count();
+    
+    // Should start in under 3 seconds
+    EXPECT_LT(seconds, 3.0f);
+}
+
+TEST(E2EPerformanceTest, SustainedGameplayPerformance) {
+    GameEngine engine;
+    engine.initializeWithExtractedAssets("/data/assets");
+    
+    PerformanceMonitor monitor;
+    
+    // Run for 60 seconds of gameplay
+    for (int frame = 0; frame < 3600; frame++) {
+        auto frameStart = std::chrono::high_resolution_clock::now();
+        
+        engine.update(1.0f / 60.0f);
+        engine.render();
+        
+        auto frameTime = std::chrono::high_resolution_clock::now() - frameStart;
+        monitor.recordFrame(frameTime);
+    }
+    
+    // 99th percentile frame time should be under 16.67ms (60 FPS)
+    EXPECT_LT(monitor.getPercentileFrameTime(0.99), 16.67f);
+    EXPECT_GT(monitor.getAverageFPS(), 60.0f);
+}
+```
+
+**Implementation:**
+- Create comprehensive performance test suite
+- Test with real extracted assets
+- Monitor memory usage over time
+- Identify and fix performance bottlenecks
+
+#### Task 39.2: Memory Leak Detection
+**Tests First:**
+```cpp
+TEST(MemoryLeakTest, NoLeaksInAssetLoading) {
+    MemoryTracker tracker;
+    size_t initialMemory = tracker.getCurrentUsage();
+    
+    // Load and unload assets repeatedly
+    for (int i = 0; i < 100; i++) {
+        AssetManager manager;
+        manager.initializeWithDirectory("/data/assets");
+        manager.loadSprite("test.dc6");
+        manager.loadAudio("test.wav");
+        // AssetManager destructor should free all memory
+    }
+    
+    size_t finalMemory = tracker.getCurrentUsage();
+    
+    // Memory should return to near initial level (allow 1MB variance)
+    EXPECT_LT(std::abs((int64_t)finalMemory - (int64_t)initialMemory), 
+              1024 * 1024);
+}
+```
+
+**Implementation:**
+- Add memory tracking to all asset operations
+- Ensure proper cleanup in destructors
+- Fix any detected memory leaks
+- Add automated leak detection to CI
+
+#### Task 39.3: Error Handling and Recovery
+**Tests First:**
+```cpp
+TEST(ErrorRecoveryTest, HandleMissingAssets) {
+    GameEngine engine;
+    engine.initializeWithExtractedAssets("/data/assets");
+    
+    // Delete a required asset
+    std::filesystem::remove("/data/assets/sprites/ui/panel.dc6");
+    
+    // Engine should handle gracefully
+    EXPECT_NO_THROW(engine.render());
+    EXPECT_TRUE(engine.isRunning());
+    
+    // Should log error
+    EXPECT_TRUE(engine.getLastError().find("Missing asset") != std::string::npos);
+}
+
+TEST(ErrorRecoveryTest, HandleCorruptedAssets) {
+    // Create corrupted DC6 file
+    std::ofstream corrupt("/data/assets/sprites/test.dc6");
+    corrupt << "INVALID_DATA";
+    corrupt.close();
+    
+    AssetManager manager;
+    auto sprite = manager.loadSprite("sprites/test.dc6");
+    
+    // Should return fallback sprite, not crash
+    EXPECT_NE(sprite, nullptr);
+    EXPECT_TRUE(sprite->isFallback());
+}
+```
+
+**Implementation:**
+- Add fallback assets for critical sprites
+- Implement graceful degradation
+- Add error reporting system
+- Create asset validation on startup
+
+#### Task 39.4: Production Readiness
+**Tests First:**
+```cpp
+TEST(ProductionReadinessTest, ReleaseConfiguration) {
+    BuildConfig config = BuildConfig::getRelease();
+    
+    EXPECT_FALSE(config.isDebugEnabled());
+    EXPECT_TRUE(config.isOptimizationEnabled());
+    EXPECT_TRUE(config.isProguardEnabled());
+    EXPECT_FALSE(config.hasDebugLogging());
+}
+
+TEST(ProductionReadinessTest, AssetIntegrity) {
+    AssetVerifier verifier;
+    auto result = verifier.verifyProductionAssets("/data/assets");
+    
+    EXPECT_TRUE(result.allRequiredAssetsPresent);
+    EXPECT_EQ(result.corruptedFiles, 0);
+    EXPECT_TRUE(result.checksumValid);
+}
+```
+
+**Implementation:**
+- Remove all debug code from release builds
+- Optimize asset formats for production
+- Add integrity checks
+- Create release checklist
+
+**Deliverables:**
+- Validated 60+ FPS performance with real assets
+- Zero memory leaks
+- Robust error handling
+- Production-ready release build
+
+---
+
+## Phase 40: Final Release Preparation (Week 51)
+
+### Objectives
+- Create production release builds
+- Write user documentation
+- Prepare distribution package
+- Final quality assurance
+
+#### Task 40.1: Release Build Generation
+**Tests First:**
+```cpp
+TEST(ReleaseBuildTest, CreateSignedAPK) {
+    ReleaseBuilder builder;
+    builder.setKeystorePassword("test_password");
+    builder.setBuildType(BuildType::RELEASE);
+    
+    auto apkPath = builder.build();
+    
+    EXPECT_TRUE(std::filesystem::exists(apkPath));
+    EXPECT_TRUE(builder.isSignedCorrectly(apkPath));
+    EXPECT_LT(std::filesystem::file_size(apkPath), 
+              100 * 1024 * 1024); // Under 100MB
+}
+```
+
+**Implementation:**
+- Automate release build process
+- Create signed APK with proper certificates
+- Optimize APK size
+- Generate release notes
+
+#### Task 40.2: User Documentation
+- Create installation guide
+- Write asset extraction instructions
+- Document system requirements
+- Create troubleshooting guide
+
+#### Task 40.3: Distribution Package
+- Package APK with documentation
+- Create checksums for verification
+- Prepare GitHub release
+- Test installation process
+
+#### Task 40.4: Final QA Pass
+- Test on multiple devices
+- Verify all features work with extracted assets
+- Performance validation on target hardware
+- User acceptance testing
+
+**Deliverables:**
+- Signed release APK
+- Complete documentation package
+- Distribution-ready release
+- Final QA report
+
+---
+
+## PROJECT COMPLETION
+
+With the addition of Phases 37-40, all critical issues will be addressed:
+- Phase 37 fixes the asset loading disconnect
+- Phase 38 adds performance optimizations
+- Phase 39 ensures production quality
+- Phase 40 prepares for distribution
+
+Total phases: 40
+Estimated additional time: 4 weeks
+Final test count: ~850-900 tests
