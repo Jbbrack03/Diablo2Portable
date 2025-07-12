@@ -44,6 +44,7 @@ add_library(d2engine STATIC
     src/rendering/world_renderer.cpp
     src/rendering/optimized_world_renderer.cpp
     src/rendering/camera.cpp
+    src/rendering/sprite_animation.cpp
     src/input/gamepad_manager.cpp
     src/input/input_manager.cpp
     src/input/control_mapper.cpp

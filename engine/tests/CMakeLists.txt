@@ -60,6 +60,7 @@ set(TEST_SOURCES
     rendering/depth_testing_test.cpp
     rendering/alpha_testing_test.cpp
     rendering/texture_clamping_test.cpp
+    rendering/sprite_animation_test.cpp
     rendering/world_renderer_test.cpp
     rendering/camera_test.cpp
     input/gamepad_manager_test.cpp
