@@ -122,6 +122,7 @@ Java_com_diablo2portable_NativeEngine_getEngineInfo(JNIEnv *env, jobject thiz) {
 extern "C" {
 
 #include <cstdint>
+#include <cstdio>
 
 // Use the same types as the header to avoid conflicts
 #define JNI_TRUE 1
@@ -140,7 +141,16 @@ Java_com_diablo2portable_NativeEngine_destroyEngine(JNIEnv *env, jobject thiz, j
 
 JNIEXPORT jboolean
 Java_com_diablo2portable_NativeEngine_initialize(JNIEnv *env, jobject thiz, jlong handle) {
-    return JNI_TRUE; // Stub implementation
+    // Validate that the handle is not null/invalid
+    if (handle == 0) {
+        // Use printf for desktop testing since LOGE is not available
+        printf("Initialize failed: Invalid engine handle (null)\n");
+        return JNI_FALSE;
+    }
+    
+    printf("Initializing engine with handle %lld\n", handle);
+    // Additional initialization logic would go here
+    return JNI_TRUE;
 }
 
 JNIEXPORT jboolean
@@ -175,9 +185,34 @@ Java_com_diablo2portable_NativeEngine_getEngineInfo(JNIEnv *env, jobject thiz) {
 
 // JNIBridge class implementation (cross-platform)
 std::function<void(int, bool)> JNIBridge::gamepadCallback_;
+static ControllerState g_controllerState;
 
 bool JNIBridge::handleKeyEvent(int keyCode, int action) {
     printf("JNIBridge: handleKeyEvent(%d, %d)\n", keyCode, action);
+    
+    // Map key codes to button indices
+    int buttonIndex = -1;
+    switch (keyCode) {
+        case 96: // KEYCODE_BUTTON_A
+            buttonIndex = 0;
+            break;
+        case 97: // KEYCODE_BUTTON_B
+            buttonIndex = 1;
+            break;
+        case 98: // KEYCODE_BUTTON_X
+            buttonIndex = 2;
+            break;
+        case 99: // KEYCODE_BUTTON_Y
+            buttonIndex = 3;
+            break;
+        // Add more button mappings as needed
+    }
+    
+    // Update button state if it's a known button
+    if (buttonIndex >= 0 && buttonIndex < 16) {
+        g_controllerState.buttons[buttonIndex] = (action == 0); // action 0 = pressed, 1 = released
+    }
+    
     if (gamepadCallback_) {
         gamepadCallback_(keyCode, action == 1);
     }
@@ -191,8 +226,7 @@ bool JNIBridge::handleMotionEvent(int axis1, float value1, int axis2, float valu
 }
 
 ControllerState JNIBridge::getControllerState() {
-    ControllerState state;
-    return state;
+    return g_controllerState;
 }
 
 void JNIBridge::registerGamepadCallback(std::function<void(int, bool)> callback) {
