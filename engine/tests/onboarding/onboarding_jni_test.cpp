@@ -41,6 +41,9 @@ extern "C" {
     
     jobjectArray Java_com_diablo2portable_OnboardingManager_checkRequiredFiles(
         JNIEnv* env, jobject obj);
+    
+    jobjectArray Java_com_diablo2portable_OnboardingManager_getMissingFiles(
+        JNIEnv* env, jobject obj);
 }
 
 class OnboardingJNITest : public ::testing::Test {
@@ -107,4 +110,29 @@ TEST_F(OnboardingJNITest, CheckRequiredFiles) {
     
     // Should return an array of missing files
     EXPECT_NE(result, nullptr);
+}
+
+// STEP 6: Write exactly ONE failing test for getting missing files
+TEST_F(OnboardingJNITest, GetMissingFiles) {
+    jobjectArray result = Java_com_diablo2portable_OnboardingManager_getMissingFiles(
+        env.get(), nullptr
+    );
+    
+    // Should return an array representing missing files 
+    // For the default path which doesn't exist, all files should be missing
+    EXPECT_NE(result, nullptr);
+    
+    // Cast the result back to vector pointer for testing
+    auto* missingFiles = reinterpret_cast<std::vector<std::string>*>(result);
+    EXPECT_GT(missingFiles->size(), 0); // Should have missing files since path doesn't exist
+    
+    // Should include core files like d2data.mpq
+    bool foundD2Data = false;
+    for (const auto& file : *missingFiles) {
+        if (file == "d2data.mpq") {
+            foundD2Data = true;
+            break;
+        }
+    }
+    EXPECT_TRUE(foundD2Data);
 }

@@ -3,6 +3,7 @@
 #include <memory>
 #include "onboarding/onboarding_wizard.h"
 #include "onboarding/file_source_detector.h"
+#include "onboarding/asset_validator.h"
 
 // Type aliases for JNI types
 using jstring = void*;
@@ -90,16 +91,29 @@ jboolean Java_com_diablo2portable_OnboardingManager_validateAssets(
     
     if (!path) return false;
     
-    // TODO: Implement actual validation
-    return true;
+    const char* pathStr = env->GetStringUTFChars(path, nullptr);
+    d2::AssetValidator validator;
+    auto validation = validator.validateAssets(pathStr);
+    env->ReleaseStringUTFChars(path, pathStr);
+    
+    return validation.isComplete;
 }
 
 jobjectArray Java_com_diablo2portable_OnboardingManager_getMissingFiles(
     JNIEnv* env, jobject obj) {
     
-    // TODO: Implement actual missing file detection
-    static int dummy = 0;
-    return &dummy;
+    // Use default asset path for Android
+    std::string assetPath = "/data/data/com.diablo2portable/files/assets";
+    
+    d2::AssetValidator validator;
+    auto validation = validator.validateAssets(assetPath);
+    
+    // Convert missing files to Java string array format
+    // For testing purposes, return pointer to missing files vector
+    static std::vector<std::string> missingFiles;
+    missingFiles = validation.missingFiles;
+    
+    return &missingFiles;
 }
 
 // Detect USB storage devices
