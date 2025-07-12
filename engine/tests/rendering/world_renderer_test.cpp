@@ -9,6 +9,7 @@
 #include "rendering/renderer.h"
 #include "rendering/texture_manager.h"
 #include "rendering/camera.h"
+#include "rendering/sprite_animation.h"
 #include "map/map_loader.h"
 #include "core/asset_manager.h"
 
@@ -266,5 +267,63 @@ TEST_F(WorldRendererTest, RenderMonsters) {
         EXPECT_TRUE(foundSkeleton) << "Skeleton should be rendered at (100, 100)";
         EXPECT_TRUE(foundZombie) << "Zombie should be rendered at (200, 150)";
         EXPECT_TRUE(foundDemon) << "Demon should be rendered at (300, 200)";
+    }
+}
+
+TEST_F(WorldRendererTest, RenderAnimatedEntities) {
+    // Create game state with animated player
+    GameState gameState;
+    
+    // Create player with character
+    Character character(CharacterClass::BARBARIAN);
+    auto player = std::make_shared<Player>(character);
+    player->setPosition(glm::vec2(100.0f, 150.0f));
+    
+    // Add animated player to game state
+    gameState.setPlayer(player);
+    
+    // Create a test sprite renderer
+    auto testSpriteRenderer = std::make_unique<TestSpriteRenderer>();
+    
+    // Create world renderer with animation support
+    WorldRenderer worldRenderer;
+    
+    // Initialize with asset manager (needed for animation logic)
+    d2portable::core::AssetManager assetManager;
+    assetManager.initialize("./test_assets");
+    worldRenderer.initialize(assetManager);
+    
+    // Create a test animation for the player
+    SpriteAnimation playerAnimation("player_walk");
+    playerAnimation.setFrameCount(8);  // 8-frame walk cycle
+    playerAnimation.setFrameRate(10.0f);  // 10 FPS
+    playerAnimation.setDirection(0);   // Facing south
+    playerAnimation.play();
+    
+    // Advance animation to frame 2
+    playerAnimation.update(0.2f);  // 2 frames at 10 FPS
+    EXPECT_EQ(playerAnimation.getCurrentFrame(), 2);
+    
+    // Set the animation for the player entity in the world renderer
+    worldRenderer.setEntityAnimation(player->getId(), playerAnimation);
+    
+    // Render the world
+    worldRenderer.render(gameState, *testSpriteRenderer);
+    
+    // Verify rendering was called
+    EXPECT_TRUE(testSpriteRenderer->beginFrameCalled);
+    EXPECT_TRUE(testSpriteRenderer->endFrameCalled);
+    
+    // Should have rendered the animated player
+    EXPECT_EQ(testSpriteRenderer->drawCalls.size(), 1u);
+    
+    // Verify player position and animated texture
+    if (testSpriteRenderer->drawCalls.size() >= 1) {
+        EXPECT_FLOAT_EQ(testSpriteRenderer->drawCalls[0].position.x, 100.0f);
+        EXPECT_FLOAT_EQ(testSpriteRenderer->drawCalls[0].position.y, 150.0f);
+        
+        // Should use animation-specific texture ID (base + frame + direction offset)
+        // Expected: base_texture_id (100) + frame (2) + direction_offset (0 * 8) = 102
+        EXPECT_EQ(testSpriteRenderer->drawCalls[0].texture_id, 102u);
     }
 }

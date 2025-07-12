@@ -1,5 +1,6 @@
 #include "rendering/world_renderer.h"
 #include "rendering/sprite_renderer.h"
+#include "rendering/sprite_animation.h"
 #include "rendering/camera.h"
 #include "game/game_state.h"
 #include "game/player.h"
@@ -64,9 +65,20 @@ void WorldRenderer::render(const d2::game::GameState& gameState, SpriteRenderer&
             // Use texture from asset manager if available
             uint32_t playerTextureId = 1; // Default placeholder
             if (assetManager_) {
-                // In a real implementation, we'd look up the player sprite based on class/animation
-                // For now, use a fixed ID that's higher than placeholders
-                playerTextureId = 100;
+                // Look up animation for this entity
+                auto animationIter = entityAnimations_.find(player->getId());
+                if (animationIter != entityAnimations_.end()) {
+                    const SpriteAnimation& animation = animationIter->second;
+                    // Calculate texture ID based on animation frame and direction
+                    // Base texture ID + current frame + (direction * frame_count)
+                    uint32_t baseTextureId = 100; // Base player texture
+                    uint32_t frameOffset = animation.getCurrentFrame();
+                    uint32_t directionOffset = animation.getCurrentDirection() * 8; // Assuming 8 frames per direction
+                    playerTextureId = baseTextureId + frameOffset + directionOffset;
+                } else {
+                    // Use static texture if no animation
+                    playerTextureId = 100;
+                }
             }
             
             const glm::vec2 PLAYER_SIZE(64.0f, 64.0f);
@@ -222,6 +234,16 @@ void WorldRenderer::renderWithCamera(const d2::game::GameState& gameState,
     
     // End rendering frame
     spriteRenderer.endFrame();
+}
+
+void WorldRenderer::setEntityAnimation(d2::game::EntityId entityId, const SpriteAnimation& animation) {
+    entityAnimations_.insert_or_assign(entityId, animation);
+}
+
+void WorldRenderer::updateAnimations(float deltaTime) {
+    for (auto& [entityId, animation] : entityAnimations_) {
+        animation.update(deltaTime);
+    }
 }
 
 } // namespace d2::rendering

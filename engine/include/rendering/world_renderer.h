@@ -1,5 +1,9 @@
 #pragma once
 
+#include <unordered_map>
+#include "game/entity.h"
+#include "rendering/sprite_animation.h"
+
 namespace d2portable::core {
 class AssetManager;
 }
@@ -31,10 +35,17 @@ public:
     
     void setHUDEnabled(bool enabled);
     bool isHUDEnabled() const;
+    
+    // Animation management
+    void setEntityAnimation(d2::game::EntityId entityId, const SpriteAnimation& animation);
+    void updateAnimations(float deltaTime);
 
 protected:
     const d2portable::core::AssetManager* assetManager_ = nullptr;
     bool hudEnabled_ = false;
+    
+    // Entity animations
+    std::unordered_map<d2::game::EntityId, SpriteAnimation> entityAnimations_;
 };
 
 } // namespace d2::rendering
