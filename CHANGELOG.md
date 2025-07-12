@@ -5,6 +5,30 @@ All notable changes to the Diablo II Android Port project will be documented in 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2025-01-12
+
+### Added
+- **Frame Interpolation**: SpriteAnimation now supports smooth interpolation between frames
+  - `getFrameInterpolation()` method returns 0.0-1.0 progress between current and next frame
+  - Enables smooth animation transitions for rendering systems
+  - Maintains backward compatibility with existing discrete frame animation
+- **Animation Callbacks**: Event-driven animation system for advanced control
+  - `setOnAnimationComplete()` method allows registering callbacks for animation cycle completion
+  - Callbacks receive sprite name parameter for context-aware event handling
+  - Perfect for triggering sound effects, state changes, or chained animations
+
+### Enhanced
+- SpriteAnimation system with advanced features for production-quality animations
+- Comprehensive test coverage with edge case validation
+- Documentation updates and project file management improvements
+
+### Technical Details
+- 2 new animation enhancement tests added (851 total tests)
+- Perfect TDD compliance with individual RED-GREEN-REFACTOR cycles
+- Frame interpolation using time accumulator for sub-frame precision
+- Callback system using std::function for flexible event handling
+- All existing animation functionality preserved with no regressions
+
 ## [1.1.0] - 2025-01-12
 
 ### Added
