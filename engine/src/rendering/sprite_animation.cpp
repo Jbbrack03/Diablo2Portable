@@ -24,6 +24,15 @@ bool SpriteAnimation::isPlaying() const {
     return playing_;
 }
 
+float SpriteAnimation::getFrameInterpolation() const {
+    if (!playing_ || frameCount_ <= 1 || frameRate_ <= 0.0f) {
+        return 0.0f;
+    }
+    
+    float frameDuration = 1.0f / frameRate_;
+    return timeAccumulator_ / frameDuration;
+}
+
 void SpriteAnimation::play() {
     playing_ = true;
 }

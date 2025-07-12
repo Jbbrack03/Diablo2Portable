@@ -19,6 +19,7 @@ public:
     uint32_t getCurrentFrame() const;
     uint32_t getCurrentDirection() const;
     bool isPlaying() const;
+    float getFrameInterpolation() const;
     
     // Animation control
     void play();

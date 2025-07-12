@@ -89,5 +89,30 @@ TEST_F(SpriteAnimationTest, DirectionControl) {
     EXPECT_EQ(animation.getCurrentFrame(), 1);      // But frame should advance
 }
 
+TEST_F(SpriteAnimationTest, FrameInterpolation) {
+    SpriteAnimation animation("smooth_animation");
+    animation.setFrameCount(4);  // 4 frames: 0, 1, 2, 3
+    animation.setFrameRate(10.0f);  // 10 FPS (0.1s per frame)
+    animation.play();
+    
+    // At start, interpolation should be 0.0 (exactly on frame 0)
+    EXPECT_FLOAT_EQ(animation.getFrameInterpolation(), 0.0f);
+    
+    // After 0.05s (half a frame duration), should be 0.5 interpolation
+    animation.update(0.05f);
+    EXPECT_EQ(animation.getCurrentFrame(), 0);  // Still on frame 0
+    EXPECT_FLOAT_EQ(animation.getFrameInterpolation(), 0.5f);  // But halfway to next frame
+    
+    // After another 0.05s (complete frame), should be on frame 1 with 0.0 interpolation
+    animation.update(0.05f);
+    EXPECT_EQ(animation.getCurrentFrame(), 1);
+    EXPECT_FLOAT_EQ(animation.getFrameInterpolation(), 0.0f);
+    
+    // Test partial progress towards frame 2
+    animation.update(0.03f);  // 30% towards next frame
+    EXPECT_EQ(animation.getCurrentFrame(), 1);
+    EXPECT_FLOAT_EQ(animation.getFrameInterpolation(), 0.3f);
+}
+
 } // namespace rendering
 } // namespace d2
