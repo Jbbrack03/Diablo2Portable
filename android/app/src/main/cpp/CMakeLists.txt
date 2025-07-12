@@ -21,10 +21,9 @@ list(FILTER ENGINE_SOURCES EXCLUDE REGEX ".*dummy\\.cpp$")
 message(STATUS "Found ${CMAKE_CURRENT_SOURCE_DIR}/../../../../engine/src")
 message(STATUS "ENGINE_SOURCES count: ${ENGINE_SOURCES}")
 
-# If no sources found, add a placeholder to avoid CMake error
+# Ensure we have sources to build
 if(NOT ENGINE_SOURCES)
-    message(WARNING "No engine sources found, using placeholder")
-    set(ENGINE_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/jni_bridge.cpp")
+    message(FATAL_ERROR "No engine sources found at ${CMAKE_CURRENT_SOURCE_DIR}/../../../../engine/src")
 endif()
 
 # Create the shared library for Android
