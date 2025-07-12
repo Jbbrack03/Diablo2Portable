@@ -57,6 +57,10 @@ void SpriteAnimation::setDirection(uint32_t direction) {
     currentDirection_ = direction;
 }
 
+void SpriteAnimation::setOnAnimationComplete(std::function<void(const std::string&)> callback) {
+    onAnimationComplete_ = callback;
+}
+
 void SpriteAnimation::update(float deltaTime) {
     if (!playing_ || frameCount_ <= 1 || frameRate_ <= 0.0f) {
         return;
@@ -67,7 +71,15 @@ void SpriteAnimation::update(float deltaTime) {
     
     while (timeAccumulator_ >= frameDuration) {
         timeAccumulator_ -= frameDuration;
+        uint32_t previousFrame = currentFrame_;
         currentFrame_ = (currentFrame_ + 1) % frameCount_;
+        
+        // Check if we completed a full cycle (wrapped from last frame to frame 0)
+        if (previousFrame == frameCount_ - 1 && currentFrame_ == 0) {
+            if (onAnimationComplete_) {
+                onAnimationComplete_(spriteName_);
+            }
+        }
     }
 }
 

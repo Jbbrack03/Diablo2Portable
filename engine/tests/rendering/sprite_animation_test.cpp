@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 #include "rendering/sprite_animation.h"
+#include <functional>
 
 namespace d2 {
 namespace rendering {
@@ -112,6 +113,36 @@ TEST_F(SpriteAnimationTest, FrameInterpolation) {
     animation.update(0.03f);  // 30% towards next frame
     EXPECT_EQ(animation.getCurrentFrame(), 1);
     EXPECT_FLOAT_EQ(animation.getFrameInterpolation(), 0.3f);
+}
+
+TEST_F(SpriteAnimationTest, AnimationCompleteCallback) {
+    SpriteAnimation animation("callback_animation");
+    animation.setFrameCount(3);  // 3 frames: 0, 1, 2
+    animation.setFrameRate(10.0f);  // 10 FPS (0.1s per frame)
+    
+    // Set up callback to track when animation completes a full cycle
+    bool callbackCalled = false;
+    std::string callbackSpriteName;
+    animation.setOnAnimationComplete([&callbackCalled, &callbackSpriteName](const std::string& spriteName) {
+        callbackCalled = true;
+        callbackSpriteName = spriteName;
+    });
+    
+    animation.play();
+    
+    // Animation should not have completed yet
+    EXPECT_FALSE(callbackCalled);
+    
+    // Update through most of the animation (2 frames)
+    animation.update(0.2f);  
+    EXPECT_EQ(animation.getCurrentFrame(), 2);  // On last frame
+    EXPECT_FALSE(callbackCalled);  // Should not have completed yet
+    
+    // One more update should complete the animation and trigger callback
+    animation.update(0.1f);  // Complete the cycle
+    EXPECT_EQ(animation.getCurrentFrame(), 0);  // Should loop back to start
+    EXPECT_TRUE(callbackCalled);  // Callback should have been called
+    EXPECT_EQ(callbackSpriteName, "callback_animation");  // With correct sprite name
 }
 
 } // namespace rendering

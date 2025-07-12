@@ -3,6 +3,7 @@
 
 #include <string>
 #include <cstdint>
+#include <functional>
 
 namespace d2 {
 namespace rendering {
@@ -30,6 +31,9 @@ public:
     void setFrameRate(float frameRate);
     void setDirection(uint32_t direction);
     
+    // Animation callbacks
+    void setOnAnimationComplete(std::function<void(const std::string&)> callback);
+    
     // Animation update
     void update(float deltaTime);
     
@@ -41,6 +45,7 @@ private:
     uint32_t frameCount_;
     float frameRate_;
     float timeAccumulator_;
+    std::function<void(const std::string&)> onAnimationComplete_;
 };
 
 } // namespace rendering
