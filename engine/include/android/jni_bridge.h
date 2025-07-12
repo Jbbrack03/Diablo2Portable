@@ -57,7 +57,7 @@ private:
     bool initialized_;
     int surface_width_;
     int surface_height_;
-    std::unique_ptr<d2::GameEngine> engine_;
+    d2::GameEngine* engine_;
 };
 
 // JNI Bridge Functions

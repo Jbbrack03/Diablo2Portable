@@ -23,8 +23,8 @@ public:
         std::string jniHeaderPath = projectRoot + "/android/app/src/main/cpp/jni_bridge.h";
         status.jniHeaderExists = fs::exists(jniHeaderPath);
         
-        // Check JNI implementation file  
-        std::string jniImplPath = projectRoot + "/android/app/src/main/cpp/jni_bridge.cpp";
+        // Check JNI implementation file (now in engine directory)
+        std::string jniImplPath = projectRoot + "/engine/src/android/jni_bridge.cpp";
         status.jniImplementationExists = fs::exists(jniImplPath);
         
         // Check GameEngine integration - validate that engine headers are accessible
@@ -169,7 +169,7 @@ TEST(AndroidJNIBridgeValidationTest, ValidateJNIFunctionSignatures) {
     }
     std::string projectRoot = currentPath.string();
     
-    std::string jniImplPath = projectRoot + "/android/app/src/main/cpp/jni_bridge.cpp";
+    std::string jniImplPath = projectRoot + "/engine/src/android/jni_bridge.cpp";
     
     auto requiredFunctions = AndroidJNIBridgeValidator::getRequiredJNIFunctions();
     EXPECT_GT(requiredFunctions.size(), 0) << "Should have required JNI functions";
