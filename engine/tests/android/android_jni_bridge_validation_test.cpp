@@ -132,11 +132,8 @@ TEST(AndroidJNIBridgeValidationTest, ValidateJNIBridgeComponents) {
     EXPECT_TRUE(status.cmakeConfigured) << "CMake configuration should exist";
     EXPECT_TRUE(status.javaInterfaceExists) << "NativeEngine.java interface should exist";
     
-    // These are expected to be missing (JNI implementation not yet created)
-    if (!status.jniHeaderExists || !status.jniImplementationExists) {
-        EXPECT_FALSE(status.jniHeaderExists) << "JNI header not implemented yet";
-        EXPECT_FALSE(status.jniImplementationExists) << "JNI implementation not implemented yet";
-    }
+    // JNI implementation should now exist (Phase 38.2 implementation)
+    EXPECT_TRUE(status.jniImplementationExists) << "JNI implementation should exist after Phase 38.2";
     
     // Overall validation
     if (AndroidJNIBridgeValidator::hasValidJNIBridge(status)) {
