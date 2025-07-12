@@ -25,7 +25,7 @@ public class GameSurfaceView extends GLSurfaceView {
         setEGLContextClientVersion(3);
         
         // Create the renderer
-        gameRenderer = new GameRenderer(nativeEngine);
+        gameRenderer = new GameRenderer(nativeEngine, getContext());
         setRenderer(gameRenderer);
         
         // Render continuously for smooth game updates

@@ -1,5 +1,6 @@
 package com.diablo2portable;
 
+import android.content.Context;
 import android.opengl.GLES30;
 import android.opengl.GLSurfaceView;
 import javax.microedition.khronos.egl.EGLConfig;
@@ -7,10 +8,12 @@ import javax.microedition.khronos.opengles.GL10;
 
 public class GameRenderer implements GLSurfaceView.Renderer {
     private NativeEngine nativeEngine;
+    private Context context;
     private boolean surfaceCreated = false;
 
-    public GameRenderer(NativeEngine nativeEngine) {
+    public GameRenderer(NativeEngine nativeEngine, Context context) {
         this.nativeEngine = nativeEngine;
+        this.context = context;
     }
 
     @Override
@@ -31,8 +34,7 @@ public class GameRenderer implements GLSurfaceView.Renderer {
         
         // Initialize native engine if not already done
         if (nativeEngine != null && !nativeEngine.isInitialized()) {
-            // We need context here, but for minimal implementation we'll skip for now
-            // In real implementation, this would be passed from the Activity
+            nativeEngine.initialize(context);
         }
         
         // Notify native engine of surface dimensions

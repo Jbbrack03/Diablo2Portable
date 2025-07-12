@@ -377,11 +377,31 @@ During Phase 17 implementation, a TDD violation occurred:
 16. **Real OpenGL VBO Operations** - ✅ COMPLETE: Actual glGenBuffers, glBindBuffer, glBufferData with error handling and validation
 17. **Real OpenGL Draw Commands** - ✅ NEW: Actual glDrawElements implementation with full parameter tracking
 
-### 🟡 **REMAINING IMPLEMENTATION:**
-1. **MPQ Archive System** - ⚠️ KNOWN ISSUE: Some MPQ files in vendor/mpq/ are placeholders (d2data.mpq, d2exp.mpq, d2sfx.mpq)
-   - Integration tests skip gracefully when encountering placeholder files
-   - See vendor/mpq/README_MPQ_STATUS.md for full details
-2. **Production Polish** - ⚠️ TODO: Performance optimization, error handling, edge cases
+### 🟡 **REMAINING IMPLEMENTATION (Phases 41-45):**
+1. **Phase 41: Android Asset Integration Fix** - 🚨 CRITICAL: Game doesn't work without this
+   - Fix MainActivity to use extracted asset path
+   - Update NativeEngine for custom asset paths
+   - Fix GameEngine MPQ initialization
+   - Verify end-to-end asset loading
+2. **Phase 42: Complete Asset Pipeline Connection** - HIGH PRIORITY
+   - Dynamic sprite loading in renderer
+   - Audio file loading integration
+   - Data table parser implementation
+   - Sprite animation system
+3. **Phase 43: Performance Optimization** - Required for mobile gameplay
+   - Texture atlas implementation
+   - Vertex buffer optimization
+   - Mobile-specific optimizations
+   - Memory allocation reduction
+4. **Phase 44: Missing Game Systems** - For complete experience
+   - Additional file format support (DCC, DS1, DT1, COF)
+   - Map loading and rendering
+   - Palette system
+   - Complete animation system
+5. **Phase 45: Repository Cleanup** - Professional standards
+   - Create comprehensive .gitignore ✅ DONE
+   - Reorganize project structure
+   - Add configuration system
 
 ### ✅ **Working Features:**
 1. **ShaderManager** - Real OpenGL shader compilation with validation, program linking, uniform management (REAL OPENGL!)

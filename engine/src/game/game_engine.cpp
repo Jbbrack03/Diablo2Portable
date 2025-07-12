@@ -21,6 +21,8 @@
 #include <glm/geometric.hpp>
 #include <cstdlib>
 #include <vector>
+#include <filesystem>
+#include <algorithm>
 
 namespace d2 {
 
@@ -38,8 +40,30 @@ bool GameEngine::initialize(const std::string& assetPath) {
     
     // Initialize asset manager with provided path
     if (!assetPath.empty()) {
-        if (!assetManager_->initialize(assetPath)) {
-            return false;
+        // Check if the path contains MPQ files
+        bool hasMPQFiles = false;
+        if (std::filesystem::exists(assetPath)) {
+            for (const auto& entry : std::filesystem::directory_iterator(assetPath)) {
+                if (entry.is_regular_file()) {
+                    std::string filename = entry.path().filename().string();
+                    std::transform(filename.begin(), filename.end(), filename.begin(), ::tolower);
+                    if (filename.length() >= 4 && filename.substr(filename.length() - 4) == ".mpq") {
+                        hasMPQFiles = true;
+                        break;
+                    }
+                }
+            }
+        }
+        
+        // Initialize with appropriate method
+        if (hasMPQFiles) {
+            if (!assetManager_->initializeWithMPQs(assetPath)) {
+                return false;
+            }
+        } else {
+            if (!assetManager_->initialize(assetPath)) {
+                return false;
+            }
         }
     }
     

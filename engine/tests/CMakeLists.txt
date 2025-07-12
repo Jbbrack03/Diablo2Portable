@@ -153,6 +153,8 @@ set(TEST_SOURCES
     android/android_apk_build_test.cpp
     android/android_jni_bridge_validation_test.cpp
     android/android_integration_test.cpp
+    android/test_asset_path_integration.cpp
+    android/test_java_asset_integration.cpp
     performance/test_performance_metrics.cpp
     performance/test_game_performance.cpp
     performance/memory_monitor_test.cpp

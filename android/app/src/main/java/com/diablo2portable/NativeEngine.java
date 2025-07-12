@@ -22,9 +22,18 @@ public class NativeEngine {
 
         boolean result = initialize(nativeHandle);
         if (result) {
-            // Load assets from the APK
-            AssetManager assetManager = context.getAssets();
-            result = loadAssets(nativeHandle, "/android_asset/");
+            // Get the path to extracted assets from OnboardingHelper
+            OnboardingHelper onboardingHelper = new OnboardingHelper(context);
+            String assetPath = onboardingHelper.getAssetPath();
+            
+            if (assetPath != null && !assetPath.isEmpty()) {
+                // Use extracted assets
+                result = loadAssets(nativeHandle, assetPath);
+            } else {
+                // Fallback to default location
+                String defaultPath = context.getFilesDir().getAbsolutePath() + "/assets";
+                result = loadAssets(nativeHandle, defaultPath);
+            }
             initialized = result;
         }
         

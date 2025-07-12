@@ -1,64 +1,206 @@
 # Build directories
 build/
+android/build/
+android/app/build/
+android/.gradle/
+android/.cxx/
 cmake-build-*/
 out/
-Debug/
-Release/
-_deps/
 
-# Android build files
-android/.gradle/
-android/app/build/
-android/app/.cxx/
+# Game assets (copyrighted content - user must provide their own)
+vendor/Diablo II*/
+vendor/mpq/*.mpq
+vendor/mpq/*.MPQ
+vendor/mpq_temp/
+vendor/patch_files/
+vendor/isos/
+vendor/*.iso
+vendor/*.ISO
+temp/
+assets/raw/
+assets/processed/
+assets/cache/
+
+# Test artifacts
+test_output.log
+test_saves/
+test_results/
+*.test
+
+# Android specific
 android/local.properties
+android/app/release/
+android/app/debug/
+android/app/.cxx/
 *.apk
 *.aab
 *.ap_
 *.dex
+.android/
 
 # IDE files
 .idea/
-*.iml
 .vscode/
-.vs/
+*.iml
+.project
+.classpath
+.settings/
+*.sublime-*
+
+# OS files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
 *.swp
 *.swo
 *~
 
-# Operating System files
-.DS_Store
-Thumbs.db
-
-# Generated files
-*.o
-*.so
-*.a
-*.dylib
-*.dll
-*.exe
-
-# Test output
-test-results/
-test_output.txt
-coverage/
-*.gcda
-*.gcno
-
-# Game assets (users must provide their own)
-assets/
-extracted_assets/
-vendor/mpq_temp/
-vendor/Diablo II CD Images/
+# Log files
+*.log
+logs/
 
 # Temporary files
 *.tmp
-*.temp
-*.log
-temp/
+*.bak
+*.old
+*.orig
 
-# Personal signing keys
-*.keystore
+# Compiled files
+*.o
+*.so
+*.dylib
+*.dll
+*.exe
+*.out
+*.class
+
+# Archives (except StormLib)
+*.zip
+*.tar.gz
+*.rar
+*.7z
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.env
+venv/
+
+# Documentation build
+docs/_build/
+docs/html/
+doxygen/
+
+# Coverage reports
+coverage/
+*.gcov
+*.gcda
+*.gcno
+
+# Profiling
+*.prof
+gmon.out
+
+# Core dumps
+core
+core.*
+vgcore.*
+
+# Binary output
+bin/
+lib/
+
+# Package files
+*.deb
+*.rpm
+*.dmg
+*.pkg
+
+# Gradle
+.gradle/
+gradle-app.setting
+!gradle-wrapper.jar
+
+# CMake
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+install_manifest.txt
+compile_commands.json
+CTestTestfile.cmake
+_deps/
+
+# Visual Studio
+.vs/
+*.vcxproj.user
+*.vcxproj.filters
+
+# Xcode
+xcuserdata/
+*.xcodeproj/
+*.xcworkspace/
+
+# Android Studio captures
+captures/
+
+# External native build folder
+.externalNativeBuild/
+
+# Google Services
+google-services.json
+
+# Freeline
+freeline.py
+freeline/
+freeline_project_description.json
+
+# fastlane
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots
+fastlane/test_output
+fastlane/readme.md
+
+# Version control
+.svn/
+.hg/
+
+# Crashlytics
+crashlytics.properties
+crashlytics-build.properties
+fabric.properties
+
+# Local configuration
+local.properties
+config/local.json
+
+# Signing
 *.jks
+*.keystore
 
-# Project notes and temporary documentation
-project_memory.md
+# Database
+*.db
+*.sqlite
+
+# Node (if used for tools)
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Rust (if used for tools)
+target/
+Cargo.lock
+
+# Keep these
+!vendor/StormLib/
+!third_party/
+!tools/
+!engine/
+!android/app/src/
+!docs/
+!scripts/
