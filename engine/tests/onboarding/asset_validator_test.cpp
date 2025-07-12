@@ -101,3 +101,19 @@ TEST_F(AssetValidatorTest, DetectCorruption) {
     
     EXPECT_FALSE(isValid); // Should return false for valid files (not corrupted)
 }
+
+// STEP 3: Write exactly ONE failing test for detecting incomplete assets
+TEST_F(AssetValidatorTest, DetectIncompleteAssets) {
+    AssetValidator validator;
+    fs::path incompleteAssetPath = testDir / "incomplete_assets";
+    
+    // Create only core files, missing expansion files
+    createMockMPQFiles(incompleteAssetPath, false); // No expansion
+    
+    auto validation = validator.validateAssets(incompleteAssetPath.string());
+    
+    EXPECT_FALSE(validation.isComplete);
+    EXPECT_FALSE(validation.hasExpansion);
+    EXPECT_GT(validation.missingFiles.size(), 0);
+    EXPECT_TRUE(std::find(validation.missingFiles.begin(), validation.missingFiles.end(), "d2exp.mpq") != validation.missingFiles.end());
+}

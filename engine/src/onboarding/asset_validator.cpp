@@ -10,10 +10,40 @@ namespace d2 {
 AssetValidation AssetValidator::validateAssets(const std::string& assetPath) {
     AssetValidation validation;
     
-    // Minimal implementation to make test pass
-    validation.isComplete = true;
-    validation.hasExpansion = true;
-    validation.version = D2Version::CLASSIC;
+    // Define required core files
+    std::vector<std::string> coreFiles = {
+        "d2data.mpq",
+        "d2sfx.mpq", 
+        "d2speech.mpq"
+    };
+    
+    // Define expansion files
+    std::vector<std::string> expansionFiles = {
+        "d2exp.mpq"
+    };
+    
+    // Check for core files
+    fs::path basePath(assetPath);
+    for (const auto& fileName : coreFiles) {
+        fs::path filePath = basePath / fileName;
+        if (!fs::exists(filePath)) {
+            validation.missingFiles.push_back(fileName);
+        }
+    }
+    
+    // Check for expansion files
+    bool hasExpansion = true;
+    for (const auto& fileName : expansionFiles) {
+        fs::path filePath = basePath / fileName;
+        if (!fs::exists(filePath)) {
+            validation.missingFiles.push_back(fileName);
+            hasExpansion = false;
+        }
+    }
+    
+    validation.hasExpansion = hasExpansion;
+    validation.isComplete = validation.missingFiles.empty();
+    validation.version = hasExpansion ? D2Version::LORD_OF_DESTRUCTION : D2Version::CLASSIC;
     
     return validation;
 }
