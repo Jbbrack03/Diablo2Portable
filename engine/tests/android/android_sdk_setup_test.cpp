@@ -134,6 +134,32 @@ public:
             return false;
         }
     }
+    
+    std::string generateDetailedInstallationGuide() {
+        std::string guide = 
+            "ANDROID SDK INSTALLATION GUIDE\n"
+            "==============================\n\n"
+            "METHOD 1: Android Studio Installation\n"
+            "1. Download Android Studio from https://developer.android.com/studio\n"
+            "2. Install and run setup wizard\n"
+            "3. SDK will be installed automatically\n\n"
+            "METHOD 2: Command Line Tools\n"
+            "1. Download command line tools from Android developer site\n"
+            "2. Extract to desired location\n"
+            "3. Use sdkmanager to install required components\n\n"
+            "ENVIRONMENT SETUP:\n"
+            "- Set ANDROID_HOME environment variable to SDK path\n"
+            "- Add platform-tools to PATH\n"
+            "- Configure local.properties file in project root\n\n"
+            "REQUIRED COMPONENTS:\n"
+            "- Platform Tools\n"
+            "- Build Tools 33.0.0+\n"
+            "- Platform API 33\n"
+            "- NDK 27.0.12077973\n"
+            "- CMake 3.22.1+\n";
+        
+        return guide;
+    }
 };
 
 // Test SDK setup guide generation
@@ -300,4 +326,18 @@ TEST(AndroidSDKSetupTest, CompleteSDKSetupProcess) {
     
     // The process should provide complete guidance for SDK setup
     EXPECT_TRUE(true) << "Complete SDK setup process validation successful";
+}
+
+// STEP 9: Write exactly ONE failing test for enhanced SDK setup guidance
+TEST(AndroidSDKSetupTest, ProvideDetailedSDKInstallationGuide) {
+    AndroidSDKSetup setup;
+    
+    // Test generation of detailed installation guide
+    std::string guide = setup.generateDetailedInstallationGuide();
+    
+    EXPECT_FALSE(guide.empty()); // Should generate a guide
+    EXPECT_NE(guide.find("Android Studio"), std::string::npos); // Should mention Android Studio
+    EXPECT_NE(guide.find("command line tools"), std::string::npos); // Should mention CLI tools
+    EXPECT_NE(guide.find("ANDROID_HOME"), std::string::npos); // Should mention environment variable
+    EXPECT_NE(guide.find("local.properties"), std::string::npos); // Should mention config file
 }
