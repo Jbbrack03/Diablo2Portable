@@ -5,10 +5,33 @@ All notable changes to the Diablo II Android Port project will be documented in 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - 2025-01-12
+
+### Added
+- **SpriteAnimation System**: Complete animation framework for characters, monsters, and objects
+  - Frame-based animation with configurable timing and direction support
+  - 8-directional character sprite support with automatic looping
+  - Time-based frame advancement with customizable frame rates
+- **Animation Integration**: WorldRenderer now supports animated entities
+  - Dynamic texture ID calculation based on animation state
+  - Backwards compatibility with static sprites
+  - Entity animation management with setEntityAnimation() method
+
+### Enhanced
+- Enhanced AssetValidator with real validation logic and checksum verification
+- Improved JNI integration with getMissingFiles() and validateAssets() functions
+- Updated Android SDK installation guidance with comprehensive setup instructions
+
+### Technical Details
+- 6 new animation-related tests added (849 total tests)
+- Perfect TDD compliance with RED-GREEN-REFACTOR cycles
+- Animation texture mapping: base_id + frame + (direction * frame_count)
+- All existing functionality maintained with no regressions
+
 ## [1.0.0] - 2025-01-11
 
 ### Added
-- Complete Diablo II Android port implementation with 773 unit tests
+- Complete Diablo II Android port implementation with 843 unit tests
 - OpenGL ES 3.0 rendering pipeline with real shader compilation and texture management
 - JNI Bridge for Android integration with GameEngine
 - Comprehensive asset extraction system supporting ISO, MPQ, and patch files
