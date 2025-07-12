@@ -4,6 +4,7 @@
 #include <fstream>
 #include "game/game_engine.h"
 #include "core/asset_manager.h"
+#include "utils/mock_mpq_builder.h"
 
 class AssetPathIntegrationTest : public ::testing::Test {
 protected:
@@ -17,9 +18,8 @@ protected:
         testAssetPath = std::filesystem::temp_directory_path() / "d2portable_test_assets";
         std::filesystem::create_directories(testAssetPath);
         
-        // Create mock MPQ files for testing
-        createMockMPQFile(testAssetPath + "/d2data.mpq");
-        createMockMPQFile(testAssetPath + "/d2exp.mpq");
+        // Create proper mock MPQ files for testing
+        createProperMockMPQFiles();
     }
     
     void TearDown() override {
@@ -29,14 +29,43 @@ protected:
         }
     }
     
-    void createMockMPQFile(const std::string& path) {
-        // Create a basic MPQ file header (just enough to be recognized as MPQ)
-        std::ofstream file(path, std::ios::binary);
-        // Write MPQ signature
-        file.write("MPQ\x1B", 4);
-        // Write some dummy data to make it a valid-looking file
-        file.write("\x00\x00\x00\x00", 4);
-        file.close();
+    void createProperMockMPQFiles() {
+        // Create d2data.mpq with essential files
+        d2portable::utils::MockMPQBuilder d2dataBuilder;
+        
+        // Add the armor.txt file that the test expects
+        std::string armorData = 
+            "name\tversion\tcompactsave\trarity\tlevel\tlevelreq\tcost\n"
+            "Quilted Armor\t0\t1\t1\t1\t1\t65\n"
+            "Leather Armor\t0\t1\t1\t3\t3\t75\n"
+            "Hard Leather Armor\t0\t1\t1\t5\t5\t84\n";
+        
+        std::vector<uint8_t> armorBytes(armorData.begin(), armorData.end());
+        d2dataBuilder.addFile("data\\global\\excel\\armor.txt", armorBytes);
+        
+        // Add a few more essential files to make it realistic
+        std::string weaponsData = 
+            "name\ttype\ttype2\tcode\n"
+            "Hand Axe\taxe\tmelee\thax\n"
+            "Axe\taxe\tmelee\taxe\n";
+        std::vector<uint8_t> weaponsBytes(weaponsData.begin(), weaponsData.end());
+        d2dataBuilder.addFile("data\\global\\excel\\weapons.txt", weaponsBytes);
+        
+        // Build the d2data.mpq file
+        d2dataBuilder.build(testAssetPath + "/d2data.mpq");
+        
+        // Create d2exp.mpq with expansion data
+        d2portable::utils::MockMPQBuilder d2expBuilder;
+        
+        std::string miscData = 
+            "name\tcode\ttype\n"
+            "Gold\tgld\tgold\n"
+            "Arrow\taqv\tammo\n";
+        std::vector<uint8_t> miscBytes(miscData.begin(), miscData.end());
+        d2expBuilder.addFile("data\\global\\excel\\misc.txt", miscBytes);
+        
+        // Build the d2exp.mpq file
+        d2expBuilder.build(testAssetPath + "/d2exp.mpq");
     }
 };
 
@@ -45,25 +74,16 @@ TEST_F(AssetPathIntegrationTest, GameEngineInitializesWithExtractedAssetPath) {
     // instead of APK bundled assets
     
     // The game engine should be able to initialize with this path
-    // Note: The initialization may fail if MPQ files are not valid,
-    // but it should at least detect them and try to use initializeWithMPQs()
-    bool initialized = engine->initialize(testAssetPath);
+    EXPECT_TRUE(engine->initialize(testAssetPath));
     
-    // Even if initialization fails due to invalid MPQ files,
-    // the asset manager should be created
+    // The asset manager should use MPQ loading from the extracted path
+    // not from android_asset
     auto* assetManager = engine->getAssetManager();
     ASSERT_NE(assetManager, nullptr);
     
-    // For now, we'll accept that the initialization might fail
-    // with mock MPQ files, but we want to verify the path detection works
-    if (initialized) {
-        // If initialization succeeded, check for known D2 file
-        EXPECT_TRUE(assetManager->hasFile("data/global/excel/armor.txt"));
-    } else {
-        // If initialization failed, it's likely due to invalid MPQ files
-        // This is acceptable for this test
-        EXPECT_FALSE(assetManager->hasFile("data/global/excel/armor.txt"));
-    }
+    // Check that it can find a known D2 file
+    // This should work with proper mock MPQ files
+    EXPECT_TRUE(assetManager->hasFile("data/global/excel/armor.txt"));
 }
 
 TEST_F(AssetPathIntegrationTest, GameEngineFailsWithInvalidPath) {
