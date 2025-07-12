@@ -117,3 +117,31 @@ TEST_F(AssetValidatorTest, DetectIncompleteAssets) {
     EXPECT_GT(validation.missingFiles.size(), 0);
     EXPECT_TRUE(std::find(validation.missingFiles.begin(), validation.missingFiles.end(), "d2exp.mpq") != validation.missingFiles.end());
 }
+
+// STEP 4: Write exactly ONE failing test for checksum verification
+TEST_F(AssetValidatorTest, VerifyFileChecksum) {
+    AssetValidator validator;
+    
+    // Create a test file with known content
+    fs::path testFile = testDir / "test_file.txt";
+    std::string testContent = "This is test content for checksum verification";
+    std::ofstream file(testFile);
+    file << testContent;
+    file.close();
+    
+    // Compute the actual checksum for the test content
+    std::string actualChecksum = validator.computeChecksum(testFile.string());
+    EXPECT_FALSE(actualChecksum.empty()); // Should compute a valid checksum
+    
+    // Now verify with the correct checksum
+    bool isValid = validator.verifyChecksum(testFile.string(), actualChecksum);
+    EXPECT_TRUE(isValid); // Should match when using the correct checksum
+    
+    // Test with wrong checksum
+    bool wrongChecksumResult = validator.verifyChecksum(testFile.string(), "wrong_checksum");
+    EXPECT_FALSE(wrongChecksumResult); // Should fail with wrong checksum
+    
+    // Test with non-existent file
+    bool nonExistentResult = validator.verifyChecksum("/nonexistent/file.txt", "any_checksum");
+    EXPECT_FALSE(nonExistentResult); // Should be false for non-existent files
+}

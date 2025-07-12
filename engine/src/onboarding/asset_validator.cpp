@@ -2,6 +2,7 @@
 #include "onboarding/file_source_detector.h"
 #include <filesystem>
 #include <fstream>
+#include <sstream>
 
 namespace fs = std::filesystem;
 
@@ -67,9 +68,33 @@ bool AssetValidator::detectCorruption(const std::string& mpqPath) {
     return false; // Valid header = not corrupted
 }
 
+std::string AssetValidator::computeChecksum(const std::string& filePath) {
+    std::ifstream file(filePath, std::ios::binary);
+    if (!file) {
+        return ""; // File doesn't exist
+    }
+    
+    // Simple checksum implementation for testing purposes
+    // Read file content and compute a basic hash
+    std::string content((std::istreambuf_iterator<char>(file)),
+                        std::istreambuf_iterator<char>());
+    
+    // Simple hash function (sum of bytes modulo large prime)
+    uint64_t hash = 0;
+    const uint64_t prime = 1000000007;
+    for (char c : content) {
+        hash = (hash * 256 + static_cast<uint8_t>(c)) % prime;
+    }
+    
+    // Convert to hex string for comparison
+    std::stringstream ss;
+    ss << std::hex << hash;
+    return ss.str();
+}
+
 bool AssetValidator::verifyChecksum(const std::string& filePath, const std::string& expectedChecksum) {
-    // Will be implemented when we write tests for it
-    return false;
+    std::string computedChecksum = computeChecksum(filePath);
+    return !computedChecksum.empty() && computedChecksum == expectedChecksum;
 }
 
 } // namespace d2

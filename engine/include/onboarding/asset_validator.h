@@ -23,6 +23,7 @@ public:
     AssetValidation validateAssets(const std::string& assetPath);
     bool detectCorruption(const std::string& mpqPath);
     bool verifyChecksum(const std::string& filePath, const std::string& expectedChecksum);
+    std::string computeChecksum(const std::string& filePath); // Helper for testing
 };
 
 } // namespace d2
