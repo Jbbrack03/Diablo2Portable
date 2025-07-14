@@ -37,8 +37,16 @@ bool AssetOptimizer::optimizeSprite(const std::string& inputPath, const std::str
     }
     
     // Calculate compression ratio
-    size_t originalSize = fs::file_size(inputPath);
-    size_t optimizedSize = fs::file_size(outputPath);
+    size_t originalSize = 0;
+    size_t optimizedSize = 0;
+    
+    if (fs::exists(inputPath)) {
+        originalSize = fs::file_size(inputPath);
+    }
+    
+    if (fs::exists(outputPath)) {
+        optimizedSize = fs::file_size(outputPath);
+    }
     
     if (originalSize > 0) {
         compressionRatio = 1.0f - (static_cast<float>(optimizedSize) / static_cast<float>(originalSize));
