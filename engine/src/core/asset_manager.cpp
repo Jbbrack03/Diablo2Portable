@@ -1,5 +1,6 @@
 #include "core/asset_manager.h"
 #include "utils/stormlib_mpq_loader.h"
+#include "utils/file_utils.h"
 #include "sprites/dc6_parser.h"
 #include "performance/memory_monitor.h"
 #include <filesystem>
@@ -127,7 +128,7 @@ public:
         }
         
         std::string fallback_file = (std::filesystem::path(fallback_path) / relative_path).string();
-        if (std::filesystem::exists(fallback_file)) {
+        if (d2::utils::FileUtils::validateFileExists(fallback_file)) {
             sprites::DC6Parser parser;
             return parser.parseFile(fallback_file);
         }
@@ -137,7 +138,7 @@ public:
     
     std::unique_ptr<sprites::DC6Sprite> loadSpriteFromFilesystem(const std::string& relative_path) {
         std::string full_path = resolveFilePath(relative_path);
-        if (std::filesystem::exists(full_path)) {
+        if (d2::utils::FileUtils::validateFileExists(full_path)) {
             sprites::DC6Parser parser;
             return parser.parseFile(full_path);
         }
@@ -208,7 +209,7 @@ bool AssetManager::isInitialized() const {
 }
 
 bool AssetManager::initializeWithMPQ(const std::string& mpq_path, const std::string& fallback_path) {
-    if (!std::filesystem::exists(mpq_path)) {
+    if (!d2::utils::FileUtils::validateFileExists(mpq_path)) {
         pImpl->last_error = "MPQ file does not exist: " + mpq_path;
         return false;
     }
