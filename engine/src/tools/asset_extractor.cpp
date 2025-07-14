@@ -1,6 +1,7 @@
 #include "tools/asset_extractor.h"
 #include "tools/extraction_monitor.h"
 #include "utils/stormlib_mpq_loader.h"
+#include "utils/file_utils.h"
 #include <filesystem>
 #include <iostream>
 #include <vector>
@@ -47,29 +48,28 @@ bool AssetExtractor::validateD2Path(const fs::path& path) const {
 }
 
 bool AssetExtractor::createOutputDirectories(const fs::path& outputPath) const {
-    try {
-        // Create main directories
-        fs::create_directories(outputPath / "sprites");
-        fs::create_directories(outputPath / "sprites" / "characters");
-        fs::create_directories(outputPath / "sprites" / "monsters");
-        fs::create_directories(outputPath / "sprites" / "items");
-        fs::create_directories(outputPath / "sprites" / "ui");
-        
-        fs::create_directories(outputPath / "sounds");
-        fs::create_directories(outputPath / "sounds" / "music");
-        fs::create_directories(outputPath / "sounds" / "effects");
-        fs::create_directories(outputPath / "sounds" / "speech");
-        
-        fs::create_directories(outputPath / "data");
-        fs::create_directories(outputPath / "data" / "excel");
-        fs::create_directories(outputPath / "data" / "string_tables");
-        fs::create_directories(outputPath / "data" / "binary");
-        
-        return true;
-    } catch (const std::exception& e) {
-        std::cerr << "Failed to create output directories: " << e.what() << std::endl;
+    const std::vector<std::string> requiredDirectories = {
+        "sprites",
+        "sprites/characters",
+        "sprites/monsters", 
+        "sprites/items",
+        "sprites/ui",
+        "sounds",
+        "sounds/music",
+        "sounds/effects",
+        "sounds/speech",
+        "data",
+        "data/excel",
+        "data/string_tables",
+        "data/binary"
+    };
+    
+    if (!d2::utils::FileUtils::createDirectoriesFromList(outputPath.string(), requiredDirectories)) {
+        std::cerr << "Failed to create output directories: " << d2::utils::FileUtils::getLastError() << std::endl;
         return false;
     }
+    
+    return true;
 }
 
 bool AssetExtractor::extractMPQFiles(const fs::path& d2Path, const fs::path& outputPath) {

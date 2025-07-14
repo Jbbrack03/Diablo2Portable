@@ -241,4 +241,62 @@ void FileUtils::setLastError(const std::string& error) {
     lastError_ = error;
 }
 
+bool FileUtils::findMPQSignature(const std::string& path, size_t& mpqOffset) {
+    std::ifstream file;
+    if (!safeOpenBinaryFileForReading(path, file)) {
+        return false;
+    }
+    
+    file.seekg(0, std::ios::end);
+    auto file_size = file.tellg();
+    file.seekg(0, std::ios::beg);
+    
+    const size_t buffer_size = 4096;
+    std::vector<char> buffer(buffer_size);
+    
+    for (size_t offset = 0; offset < static_cast<size_t>(file_size); offset += buffer_size - 3) {
+        file.seekg(offset);
+        file.read(buffer.data(), buffer_size);
+        auto bytes_read = file.gcount();
+        
+        size_t localOffset;
+        if (findMPQSignature(buffer.data(), bytes_read, localOffset)) {
+            mpqOffset = offset + localOffset;
+            return true;
+        }
+    }
+    
+    return false;
+}
+
+bool FileUtils::findMPQSignature(const char* buffer, size_t bufferSize, size_t& mpqOffset) {
+    if (bufferSize < 4) {
+        return false;
+    }
+    
+    // Search for MPQ signature: 'M' 'P' 'Q' 0x1A
+    for (size_t i = 0; i < bufferSize - 3; ++i) {
+        if (buffer[i] == 'M' && buffer[i+1] == 'P' && 
+            buffer[i+2] == 'Q' && buffer[i+3] == 0x1A) {
+            mpqOffset = i;
+            return true;
+        }
+    }
+    
+    return false;
+}
+
+bool FileUtils::createDirectoriesFromList(const std::string& basePath, const std::vector<std::string>& relativePaths) {
+    try {
+        for (const auto& relativePath : relativePaths) {
+            std::filesystem::path fullPath = std::filesystem::path(basePath) / relativePath;
+            std::filesystem::create_directories(fullPath);
+        }
+        return true;
+    } catch (const std::exception& e) {
+        setLastError("Failed to create directories: " + std::string(e.what()));
+        return false;
+    }
+}
+
 } // namespace d2::utils

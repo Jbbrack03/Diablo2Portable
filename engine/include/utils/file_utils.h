@@ -145,6 +145,31 @@ public:
      * @return Last error message
      */
     static std::string getLastError();
+    
+    /**
+     * @brief Searches for MPQ signature in a file
+     * @param path Path to the file to search
+     * @param mpqOffset Output parameter for the offset where MPQ signature was found
+     * @return true if MPQ signature was found, false otherwise
+     */
+    static bool findMPQSignature(const std::string& path, size_t& mpqOffset);
+    
+    /**
+     * @brief Searches for MPQ signature in a buffer
+     * @param buffer Buffer to search in
+     * @param bufferSize Size of the buffer
+     * @param mpqOffset Output parameter for the offset where MPQ signature was found
+     * @return true if MPQ signature was found, false otherwise
+     */
+    static bool findMPQSignature(const char* buffer, size_t bufferSize, size_t& mpqOffset);
+    
+    /**
+     * @brief Creates multiple directories from a list of relative paths
+     * @param basePath Base directory path
+     * @param relativePaths List of relative paths to create under basePath
+     * @return true if all directories were created successfully, false otherwise
+     */
+    static bool createDirectoriesFromList(const std::string& basePath, const std::vector<std::string>& relativePaths);
 
 private:
     static thread_local std::string lastError_;

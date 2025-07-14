@@ -93,6 +93,19 @@ private:
     bool isOpenFlag = false;
     uint32_t rootDirSector = 0;
     uint32_t rootDirSize = 0;
+    
+    /**
+     * Helper method to find a file in a directory recursively
+     * @param dirSector Starting sector of the directory
+     * @param dirSize Size of the directory in bytes
+     * @param parentPath Path to the parent directory
+     * @param targetPath Path to the target file
+     * @param outFileSector Output parameter for the file sector
+     * @param outFileSize Output parameter for the file size
+     * @return true if file was found, false otherwise
+     */
+    bool findFileInDirectory(uint32_t dirSector, uint32_t dirSize, const std::string& parentPath, 
+                            const std::string& targetPath, uint32_t& outFileSector, uint32_t& outFileSize);
 };
 
 } // namespace d2

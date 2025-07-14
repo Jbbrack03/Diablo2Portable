@@ -1,4 +1,5 @@
 #include "extraction/iso_extractor.h"
+#include "utils/file_utils.h"
 #include <filesystem>
 #include <fstream>
 #include <vector>
@@ -129,102 +130,99 @@ std::vector<std::string> ISOExtractor::listFiles() const {
     return files;
 }
 
+bool ISOExtractor::findFileInDirectory(uint32_t dirSector, uint32_t dirSize, const std::string& parentPath, 
+                                      const std::string& targetPath, uint32_t& outFileSector, uint32_t& outFileSize) {
+    // Seek to directory
+    isoFile.seekg(dirSector * 2048);
+    
+    // Read the directory
+    std::vector<uint8_t> dirData(dirSize);
+    isoFile.read(reinterpret_cast<char*>(dirData.data()), dirData.size());
+    
+    if (!isoFile.good()) {
+        return false;
+    }
+    
+    // Parse directory entries
+    size_t offset = 0;
+    while (offset < dirData.size()) {
+        uint8_t recordLength = dirData[offset];
+        
+        // End of directory entries
+        if (recordLength == 0) {
+            break;
+        }
+        
+        // Skip if we'd go past the end
+        if (offset + recordLength > dirData.size()) {
+            break;
+        }
+        
+        // Extract identifier length (offset 32)
+        uint8_t identLength = dirData[offset + 32];
+        
+        // Skip special entries "." and ".."
+        if (identLength == 1) {
+            uint8_t identifier = dirData[offset + 33];
+            if (identifier == 0x00 || identifier == 0x01) {
+                offset += recordLength;
+                continue;
+            }
+        }
+        
+        // Extract file flags (offset 25)
+        uint8_t flags = dirData[offset + 25];
+        
+        // Extract identifier (offset 33)
+        if (identLength > 0) {
+            std::string name(reinterpret_cast<char*>(&dirData[offset + 33]), identLength);
+            
+            // ISO 9660 Level 1 uses ";1" version suffix, remove it
+            size_t semicolon = name.find(';');
+            if (semicolon != std::string::npos) {
+                name = name.substr(0, semicolon);
+            }
+            
+            // Build full path
+            std::string fullPath = parentPath.empty() ? name : parentPath + "/" + name;
+            
+            if (flags & 0x02) {
+                // It's a directory - check if target path starts with this directory
+                if (targetPath.find(fullPath + "/") == 0) {
+                    // Recurse into subdirectory
+                    uint32_t subDirSector = dirData[offset + 2] | (dirData[offset + 3] << 8) | 
+                                           (dirData[offset + 4] << 16) | (dirData[offset + 5] << 24);
+                    uint32_t subDirSize = dirData[offset + 10] | (dirData[offset + 11] << 8) | 
+                                         (dirData[offset + 12] << 16) | (dirData[offset + 13] << 24);
+                    
+                    return findFileInDirectory(subDirSector, subDirSize, fullPath, targetPath, 
+                                             outFileSector, outFileSize);
+                }
+            } else {
+                // It's a file - check if it matches
+                if (fullPath == targetPath) {
+                    // Found the file!
+                    outFileSector = dirData[offset + 2] | (dirData[offset + 3] << 8) | 
+                                   (dirData[offset + 4] << 16) | (dirData[offset + 5] << 24);
+                    outFileSize = dirData[offset + 10] | (dirData[offset + 11] << 8) | 
+                                 (dirData[offset + 12] << 16) | (dirData[offset + 13] << 24);
+                    return true;
+                }
+            }
+        }
+        
+        offset += recordLength;
+    }
+    
+    return false;
+}
+
 bool ISOExtractor::extractFile(const std::string& source_path, const std::string& dest_path) {
     // Can't extract when not open
     if (!isOpen()) {
         lastError = "No ISO file is open";
         return false;
     }
-    
-    // Helper function to find a file in a directory
-    std::function<bool(uint32_t, uint32_t, const std::string&, const std::string&, uint32_t&, uint32_t&)> findFileInDirectory = 
-        [&](uint32_t dirSector, uint32_t dirSize, const std::string& parentPath, const std::string& targetPath, 
-            uint32_t& outFileSector, uint32_t& outFileSize) -> bool {
-        
-        // Seek to directory
-        isoFile.seekg(dirSector * 2048);
-        
-        // Read the directory
-        std::vector<uint8_t> dirData(dirSize);
-        isoFile.read(reinterpret_cast<char*>(dirData.data()), dirData.size());
-        
-        if (!isoFile.good()) {
-            return false;
-        }
-        
-        // Parse directory entries
-        size_t offset = 0;
-        while (offset < dirData.size()) {
-            uint8_t recordLength = dirData[offset];
-            
-            // End of directory entries
-            if (recordLength == 0) {
-                break;
-            }
-            
-            // Skip if we'd go past the end
-            if (offset + recordLength > dirData.size()) {
-                break;
-            }
-            
-            // Extract identifier length (offset 32)
-            uint8_t identLength = dirData[offset + 32];
-            
-            // Skip special entries "." and ".."
-            if (identLength == 1) {
-                uint8_t identifier = dirData[offset + 33];
-                if (identifier == 0x00 || identifier == 0x01) {
-                    offset += recordLength;
-                    continue;
-                }
-            }
-            
-            // Extract file flags (offset 25)
-            uint8_t flags = dirData[offset + 25];
-            
-            // Extract identifier (offset 33)
-            if (identLength > 0) {
-                std::string name(reinterpret_cast<char*>(&dirData[offset + 33]), identLength);
-                
-                // ISO 9660 Level 1 uses ";1" version suffix, remove it
-                size_t semicolon = name.find(';');
-                if (semicolon != std::string::npos) {
-                    name = name.substr(0, semicolon);
-                }
-                
-                // Build full path
-                std::string fullPath = parentPath.empty() ? name : parentPath + "/" + name;
-                
-                if (flags & 0x02) {
-                    // It's a directory - check if target path starts with this directory
-                    if (targetPath.find(fullPath + "/") == 0) {
-                        // Recurse into subdirectory
-                        uint32_t subDirSector = dirData[offset + 2] | (dirData[offset + 3] << 8) | 
-                                               (dirData[offset + 4] << 16) | (dirData[offset + 5] << 24);
-                        uint32_t subDirSize = dirData[offset + 10] | (dirData[offset + 11] << 8) | 
-                                             (dirData[offset + 12] << 16) | (dirData[offset + 13] << 24);
-                        
-                        return findFileInDirectory(subDirSector, subDirSize, fullPath, targetPath, 
-                                                 outFileSector, outFileSize);
-                    }
-                } else {
-                    // It's a file - check if it matches
-                    if (fullPath == targetPath) {
-                        // Found the file!
-                        outFileSector = dirData[offset + 2] | (dirData[offset + 3] << 8) | 
-                                       (dirData[offset + 4] << 16) | (dirData[offset + 5] << 24);
-                        outFileSize = dirData[offset + 10] | (dirData[offset + 11] << 8) | 
-                                     (dirData[offset + 12] << 16) | (dirData[offset + 13] << 24);
-                        return true;
-                    }
-                }
-            }
-            
-            offset += recordLength;
-        }
-        
-        return false;
-    };
     
     // Find the file starting from root directory
     uint32_t fileSector = 0;
@@ -246,18 +244,9 @@ bool ISOExtractor::extractFile(const std::string& source_path, const std::string
         return false;
     }
     
-    // Write to destination
-    std::ofstream outFile(dest_path, std::ios::binary);
-    if (!outFile.is_open()) {
-        lastError = "Failed to create output file: " + dest_path;
-        return false;
-    }
-    
-    outFile.write(reinterpret_cast<char*>(fileData.data()), fileSize);
-    outFile.close();
-    
-    if (!outFile.good()) {
-        lastError = "Failed to write output file: " + dest_path;
+    // Write to destination using FileUtils
+    if (!d2::utils::FileUtils::writeEntireFile(dest_path, fileData)) {
+        lastError = "Failed to write output file: " + dest_path + " - " + d2::utils::FileUtils::getLastError();
         return false;
     }
     

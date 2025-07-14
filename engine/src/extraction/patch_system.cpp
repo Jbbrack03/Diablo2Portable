@@ -1,4 +1,5 @@
 #include "extraction/patch_system.h"
+#include "utils/file_utils.h"
 #include <fstream>
 #include <regex>
 #include <algorithm>
@@ -34,11 +35,8 @@ std::vector<PatchInfo> PatchSystem::detectPatches(const std::filesystem::path& d
             // Check if it's a standalone patch MPQ
             if (filename.find(".mpq") != std::string::npos || filename.find(".MPQ") != std::string::npos) {
                 // Verify it's actually an MPQ file by checking header
-                std::ifstream file(entry.path(), std::ios::binary);
-                char header[4];
-                file.read(header, 4);
-                
-                if (header[0] == 'M' && header[1] == 'P' && header[2] == 'Q' && header[3] == 0x1A) {
+                size_t mpqOffset;
+                if (d2::utils::FileUtils::findMPQSignature(entry.path().string(), mpqOffset) && mpqOffset == 0) {
                     PatchInfo patch;
                     patch.filename = filename;
                     patch.type = PatchType::STANDALONE_MPQ;
@@ -52,36 +50,10 @@ std::vector<PatchInfo> PatchSystem::detectPatches(const std::filesystem::path& d
                       (filename.substr(filename.size() - 4) == ".exe" || 
                        filename.substr(filename.size() - 4) == ".EXE"))) {
                 // Check if it's a PE executable with embedded MPQ
-                std::ifstream file(entry.path(), std::ios::binary);
-                char dos_header[2];
-                file.read(dos_header, 2);
-                
-                if (dos_header[0] == 'M' && dos_header[1] == 'Z') {
+                if (d2::utils::FileUtils::validateFileHeader(entry.path().string(), "MZ")) {
                     // It's a PE file, search for embedded MPQ
-                    file.seekg(0, std::ios::end);
-                    auto file_size = file.tellg();
-                    
-                    // Search for MPQ signature in the file
-                    const size_t buffer_size = 4096;
-                    char buffer[buffer_size];
-                    bool found_mpq = false;
-                    
-                    for (size_t offset = 0; offset < static_cast<size_t>(file_size) && !found_mpq; offset += buffer_size - 3) {
-                        file.seekg(offset);
-                        file.read(buffer, buffer_size);
-                        auto bytes_read = file.gcount();
-                        
-                        // Search for MPQ signature in buffer
-                        for (size_t i = 0; i < static_cast<size_t>(bytes_read) - 3; ++i) {
-                            if (buffer[i] == 'M' && buffer[i+1] == 'P' && 
-                                buffer[i+2] == 'Q' && buffer[i+3] == 0x1A) {
-                                found_mpq = true;
-                                break;
-                            }
-                        }
-                    }
-                    
-                    if (found_mpq) {
+                    size_t mpqOffset;
+                    if (d2::utils::FileUtils::findMPQSignature(entry.path().string(), mpqOffset)) {
                         PatchInfo patch;
                         patch.filename = filename;
                         patch.type = PatchType::PATCH_EXECUTABLE;
@@ -97,37 +69,14 @@ std::vector<PatchInfo> PatchSystem::detectPatches(const std::filesystem::path& d
 }
 
 bool PatchSystem::extractPatchFromExecutable(const std::filesystem::path& exePath, const std::filesystem::path& outputPath) {
-    std::ifstream input(exePath, std::ios::binary);
-    if (!input.is_open()) {
+    // Search for MPQ signature in the executable
+    size_t mpq_offset;
+    if (!d2::utils::FileUtils::findMPQSignature(exePath.string(), mpq_offset)) {
         return false;
     }
     
-    // Search for MPQ signature in the executable
-    input.seekg(0, std::ios::end);
-    auto file_size = input.tellg();
-    
-    const size_t buffer_size = 4096;
-    std::vector<char> buffer(buffer_size);
-    size_t mpq_offset = 0;
-    bool found_mpq = false;
-    
-    for (size_t offset = 0; offset < static_cast<size_t>(file_size) && !found_mpq; offset += buffer_size - 3) {
-        input.seekg(offset);
-        input.read(buffer.data(), buffer_size);
-        auto bytes_read = input.gcount();
-        
-        // Search for MPQ signature in buffer
-        for (size_t i = 0; i < static_cast<size_t>(bytes_read) - 3; ++i) {
-            if (buffer[i] == 'M' && buffer[i+1] == 'P' && 
-                buffer[i+2] == 'Q' && buffer[i+3] == 0x1A) {
-                mpq_offset = offset + i;
-                found_mpq = true;
-                break;
-            }
-        }
-    }
-    
-    if (!found_mpq) {
+    std::ifstream input;
+    if (!d2::utils::FileUtils::safeOpenBinaryFileForReading(exePath.string(), input)) {
         return false;
     }
     
@@ -151,8 +100,8 @@ bool PatchSystem::extractPatchFromExecutable(const std::filesystem::path& exePat
     
     // Extract the MPQ to output file
     input.seekg(mpq_offset);
-    std::ofstream output(outputPath, std::ios::binary);
-    if (!output.is_open()) {
+    std::ofstream output;
+    if (!d2::utils::FileUtils::safeOpenBinaryFileForWriting(outputPath.string(), output)) {
         return false;
     }
     
@@ -163,8 +112,8 @@ bool PatchSystem::extractPatchFromExecutable(const std::filesystem::path& exePat
     
     if (bytes_read == static_cast<std::streamsize>(archive_size)) {
         output.write(copy_buffer.data(), bytes_read);
-        output.close();
-        input.close();
+        d2::utils::FileUtils::safeCloseFile(output, outputPath.string());
+        d2::utils::FileUtils::safeCloseFile(input, exePath.string());
         return true;
     }
     
