@@ -105,24 +105,57 @@ protected:
     void createTestDC6File(const fs::path& path, int width, int height) {
         std::ofstream file(path, std::ios::binary);
         
-        // DC6 header
+        // DC6 Header
         uint32_t version = 6;
         uint32_t flags = 0;
         uint32_t encoding = 0;
-        std::vector<uint8_t> termination = {0xEE, 0xEE, 0xEE, 0xEE};
-        uint32_t directions = 1;
-        uint32_t frames = 1;
+        uint32_t termination = 0xEEEEEEEE;
+        uint32_t directions = 1;  // Single direction for simple test
+        uint32_t frames_per_dir = 1;  // Single frame
         
-        file.write(reinterpret_cast<char*>(&version), 4);
-        file.write(reinterpret_cast<char*>(&flags), 1);
-        file.write(reinterpret_cast<char*>(&encoding), 1);
-        file.write(reinterpret_cast<char*>(termination.data()), 4);
-        file.write(reinterpret_cast<char*>(&directions), 4);
-        file.write(reinterpret_cast<char*>(&frames), 4);
+        file.write(reinterpret_cast<const char*>(&version), 4);
+        file.write(reinterpret_cast<const char*>(&flags), 4);
+        file.write(reinterpret_cast<const char*>(&encoding), 4);
+        file.write(reinterpret_cast<const char*>(&termination), 4);
+        file.write(reinterpret_cast<const char*>(&directions), 4);
+        file.write(reinterpret_cast<const char*>(&frames_per_dir), 4);
         
-        // Frame data
-        std::vector<uint8_t> frame_data(width * height, 0xAA);
-        file.write(reinterpret_cast<char*>(frame_data.data()), frame_data.size());
+        // Frame pointers (1 frame)
+        uint32_t frame_pointer = 256;  // Frame data starts at offset 256
+        file.write(reinterpret_cast<const char*>(&frame_pointer), 4);
+        
+        // Pad to frame data
+        file.seekp(frame_pointer);
+        
+        // Frame header
+        uint32_t flip = 0;
+        uint32_t w = static_cast<uint32_t>(width);
+        uint32_t h = static_cast<uint32_t>(height);
+        int32_t offset_x = -static_cast<int32_t>(width / 2);
+        int32_t offset_y = -static_cast<int32_t>(height / 2);
+        uint32_t allocsize = 0;
+        uint32_t next_block = 0;
+        uint32_t length = w * h;  // Uncompressed
+        
+        file.write(reinterpret_cast<const char*>(&flip), 4);
+        file.write(reinterpret_cast<const char*>(&w), 4);
+        file.write(reinterpret_cast<const char*>(&h), 4);
+        file.write(reinterpret_cast<const char*>(&offset_x), 4);
+        file.write(reinterpret_cast<const char*>(&offset_y), 4);
+        file.write(reinterpret_cast<const char*>(&allocsize), 4);
+        file.write(reinterpret_cast<const char*>(&next_block), 4);
+        file.write(reinterpret_cast<const char*>(&length), 4);
+        
+        // Simple pixel data (checkerboard pattern)
+        for (uint32_t y = 0; y < h; y++) {
+            for (uint32_t x = 0; x < w; x++) {
+                uint8_t pixel = ((x + y) % 2) ? 255 : 0;
+                file.write(reinterpret_cast<const char*>(&pixel), 1);
+            }
+        }
+        
+        // Termination bytes
+        file.write(reinterpret_cast<const char*>(&termination), 4);
         
         file.close();
     }
@@ -336,7 +369,7 @@ TEST_F(AssetPipelineE2ETest, TextureAtlasGeneration) {
         // Check for specific sprites in atlas
         for (const auto& sprite_path : sprite_paths) {
             fs::path path(sprite_path);
-            std::string sprite_name = path.stem().string();
+            std::string sprite_name = path.filename().string(); // Use full filename including extension
             
             if (atlas.hasSprite(sprite_name)) {
                 std::cout << "  ✅ Found sprite: " << sprite_name << "\n";
@@ -356,19 +389,23 @@ TEST_F(AssetPipelineE2ETest, TextureAtlasGeneration) {
 TEST_F(AssetPipelineE2ETest, AssetLoadingPerformance) {
     std::cout << "\n=== Asset Loading Performance Test ===\n";
     
-    // Create test assets
-    createOptimizedSprite(atlas_dir_ / "test_sprite.png", 128, 128);
+    // Create test assets - AssetManager expects DC6 files for sprites
+    createTestDC6File(atlas_dir_ / "test_sprite.dc6", 128, 128);
     createTestAudioFile(atlas_dir_ / "test_sound.wav", 44100, 2, 1.0f);
     createTestDataFile(atlas_dir_ / "test_data.txt", 1024);
     
     d2portable::core::AssetManager asset_manager;
+    
+    // Initialize asset manager with the directory containing our test assets
+    bool init_success = asset_manager.initialize(atlas_dir_.string());
+    EXPECT_TRUE(init_success) << "AssetManager should initialize successfully";
     
     std::cout << "Testing asset loading performance...\n";
     
     // Test sprite loading
     auto start = std::chrono::high_resolution_clock::now();
     
-    auto sprite = asset_manager.loadSprite("test_sprite.png");
+    auto sprite = asset_manager.loadSprite("test_sprite.dc6");
     bool sprite_loaded = (sprite != nullptr);
     
     auto sprite_time = std::chrono::high_resolution_clock::now() - start;
@@ -380,7 +417,7 @@ TEST_F(AssetPipelineE2ETest, AssetLoadingPerformance) {
     // Test cache performance
     start = std::chrono::high_resolution_clock::now();
     
-    auto cached_sprite = asset_manager.loadSprite("test_sprite.png");
+    auto cached_sprite = asset_manager.loadSprite("test_sprite.dc6");
     bool cached_loaded = (cached_sprite != nullptr);
     
     auto cached_time = std::chrono::high_resolution_clock::now() - start;
@@ -393,7 +430,7 @@ TEST_F(AssetPipelineE2ETest, AssetLoadingPerformance) {
     start = std::chrono::high_resolution_clock::now();
     
     // Try to load the same asset again to test caching
-    auto cached_sprite2 = asset_manager.loadSprite("test_sprite.png");
+    auto cached_sprite2 = asset_manager.loadSprite("test_sprite.dc6");
     bool cached_loaded2 = (cached_sprite2 != nullptr);
     
     auto enum_time = std::chrono::high_resolution_clock::now() - start;
