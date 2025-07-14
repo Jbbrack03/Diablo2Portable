@@ -205,6 +205,7 @@ set(TEST_SOURCES
     integration/mpq_integration_test.cpp
     integration/dc6_sprite_validation_test.cpp
     integration/audio_extraction_test.cpp
+    integration/asset_pipeline_e2e_test.cpp
     meta/test_count_validator_test.cpp
     meta/phase_completion_validator_test.cpp
     meta/phase_audit_test.cpp
