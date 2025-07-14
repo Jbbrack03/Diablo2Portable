@@ -4,6 +4,7 @@
 #include "rendering/renderer.h"
 #include "rendering/egl_context.h"
 #include "rendering/texture_manager.h"
+#include "tools/texture_atlas_generator.h"
 #include <glm/vec2.hpp>
 
 namespace d2::rendering {
@@ -71,6 +72,29 @@ TEST_F(SpriteRendererTest, BatchMultipleSprites) {
     
     EXPECT_EQ(sprite_renderer->getSpriteCount(), 10u);
     EXPECT_EQ(sprite_renderer->getDrawCallCount(), 2u); // Two textures = exactly 2 batches
+}
+
+// RED PHASE: This test MUST fail - testing texture atlas integration
+TEST_F(SpriteRendererTest, UsesTextureAtlases) {
+    EXPECT_TRUE(sprite_renderer->initialize(*renderer, *texture_manager));
+    
+    // Create a texture atlas for testing
+    d2::TextureAtlas atlas;
+    
+    // Add the atlas to the sprite renderer
+    sprite_renderer->addAtlas(atlas);
+    
+    // Verify the atlas was added
+    EXPECT_EQ(sprite_renderer->getAtlasCount(), 1u);
+    
+    // Test that we can draw sprites from the atlas
+    sprite_renderer->beginFrame();
+    sprite_renderer->drawSpriteFromAtlas("test_sprite", glm::vec2(0.0f, 0.0f), glm::vec2(64.0f, 64.0f));
+    sprite_renderer->endFrame();
+    
+    // Atlas sprites should be batched efficiently
+    EXPECT_EQ(sprite_renderer->getSpriteCount(), 1u);
+    EXPECT_EQ(sprite_renderer->getDrawCallCount(), 1u);
 }
 
 } // namespace d2::rendering

@@ -9,6 +9,10 @@
 #include <glm/vec2.hpp>
 #include "rendering/vertex_buffer.h"
 
+namespace d2 {
+    class TextureAtlas;
+}
+
 namespace d2::rendering {
 
 class Renderer;
@@ -25,7 +29,12 @@ public:
     bool initialize(const Renderer& renderer, const TextureManager& texture_manager);
     virtual void beginFrame();
     virtual void drawSprite(uint32_t texture_id, const glm::vec2& position, const glm::vec2& size);
+    virtual void drawSpriteFromAtlas(const std::string& spriteName, const glm::vec2& position, const glm::vec2& size);
     virtual void endFrame();
+    
+    // Texture Atlas support
+    void addAtlas(const d2::TextureAtlas& atlas);
+    uint32_t getAtlasCount() const;
     
     // Alpha blending support
     void enableAlphaBlending();
@@ -80,6 +89,9 @@ private:
         std::vector<SpriteVertex> vertices;
     };
     std::unordered_map<uint32_t, SpriteBatch> sprite_batches_;
+    
+    // Texture Atlas support
+    std::vector<d2::TextureAtlas> atlases_;
 };
 
 } // namespace d2::rendering

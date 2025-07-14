@@ -137,7 +137,7 @@ The project follows a native Android implementation approach with these key comp
 4. **Test Framework**
    - Google Test for C++ unit tests
    - Espresso for Android UI tests
-   - Test-Driven Development approach per TDD_IMPLEMENTATION_PLAN.md
+   - Test-Driven Development approach per docs/TDD_IMPLEMENTATION_PLAN.md
 
 ## Development Priorities
 

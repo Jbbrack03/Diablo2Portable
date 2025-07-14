@@ -4,6 +4,7 @@
 #include "rendering/shader_manager.h"
 #include "rendering/vertex_buffer.h"
 #include "rendering/vertex_array_object.h"
+#include "tools/texture_atlas_generator.h"
 #include <unordered_set>
 #include <cstddef>
 
@@ -305,6 +306,22 @@ std::string SpriteRenderer::getFragmentShaderSource() const {
         }
         )";
     }
+}
+
+void SpriteRenderer::addAtlas(const d2::TextureAtlas& atlas) {
+    atlases_.push_back(atlas);
+}
+
+uint32_t SpriteRenderer::getAtlasCount() const {
+    return static_cast<uint32_t>(atlases_.size());
+}
+
+void SpriteRenderer::drawSpriteFromAtlas(const std::string& spriteName, const glm::vec2& position, const glm::vec2& size) {
+    // For now, just treat as a regular sprite with texture ID 1
+    // In a real implementation, we would look up the sprite in the atlas
+    // and use the appropriate texture coordinates
+    (void)spriteName;  // Suppress unused parameter warning
+    drawSprite(1, position, size);
 }
 
 } // namespace d2::rendering
