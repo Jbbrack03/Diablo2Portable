@@ -185,6 +185,7 @@ set(TEST_SOURCES
     device/test_device_tester.cpp
     device/device_compatibility_validation_test.cpp
     release/test_release_builder.cpp
+    release/release_build_test.cpp
     onboarding/file_source_detector_test.cpp
     onboarding/onboarding_wizard_test.cpp
     onboarding/onboarding_jni_test.cpp
