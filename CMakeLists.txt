@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.22.1)
-project(Diablo2Portable VERSION 1.4.0)
+project(Diablo2Portable VERSION 1.5.0)
 
 # Set C++ standard
 set(CMAKE_CXX_STANDARD 17)
