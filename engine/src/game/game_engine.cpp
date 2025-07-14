@@ -35,36 +35,9 @@ bool GameEngine::initialize(const std::string& assetPath) {
         return true;
     }
     
-    // Create asset manager
-    assetManager_ = std::make_unique<d2portable::core::AssetManager>();
-    
-    // Initialize asset manager with provided path
-    if (!assetPath.empty()) {
-        // Check if the path contains MPQ files
-        bool hasMPQFiles = false;
-        if (std::filesystem::exists(assetPath)) {
-            for (const auto& entry : std::filesystem::directory_iterator(assetPath)) {
-                if (entry.is_regular_file()) {
-                    std::string filename = entry.path().filename().string();
-                    std::transform(filename.begin(), filename.end(), filename.begin(), ::tolower);
-                    if (filename.length() >= 4 && filename.substr(filename.length() - 4) == ".mpq") {
-                        hasMPQFiles = true;
-                        break;
-                    }
-                }
-            }
-        }
-        
-        // Initialize with appropriate method
-        if (hasMPQFiles) {
-            if (!assetManager_->initializeWithMPQs(assetPath)) {
-                return false;
-            }
-        } else {
-            if (!assetManager_->initialize(assetPath)) {
-                return false;
-            }
-        }
+    // Initialize asset manager
+    if (!initializeAssetManager(assetPath)) {
+        return false;
     }
     
     // Create renderer
@@ -395,6 +368,41 @@ void GameEngine::setScreenSize(int width, int height) {
     if (camera_) {
         // camera_->setViewportSize(width, height);
     }
+}
+
+bool GameEngine::initializeAssetManager(const std::string& assetPath) {
+    // Create asset manager
+    assetManager_ = std::make_unique<d2portable::core::AssetManager>();
+    
+    // Initialize asset manager with provided path
+    if (!assetPath.empty()) {
+        // Initialize with appropriate method based on content
+        if (detectMPQFiles(assetPath)) {
+            return assetManager_->initializeWithMPQs(assetPath);
+        } else {
+            return assetManager_->initialize(assetPath);
+        }
+    }
+    
+    return true;
+}
+
+bool GameEngine::detectMPQFiles(const std::string& directory) {
+    if (!std::filesystem::exists(directory)) {
+        return false;
+    }
+    
+    for (const auto& entry : std::filesystem::directory_iterator(directory)) {
+        if (entry.is_regular_file()) {
+            std::string filename = entry.path().filename().string();
+            std::transform(filename.begin(), filename.end(), filename.begin(), ::tolower);
+            if (filename.length() >= 4 && filename.substr(filename.length() - 4) == ".mpq") {
+                return true;
+            }
+        }
+    }
+    
+    return false;
 }
 
 } // namespace d2

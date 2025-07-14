@@ -106,6 +106,10 @@ public:
     void setOptimizationsEnabled(bool enabled);
     
 private:
+    // Helper methods for initialization
+    bool initializeAssetManager(const std::string& assetPath);
+    bool detectMPQFiles(const std::string& directory);
+    
     bool initialized_ = false;
     bool running_ = false;
     bool actionTriggered_ = false;
