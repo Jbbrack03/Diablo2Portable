@@ -201,6 +201,7 @@ set(TEST_SOURCES
     integration/critical_systems_validation_test.cpp
     integration/asset_pipeline_repair_test.cpp
     integration/production_readiness_test.cpp
+    integration/mpq_integration_test.cpp
     meta/test_count_validator_test.cpp
     meta/phase_completion_validator_test.cpp
     meta/phase_audit_test.cpp
