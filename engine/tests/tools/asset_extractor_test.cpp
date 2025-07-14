@@ -43,10 +43,27 @@ protected:
 };
 
 TEST_F(AssetExtractorTest, ExtractAllGameAssets) {
+    // Check if we have real MPQ files in vendor/mpq
+    fs::path vendorMPQPath = fs::path(__FILE__).parent_path().parent_path().parent_path().parent_path() / "vendor" / "mpq";
+    bool hasRealMPQs = false;
+    
+    if (fs::exists(vendorMPQPath)) {
+        // Check for non-placeholder d2data.mpq
+        fs::path d2dataPath = vendorMPQPath / "d2data.mpq";
+        if (fs::exists(d2dataPath) && fs::file_size(d2dataPath) > 10 * 1024 * 1024) {
+            hasRealMPQs = true;
+        }
+    }
+    
+    if (!hasRealMPQs) {
+        GTEST_SKIP() << "Skipping asset extraction test - real MPQ files not available. "
+                     << "Place valid Diablo II MPQ files in vendor/mpq/ to enable this test.";
+    }
+    
     AssetExtractor extractor;
     
     bool result = extractor.extractFromD2(
-        testD2Path.string(),
+        vendorMPQPath.string(),
         outputPath.string()
     );
     
@@ -66,10 +83,18 @@ TEST_F(AssetExtractorTest, ExtractAllGameAssets) {
 
 // Phase 33: Comprehensive Asset Extraction - Audio Extraction Test
 TEST_F(AssetExtractorTest, ExtractAudioFiles) {
+    // Check for real MPQ files
+    fs::path vendorMPQPath = fs::path(__FILE__).parent_path().parent_path().parent_path().parent_path() / "vendor" / "mpq";
+    fs::path d2musicPath = vendorMPQPath / "d2music.mpq";
+    
+    if (!fs::exists(d2musicPath) || fs::file_size(d2musicPath) < 10 * 1024 * 1024) {
+        GTEST_SKIP() << "Skipping audio extraction test - d2music.mpq not available or is placeholder";
+    }
+    
     AssetExtractor extractor;
     
     bool result = extractor.extractFromD2(
-        testD2Path.string(),
+        vendorMPQPath.string(),
         outputPath.string()
     );
     
@@ -87,10 +112,18 @@ TEST_F(AssetExtractorTest, ExtractAudioFiles) {
 
 // Phase 33: Real WAV File Extraction Test
 TEST_F(AssetExtractorTest, ExtractRealWAVFiles) {
+    // Check for real MPQ files
+    fs::path vendorMPQPath = fs::path(__FILE__).parent_path().parent_path().parent_path().parent_path() / "vendor" / "mpq";
+    fs::path d2musicPath = vendorMPQPath / "d2music.mpq";
+    
+    if (!fs::exists(d2musicPath) || fs::file_size(d2musicPath) < 10 * 1024 * 1024) {
+        GTEST_SKIP() << "Skipping WAV extraction test - d2music.mpq not available or is placeholder";
+    }
+    
     AssetExtractor extractor;
     
     bool result = extractor.extractFromD2(
-        testD2Path.string(),
+        vendorMPQPath.string(),
         outputPath.string()
     );
     
@@ -118,10 +151,18 @@ TEST_F(AssetExtractorTest, ExtractRealWAVFiles) {
 
 // Phase 33: Data Table Extraction Test
 TEST_F(AssetExtractorTest, ExtractDataTables) {
+    // Check for real MPQ files  
+    fs::path vendorMPQPath = fs::path(__FILE__).parent_path().parent_path().parent_path().parent_path() / "vendor" / "mpq";
+    fs::path d2dataPath = vendorMPQPath / "d2data.mpq";
+    
+    if (!fs::exists(d2dataPath) || fs::file_size(d2dataPath) < 10 * 1024 * 1024) {
+        GTEST_SKIP() << "Skipping data table extraction test - d2data.mpq not available or is placeholder";
+    }
+    
     AssetExtractor extractor;
     
     bool result = extractor.extractFromD2(
-        testD2Path.string(),
+        vendorMPQPath.string(),
         outputPath.string()
     );
     
