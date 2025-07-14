@@ -159,6 +159,7 @@ set(TEST_SOURCES
     android/android_performance_validation_test.cpp
     android/android_opengl_performance_test.cpp
     android/android_mpq_performance_test.cpp
+    android/android_mpq_loading_test.cpp
     performance/test_performance_metrics.cpp
     performance/test_game_performance.cpp
     performance/memory_monitor_test.cpp
