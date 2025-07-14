@@ -209,6 +209,7 @@ set(TEST_SOURCES
     integration/dc6_rendering_integration_test.cpp
     integration/audio_extraction_test.cpp
     integration/asset_pipeline_e2e_test.cpp
+    integration/gameplay_validation_test.cpp
     meta/test_count_validator_test.cpp
     meta/phase_completion_validator_test.cpp
     meta/phase_audit_test.cpp
