@@ -72,9 +72,24 @@ protected:
         const char signature[] = "MPQ\x1A";
         file.write(signature, 4);
         
-        // Add minimal header data to make it valid
-        std::vector<uint8_t> header_data(1024, 0);
-        file.write(reinterpret_cast<const char*>(header_data.data()), header_data.size());
+        // MPQ header structure (more realistic)
+        struct MPQHeader {
+            uint32_t header_size = 32;
+            uint32_t archive_size = 1024;
+            uint16_t format_version = 0;
+            uint16_t sector_size = 3;  // 512 bytes sector
+            uint32_t hashtable_pos = 0;
+            uint32_t blocktable_pos = 0;
+            uint32_t hashtable_size = 0;
+            uint32_t blocktable_size = 0;
+        };
+        
+        MPQHeader header;
+        file.write(reinterpret_cast<const char*>(&header), sizeof(header));
+        
+        // Pad to make it look more realistic
+        std::vector<uint8_t> padding(1024 - sizeof(signature) - sizeof(header), 0);
+        file.write(reinterpret_cast<const char*>(padding.data()), padding.size());
         
         file.close();
     }
