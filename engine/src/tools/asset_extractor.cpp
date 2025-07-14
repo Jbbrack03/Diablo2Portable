@@ -73,9 +73,6 @@ bool AssetExtractor::createOutputDirectories(const fs::path& outputPath) const {
 }
 
 bool AssetExtractor::extractMPQFiles(const fs::path& d2Path, const fs::path& outputPath) {
-    // For now, just simulate extraction to make test pass
-    // Real implementation will use StormLib to extract files
-    
     extractedCount = 0;
     extractedAudioCount = 0;
     extractedDataCount = 0;
@@ -83,38 +80,116 @@ bool AssetExtractor::extractMPQFiles(const fs::path& d2Path, const fs::path& out
     // Send initial progress updates
     reportProgress(0.0f, "Starting extraction...");
     reportProgress(0.05f, "Scanning MPQ files...");
-    reportProgress(0.1f, "Preparing directories...");
     
-    reportProgress(0.15f, "Extracting sprites...");
-    reportProgress(0.2f, "Processing character sprites...");
-    reportProgress(0.25f, "Processing monster sprites...");
-    reportProgress(0.3f, "Processing item sprites...");
-    reportProgress(0.33f, "Sprites extraction complete");
-    if (!extractSprites(d2Path, outputPath)) {
+    // Single optimized extraction pass
+    if (!extractAllAssetsOptimized(d2Path, outputPath)) {
         return false;
     }
     
-    reportProgress(0.4f, "Extracting sounds...");
-    reportProgress(0.45f, "Processing music files...");
-    reportProgress(0.5f, "Processing sound effects...");
-    reportProgress(0.55f, "Processing ambient sounds...");
-    reportProgress(0.66f, "Sound extraction complete");
-    if (!extractSounds(d2Path, outputPath)) {
+    reportProgress(1.0f, "Extraction complete");
+    return true;
+}
+
+bool AssetExtractor::extractAllAssetsOptimized(const fs::path& d2Path, const fs::path& outputPath) {
+    d2portable::utils::StormLibMPQLoader mpqLoader;
+    
+    // Find all MPQ files - single directory scan
+    std::vector<fs::path> mpqFiles;
+    try {
+        for (const auto& entry : fs::directory_iterator(d2Path)) {
+            if (entry.is_regular_file()) {
+                std::string filename = entry.path().filename().string();
+                std::transform(filename.begin(), filename.end(), filename.begin(), ::tolower);
+                if (filename.size() >= 4 && filename.substr(filename.size() - 4) == ".mpq") {
+                    mpqFiles.push_back(entry.path());
+                }
+            }
+        }
+    } catch (const std::exception& e) {
         return false;
     }
     
-    reportProgress(0.7f, "Extracting data tables...");
-    reportProgress(0.75f, "Processing Excel files...");
-    reportProgress(0.8f, "Processing string tables...");
-    reportProgress(0.85f, "Processing game data...");
-    reportProgress(0.9f, "Finalizing extraction...");
-    reportProgress(0.95f, "Verifying extracted files...");
-    reportProgress(1.0f, "Extraction complete!");
-    if (!extractDataTables(d2Path, outputPath)) {
-        return false;
-    }
+    reportProgress(0.1f, "Processing all assets...");
     
-    extractedCount = 1; // Simulate extracting at least one file
+    // Process each MPQ file once
+    for (const auto& mpqFile : mpqFiles) {
+        if (!mpqLoader.open(mpqFile.string())) {
+            std::cerr << "Failed to open MPQ: " << mpqFile << std::endl;
+            
+            // Report error to monitor
+            if (extractionMonitor) {
+                ExtractionError error;
+                error.type = ErrorType::CORRUPTED_MPQ;
+                error.filename = mpqFile.string();
+                error.message = "Failed to open MPQ file - file may be corrupted";
+                error.isRecoverable = false;
+                extractionMonitor->reportError(error);
+            }
+            
+            continue;
+        }
+        
+        // Get list of files in the MPQ once
+        auto fileList = mpqLoader.listFiles();
+        
+        // Process all file types in single pass
+        for (const auto& fileInfo : fileList) {
+            const std::string& filename = fileInfo.filename;
+            size_t len = filename.length();
+            
+            if (len >= 4) {
+                std::string extension = filename.substr(len - 4);
+                std::transform(extension.begin(), extension.end(), extension.begin(), ::tolower);
+                
+                // Only process files that match the extensions we want
+                if (extension == ".dc6") {
+                    std::vector<uint8_t> fileData;
+                    if (mpqLoader.extractFile(filename, fileData)) {
+                        // Process sprite file
+                        fs::path categoryPath = determineSpriteCategory(filename);
+                        fs::path fullOutputPath = outputPath / "sprites" / categoryPath;
+                        fs::create_directories(fullOutputPath.parent_path());
+                        
+                        std::ofstream outFile(fullOutputPath, std::ios::binary);
+                        if (outFile) {
+                            outFile.write(reinterpret_cast<const char*>(fileData.data()), fileData.size());
+                            extractedCount++;
+                        }
+                    }
+                } else if (extension == ".wav") {
+                    std::vector<uint8_t> fileData;
+                    if (mpqLoader.extractFile(filename, fileData)) {
+                        // Process audio file
+                        fs::path categoryPath = determineAudioCategory(filename);
+                        fs::path fullOutputPath = outputPath / "sounds" / categoryPath;
+                        fs::create_directories(fullOutputPath.parent_path());
+                        
+                        std::ofstream outFile(fullOutputPath, std::ios::binary);
+                        if (outFile) {
+                            outFile.write(reinterpret_cast<const char*>(fileData.data()), fileData.size());
+                            extractedAudioCount++;
+                        }
+                    }
+                } else if (extension == ".txt" || extension == ".dat" || extension == ".bin") {
+                    std::vector<uint8_t> fileData;
+                    if (mpqLoader.extractFile(filename, fileData)) {
+                        // Process data file
+                        fs::path categoryPath = determineDataCategory(filename);
+                        fs::path fullOutputPath = outputPath / "data" / categoryPath;
+                        fs::create_directories(fullOutputPath.parent_path());
+                        
+                        std::ofstream outFile(fullOutputPath, std::ios::binary);
+                        if (outFile) {
+                            outFile.write(reinterpret_cast<const char*>(fileData.data()), fileData.size());
+                            extractedDataCount++;
+                        }
+                    }
+                }
+            }
+        }
+        
+        mpqLoader.close();
+    }
     
     return true;
 }

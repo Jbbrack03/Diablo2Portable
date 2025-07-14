@@ -75,6 +75,8 @@ private:
     bool createOutputDirectories(const std::filesystem::path& outputPath) const;
     bool extractMPQFiles(const std::filesystem::path& d2Path, 
                         const std::filesystem::path& outputPath);
+    bool extractAllAssetsOptimized(const std::filesystem::path& d2Path,
+                                  const std::filesystem::path& outputPath);
     bool extractSprites(const std::filesystem::path& mpqPath,
                        const std::filesystem::path& outputPath);
     bool extractSounds(const std::filesystem::path& mpqPath,
