@@ -28,6 +28,14 @@ public class MainActivity extends AppCompatActivity {
         // Initialize native engine
         nativeEngine = new NativeEngine();
         
+        // Initialize native engine with context to access asset path
+        if (!nativeEngine.initialize(this)) {
+            // Handle initialization failure
+            // TODO: Show error dialog and exit gracefully
+            finish();
+            return;
+        }
+        
         // Create and set up the game surface view
         gameSurfaceView = new GameSurfaceView(this, nativeEngine);
         setContentView(gameSurfaceView);

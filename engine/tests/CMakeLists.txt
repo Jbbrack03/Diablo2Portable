@@ -161,6 +161,7 @@ set(TEST_SOURCES
     android/android_mpq_performance_test.cpp
     android/android_mpq_loading_test.cpp
     android/android_audio_integration_test.cpp
+    android/mainactivity_asset_path_test.cpp
     performance/test_performance_metrics.cpp
     performance/test_game_performance.cpp
     performance/memory_monitor_test.cpp
