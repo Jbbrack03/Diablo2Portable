@@ -29,6 +29,12 @@ public:
     // Set the number of frames to keep for averaging
     void setFrameHistorySize(size_t size);
     
+    // Android-specific performance monitoring
+    size_t getCurrentMemoryUsage() const;
+    void recordDrawCall();
+    void processInputEvent();
+    void swapBuffers();
+    
 private:
     using Clock = std::chrono::high_resolution_clock;
     using TimePoint = Clock::time_point;

@@ -1,5 +1,15 @@
 #include "performance/performance_monitor.h"
 #include <algorithm>
+#include <cstdlib>
+#ifdef __APPLE__
+#include <mach/mach.h>
+#include <mach/task.h>
+#endif
+#ifdef __linux__
+#include <unistd.h>
+#include <fstream>
+#include <string>
+#endif
 
 namespace d2::performance {
 
@@ -83,6 +93,52 @@ void PerformanceMonitor::setFrameHistorySize(size_t size) {
     while (frameTimeHistory_.size() > maxHistorySize_) {
         frameTimeHistory_.pop_front();
     }
+}
+
+size_t PerformanceMonitor::getCurrentMemoryUsage() const {
+#ifdef __APPLE__
+    // macOS memory monitoring
+    struct mach_task_basic_info info;
+    mach_msg_type_number_t size = MACH_TASK_BASIC_INFO_COUNT;
+    kern_return_t kerr = task_info(mach_task_self(),
+                                   MACH_TASK_BASIC_INFO,
+                                   (task_info_t)&info,
+                                   &size);
+    
+    if (kerr == KERN_SUCCESS) {
+        return info.resident_size;
+    }
+    return 0;
+#elif defined(__linux__)
+    // Linux/Android memory monitoring
+    // Read from /proc/self/status
+    std::ifstream status("/proc/self/status");
+    std::string line;
+    while (std::getline(status, line)) {
+        if (line.find("VmRSS:") == 0) {
+            size_t pos = line.find_first_of("0123456789");
+            if (pos != std::string::npos) {
+                return std::stoull(line.substr(pos)) * 1024; // Convert KB to bytes
+            }
+        }
+    }
+    return 0;
+#else
+    // Fallback for other platforms
+    return 0;
+#endif
+}
+
+void PerformanceMonitor::recordDrawCall() {
+    // TODO: Implement draw call recording for performance monitoring
+}
+
+void PerformanceMonitor::processInputEvent() {
+    // TODO: Implement input event timing for latency measurement
+}
+
+void PerformanceMonitor::swapBuffers() {
+    // TODO: Implement buffer swap timing for vsync monitoring
 }
 
 } // namespace d2::performance

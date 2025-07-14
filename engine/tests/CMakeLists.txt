@@ -156,6 +156,7 @@ set(TEST_SOURCES
     android/android_integration_test.cpp
     android/test_asset_path_integration.cpp
     android/test_java_asset_integration.cpp
+    android/android_performance_validation_test.cpp
     performance/test_performance_metrics.cpp
     performance/test_game_performance.cpp
     performance/memory_monitor_test.cpp
