@@ -35,6 +35,12 @@ public:
     void processInputEvent();
     void swapBuffers();
     
+    // OpenGL performance monitoring
+    void recordTextureStateChange();
+    void recordShaderSwitch(int shaderId);
+    void recordVertexBufferUpload(size_t dataSize);
+    void recordFullScreenQuad(int width, int height);
+    
 private:
     using Clock = std::chrono::high_resolution_clock;
     using TimePoint = Clock::time_point;

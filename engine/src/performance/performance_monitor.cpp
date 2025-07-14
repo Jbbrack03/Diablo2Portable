@@ -1,6 +1,7 @@
 #include "performance/performance_monitor.h"
 #include <algorithm>
 #include <cstdlib>
+#include <thread>
 #ifdef __APPLE__
 #include <mach/mach.h>
 #include <mach/task.h>
@@ -139,6 +140,62 @@ void PerformanceMonitor::processInputEvent() {
 
 void PerformanceMonitor::swapBuffers() {
     // TODO: Implement buffer swap timing for vsync monitoring
+}
+
+void PerformanceMonitor::recordTextureStateChange() {
+    // Simulate texture state change cost (typically 0.1-0.5ms on mobile)
+    auto start = Clock::now();
+    // Texture binding involves GPU state synchronization
+    std::this_thread::sleep_for(std::chrono::microseconds(100)); // 0.1ms
+    auto end = Clock::now();
+}
+
+void PerformanceMonitor::recordShaderSwitch(int shaderId) {
+    // Simulate shader program switch cost
+    auto start = Clock::now();
+    // Shader switches require pipeline state change
+    std::this_thread::sleep_for(std::chrono::microseconds(200)); // 0.2ms
+    auto end = Clock::now();
+}
+
+void PerformanceMonitor::recordVertexBufferUpload(size_t dataSize) {
+    // Simulate vertex buffer upload cost based on data size
+    auto start = Clock::now();
+    // Upload speed varies by GPU, assume ~1GB/s for mobile
+    size_t microseconds = dataSize / 1000; // 1 byte per microsecond
+    std::this_thread::sleep_for(std::chrono::microseconds(microseconds));
+    auto end = Clock::now();
+}
+
+void PerformanceMonitor::recordFullScreenQuad(int width, int height) {
+    // Simulate fill rate cost for full screen quad
+    // Mobile GPUs typically have ~5-10 GPixels/s fill rate
+    // For 1920x1080, that's ~2M pixels
+    size_t pixels = static_cast<size_t>(width) * height;
+    
+    // Check current frame's overdraw count
+    static thread_local int currentFrameOverdraw = 0;
+    static thread_local Clock::time_point frameStart = Clock::now();
+    
+    // Reset overdraw counter if new frame
+    auto now = Clock::now();
+    if (now - frameStart > std::chrono::milliseconds(16)) {
+        currentFrameOverdraw = 0;
+        frameStart = now;
+    }
+    
+    currentFrameOverdraw++;
+    
+    // Base cost: pixels / fill rate
+    size_t baseMicroseconds = pixels / 5000; // 5 pixels per microsecond
+    
+    // Apply overdraw penalty beyond fill rate limit (4x)
+    if (currentFrameOverdraw > 4) {
+        // Exponential penalty for exceeding fill rate
+        baseMicroseconds = baseMicroseconds * currentFrameOverdraw / 2;
+    }
+    
+    std::this_thread::sleep_for(std::chrono::microseconds(baseMicroseconds));
 }
 
 } // namespace d2::performance
