@@ -35,50 +35,26 @@ bool GameEngine::initialize(const std::string& assetPath) {
         return true;
     }
     
-    // Initialize asset manager
+    // Initialize components in order
     if (!initializeAssetManager(assetPath)) {
         return false;
     }
     
-    // Create renderer
-    renderer_ = std::make_unique<d2::rendering::Renderer>();
+    if (!initializeRenderingComponents()) {
+        return false;
+    }
     
-    // Create sprite renderer
-    spriteRenderer_ = std::make_unique<d2::rendering::SpriteRenderer>();
-    // Initialize sprite renderer (simplified for now)
-    d2::rendering::TextureManager textureManager;
-    spriteRenderer_->initialize(*renderer_, textureManager);
+    if (!initializeGameComponents()) {
+        return false;
+    }
     
-    // Create optimized world renderer
-    worldRenderer_ = std::make_unique<d2::rendering::OptimizedWorldRenderer>();
+    if (!initializeInputComponents()) {
+        return false;
+    }
     
-    // Create camera (default 800x600 for now)
-    camera_ = std::make_unique<d2::rendering::Camera>(800, 600);
-    
-    // Create game state
-    gameState_ = std::make_unique<d2::game::GameState>();
-    
-    // Create input manager (with nullptr for now - will be properly initialized later)
-    inputManager_ = std::make_unique<d2::input::InputManager>(nullptr);
-    
-    // Create combat engine
-    combatEngine_ = std::make_unique<d2::game::CombatEngine>();
-    
-    // Create loot system
-    lootSystem_ = std::make_unique<d2::game::LootSystem>();
-    
-    // Create quest manager
-    questManager_ = std::make_unique<d2::QuestManager>();
-    
-    // Create performance monitor
-    performanceMonitor_ = std::make_unique<d2::performance::PerformanceMonitor>();
-    
-    // Create optimized update system
-    optimizedUpdateSystem_ = std::make_unique<d2::performance::OptimizedUpdateSystem>();
-    
-    // Create touch input system
-    touchInput_ = std::make_unique<d2::input::TouchInput>();
-    touchInput_->setScreenSize(800, 600); // Default size, will be updated
+    if (!initializePerformanceComponents()) {
+        return false;
+    }
     
     initialized_ = true;
     return true;
@@ -376,6 +352,12 @@ bool GameEngine::initializeAssetManager(const std::string& assetPath) {
     
     // Initialize asset manager with provided path
     if (!assetPath.empty()) {
+        // Check if path exists before trying to detect MPQ files
+        if (!std::filesystem::exists(assetPath)) {
+            // Path doesn't exist, but we can still initialize with default settings
+            return assetManager_->initialize(assetPath);
+        }
+        
         // Initialize with appropriate method based on content
         if (detectMPQFiles(assetPath)) {
             return assetManager_->initializeWithMPQs(assetPath);
@@ -403,6 +385,62 @@ bool GameEngine::detectMPQFiles(const std::string& directory) {
     }
     
     return false;
+}
+
+bool GameEngine::initializeRenderingComponents() {
+    // Create renderer
+    renderer_ = std::make_unique<d2::rendering::Renderer>();
+    
+    // Create sprite renderer
+    spriteRenderer_ = std::make_unique<d2::rendering::SpriteRenderer>();
+    // Initialize sprite renderer (simplified for now)
+    d2::rendering::TextureManager textureManager;
+    spriteRenderer_->initialize(*renderer_, textureManager);
+    
+    // Create optimized world renderer
+    worldRenderer_ = std::make_unique<d2::rendering::OptimizedWorldRenderer>();
+    
+    // Create camera (default 800x600 for now)
+    camera_ = std::make_unique<d2::rendering::Camera>(800, 600);
+    
+    return true;
+}
+
+bool GameEngine::initializeGameComponents() {
+    // Create game state
+    gameState_ = std::make_unique<d2::game::GameState>();
+    
+    // Create combat engine
+    combatEngine_ = std::make_unique<d2::game::CombatEngine>();
+    
+    // Create loot system
+    lootSystem_ = std::make_unique<d2::game::LootSystem>();
+    
+    // Create quest manager
+    questManager_ = std::make_unique<d2::QuestManager>();
+    
+    return true;
+}
+
+bool GameEngine::initializeInputComponents() {
+    // Create input manager (with nullptr for now - will be properly initialized later)
+    inputManager_ = std::make_unique<d2::input::InputManager>(nullptr);
+    
+    // Create touch input system
+    touchInput_ = std::make_unique<d2::input::TouchInput>();
+    touchInput_->setScreenSize(800, 600); // Default size, will be updated
+    
+    return true;
+}
+
+bool GameEngine::initializePerformanceComponents() {
+    // Create performance monitor
+    performanceMonitor_ = std::make_unique<d2::performance::PerformanceMonitor>();
+    
+    // Create optimized update system
+    optimizedUpdateSystem_ = std::make_unique<d2::performance::OptimizedUpdateSystem>();
+    
+    return true;
 }
 
 } // namespace d2

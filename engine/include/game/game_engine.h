@@ -109,6 +109,10 @@ private:
     // Helper methods for initialization
     bool initializeAssetManager(const std::string& assetPath);
     bool detectMPQFiles(const std::string& directory);
+    bool initializeRenderingComponents();
+    bool initializeGameComponents();
+    bool initializeInputComponents();
+    bool initializePerformanceComponents();
     
     bool initialized_ = false;
     bool running_ = false;
