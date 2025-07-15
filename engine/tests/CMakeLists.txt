@@ -150,6 +150,7 @@ set(TEST_SOURCES
     refactoring/game_engine_refactor_test.cpp
     refactoring/world_renderer_refactor_test.cpp
     refactoring/game_engine_update_refactor_test.cpp
+    refactoring/game_engine_combat_refactor_test.cpp
     android/test_gamepad_jni.cpp
     android/test_apk_asset_loader.cpp
     android/android_build_validator_test.cpp

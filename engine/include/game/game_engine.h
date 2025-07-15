@@ -22,6 +22,7 @@ namespace game {
 class GameState;
 class CombatEngine;
 class LootSystem;
+class Monster;
 }
 class QuestManager;
 namespace input {
@@ -118,6 +119,12 @@ private:
     void updateInput();
     void updateTouchInput(float deltaTime);
     void updateEntitySystems(float deltaTime);
+    
+    // Helper methods for combat
+    bool isValidCombatScenario() const;
+    bool isMonsterInMeleeRange(const std::shared_ptr<game::Monster>& monster, 
+                               const glm::vec2& playerPos) const;
+    void processMeleeDamage(const std::shared_ptr<game::Monster>& monster);
     
     bool initialized_ = false;
     bool running_ = false;

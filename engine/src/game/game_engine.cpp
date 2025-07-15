@@ -163,41 +163,22 @@ void GameEngine::processInput(const glm::vec2& movement) {
 }
 
 void GameEngine::processCombat(float deltaTime) {
-    if (!initialized_ || !running_ || !gameState_ || !combatEngine_) {
-        return;
-    }
-    
-    // Only process combat if we have a player
-    if (!gameState_->hasPlayer()) {
+    if (!isValidCombatScenario()) {
         return;
     }
     
     auto player = gameState_->getPlayer();
-    if (!player) {
-        return;
-    }
+    glm::vec2 playerPos = player->getPosition();
     
-    // Check combat between player and all monsters
+    // Process combat for each monster
     const auto& monsters = gameState_->getAllMonsters();
     for (const auto& [id, monster] : monsters) {
         if (!monster || monster->getCurrentLife() <= 0) {
             continue;
         }
         
-        // Calculate distance between player and monster
-        glm::vec2 playerPos = player->getPosition();
-        glm::vec2 monsterPos = monster->getPosition();
-        float distance = glm::length(monsterPos - playerPos);
-        
-        // If within melee range, process combat
-        const float MELEE_RANGE = 50.0f;
-        if (distance <= MELEE_RANGE) {
-            // For now, simple combat processing
-            // In a full implementation, we'd get player stats from character
-            // and use CombatEngine to calculate hit chance and damage
-            
-            // Placeholder combat - just do a fixed damage
-            monster->takeDamage(10);
+        if (isMonsterInMeleeRange(monster, playerPos)) {
+            processMeleeDamage(monster);
         }
     }
 }
@@ -475,6 +456,29 @@ void GameEngine::updateEntitySystems(float deltaTime) {
     
     // Use optimized update system for entities
     optimizedUpdateSystem_->updateEntities(*gameState_, deltaTime);
+}
+
+bool GameEngine::isValidCombatScenario() const {
+    return initialized_ && running_ && gameState_ && combatEngine_ &&
+           gameState_->hasPlayer() && gameState_->getPlayer();
+}
+
+bool GameEngine::isMonsterInMeleeRange(const std::shared_ptr<game::Monster>& monster, 
+                                       const glm::vec2& playerPos) const {
+    const float MELEE_RANGE = 50.0f;
+    glm::vec2 monsterPos = monster->getPosition();
+    float distance = glm::length(monsterPos - playerPos);
+    return distance <= MELEE_RANGE;
+}
+
+void GameEngine::processMeleeDamage(const std::shared_ptr<game::Monster>& monster) {
+    // For now, simple combat processing
+    // In a full implementation, we'd get player stats from character
+    // and use CombatEngine to calculate hit chance and damage
+    
+    // Placeholder combat - just do a fixed damage
+    const int MELEE_DAMAGE = 10;
+    monster->takeDamage(MELEE_DAMAGE);
 }
 
 } // namespace d2
