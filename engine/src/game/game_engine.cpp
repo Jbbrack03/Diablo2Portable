@@ -443,4 +443,38 @@ bool GameEngine::initializePerformanceComponents() {
     return true;
 }
 
+void GameEngine::updateInput() {
+    if (!inputManager_) {
+        return;
+    }
+    
+    inputManager_->update();
+    
+    // Process player movement from input
+    if (gameState_ && gameState_->hasPlayer()) {
+        glm::vec2 movement = inputManager_->getMovement();
+        processInput(movement);
+    }
+}
+
+void GameEngine::updateTouchInput(float deltaTime) {
+    if (!touchInput_ || !touchInput_->isTouching()) {
+        return;
+    }
+    
+    auto gameInput = touchInput_->getGameInput();
+    if (gameInput.isMoving && gameState_ && gameState_->hasPlayer()) {
+        processInput(gameInput.moveDirection);
+    }
+}
+
+void GameEngine::updateEntitySystems(float deltaTime) {
+    if (!optimizedUpdateSystem_ || !gameState_) {
+        return;
+    }
+    
+    // Use optimized update system for entities
+    optimizedUpdateSystem_->updateEntities(*gameState_, deltaTime);
+}
+
 } // namespace d2

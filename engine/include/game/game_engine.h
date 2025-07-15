@@ -114,6 +114,11 @@ private:
     bool initializeInputComponents();
     bool initializePerformanceComponents();
     
+    // Helper methods for update
+    void updateInput();
+    void updateTouchInput(float deltaTime);
+    void updateEntitySystems(float deltaTime);
+    
     bool initialized_ = false;
     bool running_ = false;
     bool actionTriggered_ = false;
