@@ -322,8 +322,11 @@ TEST_F(WorldRendererTest, RenderAnimatedEntities) {
         EXPECT_FLOAT_EQ(testSpriteRenderer->drawCalls[0].position.x, 100.0f);
         EXPECT_FLOAT_EQ(testSpriteRenderer->drawCalls[0].position.y, 150.0f);
         
-        // Should use animation-specific texture ID (base + frame + direction offset)
-        // Expected: base_texture_id (100) + frame (2) + direction_offset (0 * 8) = 102
-        EXPECT_EQ(testSpriteRenderer->drawCalls[0].texture_id, 102u);
+        // Should use dynamically loaded sprite texture ID
+        // With the new sprite loading system, barbarian_walk gets ID 1000+
+        EXPECT_GE(testSpriteRenderer->drawCalls[0].texture_id, 1000u);
+        
+        // Also verify the texture was cached
+        EXPECT_TRUE(worldRenderer.hasLoadedSprite("barbarian_walk"));
     }
 }

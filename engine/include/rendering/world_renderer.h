@@ -64,6 +64,12 @@ protected:
     std::string getSpriteName(d2::game::CharacterClass charClass) const;
     std::string getMonsterSpriteName(d2::game::MonsterType type) const;
     uint32_t loadOrGetSprite(const std::string& spriteName);
+    
+    // Refactored rendering methods
+    void renderTiles(const d2::game::GameState& gameState, SpriteRenderer& spriteRenderer, const Camera* camera = nullptr);
+    void renderEntities(const d2::game::GameState& gameState, SpriteRenderer& spriteRenderer);
+    void renderHUD(const d2::game::GameState& gameState, SpriteRenderer& spriteRenderer);
+    uint32_t getTileTextureId() const;
 };
 
 } // namespace d2::rendering
