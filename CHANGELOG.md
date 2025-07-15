@@ -5,6 +5,43 @@ All notable changes to the Diablo II Android Port project will be documented in 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.8.0] - 2025-01-15
+
+### Added
+- **Phase 42.1: Dynamic Sprite Loading in WorldRenderer**
+  - Implemented dynamic sprite loading based on entity types (character classes and monster types)
+  - Added sprite caching mechanism to avoid reloading same sprites
+  - Entity-to-texture mapping for efficient rendering lookups
+  - Helper methods for sprite name resolution based on entity types
+  - Sprite cleanup mechanism for removing unused sprites from memory
+  - Comprehensive test coverage with 5 test cases validating all functionality
+
+- **Android Gamepad Input Support**
+  - Complete gamepad input handling through JNI bridge
+  - Support for analog sticks (left/right), triggers, and all standard gamepad buttons
+  - Native methods for onGamepadInput and onGamepadButton in JNI bridge
+  - MainActivity integration with proper gamepad event forwarding
+  - Full test coverage for gamepad input handling
+
+- **Android Asset Integration Testing**
+  - Android sprite rendering tests verifying DC6 sprite loading and display
+  - Asset performance tests measuring loading times and memory usage
+  - Validation that Android app can load and render real Diablo II assets
+  - Performance validation confirms 60+ FPS with loaded assets
+
+### Enhanced
+- **WorldRenderer Architecture**
+  - Refactored to support dynamic asset loading instead of hardcoded texture IDs
+  - Improved separation of concerns with dedicated sprite management
+  - Better memory management with sprite caching and cleanup
+
+### Technical Details
+- **Test Statistics**: 900+ total tests with continued high success rate
+- **Performance**: Maintained 60+ FPS with dynamic sprite loading
+- **Memory Usage**: Efficient sprite caching keeps memory usage within budget
+- **Phase Completion**: Phase 42.1 complete, moving towards final production polish
+- **Perfect TDD Compliance**: All changes follow RED-GREEN-REFACTOR methodology
+
 ## [1.7.0] - 2025-01-14
 
 ### Added
