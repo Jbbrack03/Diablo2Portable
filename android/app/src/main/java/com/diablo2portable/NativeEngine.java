@@ -58,6 +58,18 @@ public class NativeEngine {
         }
     }
 
+    public void onGamepadInput(float leftX, float leftY, float rightX, float rightY, float leftTrigger, float rightTrigger) {
+        if (nativeHandle != 0) {
+            onGamepadInput(nativeHandle, leftX, leftY, rightX, rightY, leftTrigger, rightTrigger);
+        }
+    }
+
+    public void onGamepadButton(int buttonCode, boolean pressed) {
+        if (nativeHandle != 0) {
+            onGamepadButton(nativeHandle, buttonCode, pressed);
+        }
+    }
+
     public void cleanup() {
         if (nativeHandle != 0) {
             destroyEngine(nativeHandle);
@@ -82,4 +94,6 @@ public class NativeEngine {
     public static native void onTouchEvent(long handle, float x, float y, int action);
     public static native void onSurfaceCreated(long handle, int width, int height);
     public static native void renderFrame(long handle);
+    public static native void onGamepadInput(long handle, float leftX, float leftY, float rightX, float rightY, float leftTrigger, float rightTrigger);
+    public static native void onGamepadButton(long handle, int buttonCode, boolean pressed);
 }

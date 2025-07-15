@@ -179,6 +179,37 @@ Java_com_diablo2portable_NativeEngine_getEngineInfo(JNIEnv *env, jobject thiz) {
     return nullptr; // Stub implementation
 }
 
+JNIEXPORT void
+Java_com_diablo2portable_NativeEngine_onGamepadInput(JNIEnv *env, jobject thiz, jlong handle,
+                                                      jfloat leftX, jfloat leftY, 
+                                                      jfloat rightX, jfloat rightY,
+                                                      jfloat leftTrigger, jfloat rightTrigger) {
+    if (handle == 0) {
+        printf("onGamepadInput: Invalid engine handle\n");
+        return;
+    }
+    
+    // Log gamepad input for debugging
+    printf("Gamepad input: L(%.2f,%.2f) R(%.2f,%.2f) Triggers(%.2f,%.2f)\n",
+           leftX, leftY, rightX, rightY, leftTrigger, rightTrigger);
+    
+    // TODO: Forward to game engine input system
+}
+
+JNIEXPORT void
+Java_com_diablo2portable_NativeEngine_onGamepadButton(JNIEnv *env, jobject thiz, jlong handle,
+                                                       jint buttonCode, jboolean pressed) {
+    if (handle == 0) {
+        printf("onGamepadButton: Invalid engine handle\n");
+        return;
+    }
+    
+    // Log button events for debugging
+    printf("Gamepad button: code=%d pressed=%d\n", buttonCode, pressed);
+    
+    // TODO: Forward to game engine input system
+}
+
 } // extern "C"
 
 #endif // __ANDROID__

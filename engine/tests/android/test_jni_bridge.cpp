@@ -25,6 +25,8 @@ extern "C" {
     void Java_com_diablo2portable_NativeEngine_onTouchEvent(JNIEnv* env, jobject obj, jlong handle, jfloat x, jfloat y, jint action);
     void Java_com_diablo2portable_NativeEngine_onSurfaceCreated(JNIEnv* env, jobject obj, jlong handle, jint width, jint height);
     void Java_com_diablo2portable_NativeEngine_renderFrame(JNIEnv* env, jobject obj, jlong handle);
+    void Java_com_diablo2portable_NativeEngine_onGamepadInput(JNIEnv* env, jobject obj, jlong handle, jfloat leftX, jfloat leftY, jfloat rightX, jfloat rightY, jfloat leftTrigger, jfloat rightTrigger);
+    void Java_com_diablo2portable_NativeEngine_onGamepadButton(JNIEnv* env, jobject obj, jlong handle, jint buttonCode, jboolean pressed);
 }
 
 // Test fixture for JNI bridge tests
@@ -120,6 +122,54 @@ TEST_F(JNIBridgeTest, RenderFrame) {
     
     // Should not crash when rendering frames
     EXPECT_NO_THROW(Java_com_diablo2portable_NativeEngine_renderFrame(env, obj, handle));
+    
+    Java_com_diablo2portable_NativeEngine_destroyEngine(env, obj, handle);
+}
+
+TEST_F(JNIBridgeTest, HandleGamepadInput) {
+    jlong handle = Java_com_diablo2portable_NativeEngine_createEngine(env, obj);
+    Java_com_diablo2portable_NativeEngine_initialize(env, obj, handle);
+    
+    // Should not crash when processing gamepad analog stick input
+    EXPECT_NO_THROW(Java_com_diablo2portable_NativeEngine_onGamepadInput(
+        env, obj, handle, 
+        0.5f, -0.7f,  // Left stick X,Y
+        1.0f, 0.0f,   // Right stick X,Y
+        0.0f, 1.0f    // Left trigger, Right trigger
+    ));
+    
+    // Test extreme values
+    EXPECT_NO_THROW(Java_com_diablo2portable_NativeEngine_onGamepadInput(
+        env, obj, handle, 
+        -1.0f, -1.0f,  // Left stick full diagonal
+        1.0f, 1.0f,    // Right stick full diagonal
+        1.0f, 1.0f     // Both triggers pressed
+    ));
+    
+    Java_com_diablo2portable_NativeEngine_destroyEngine(env, obj, handle);
+}
+
+TEST_F(JNIBridgeTest, HandleGamepadButtons) {
+    jlong handle = Java_com_diablo2portable_NativeEngine_createEngine(env, obj);
+    Java_com_diablo2portable_NativeEngine_initialize(env, obj, handle);
+    
+    // Android button codes
+    constexpr int KEYCODE_BUTTON_A = 96;
+    constexpr int KEYCODE_BUTTON_B = 97;
+    constexpr int KEYCODE_BUTTON_X = 99;
+    constexpr int KEYCODE_BUTTON_Y = 100;
+    
+    // Test button press events
+    EXPECT_NO_THROW(Java_com_diablo2portable_NativeEngine_onGamepadButton(env, obj, handle, KEYCODE_BUTTON_A, true));
+    EXPECT_NO_THROW(Java_com_diablo2portable_NativeEngine_onGamepadButton(env, obj, handle, KEYCODE_BUTTON_B, true));
+    
+    // Test button release events
+    EXPECT_NO_THROW(Java_com_diablo2portable_NativeEngine_onGamepadButton(env, obj, handle, KEYCODE_BUTTON_A, false));
+    EXPECT_NO_THROW(Java_com_diablo2portable_NativeEngine_onGamepadButton(env, obj, handle, KEYCODE_BUTTON_B, false));
+    
+    // Test simultaneous button presses
+    EXPECT_NO_THROW(Java_com_diablo2portable_NativeEngine_onGamepadButton(env, obj, handle, KEYCODE_BUTTON_X, true));
+    EXPECT_NO_THROW(Java_com_diablo2portable_NativeEngine_onGamepadButton(env, obj, handle, KEYCODE_BUTTON_Y, true));
     
     Java_com_diablo2portable_NativeEngine_destroyEngine(env, obj, handle);
 }

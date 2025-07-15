@@ -72,7 +72,7 @@ public class MainActivity extends AppCompatActivity {
         if ((event.getSource() & InputDevice.SOURCE_GAMEPAD) == InputDevice.SOURCE_GAMEPAD) {
             // Forward gamepad events to native engine
             if (nativeEngine != null) {
-                // TODO: Implement native gamepad handling
+                nativeEngine.onGamepadButton(keyCode, true);
                 return true;
             }
         }
@@ -85,7 +85,7 @@ public class MainActivity extends AppCompatActivity {
         if ((event.getSource() & InputDevice.SOURCE_GAMEPAD) == InputDevice.SOURCE_GAMEPAD) {
             // Forward gamepad events to native engine
             if (nativeEngine != null) {
-                // TODO: Implement native gamepad handling
+                nativeEngine.onGamepadButton(keyCode, false);
                 return true;
             }
         }
@@ -125,8 +125,8 @@ public class MainActivity extends AppCompatActivity {
         float lt = event.getAxisValue(MotionEvent.AXIS_LTRIGGER, historyPos);
         float rt = event.getAxisValue(MotionEvent.AXIS_RTRIGGER, historyPos);
         
-        // TODO: Forward to native engine
-        // nativeEngine.onGamepadInput(x, y, rx, ry, lt, rt);
+        // Forward to native engine
+        nativeEngine.onGamepadInput(x, y, rx, ry, lt, rt);
     }
 
     private static float getCenteredAxis(MotionEvent event, int axis, int historyPos) {
