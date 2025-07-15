@@ -8,6 +8,7 @@
 #include "map/map_loader.h"
 #include "core/asset_manager.h"
 #include <algorithm>
+#include <unordered_set>
 
 namespace d2::rendering {
 
@@ -62,24 +63,12 @@ void WorldRenderer::render(const d2::game::GameState& gameState, SpriteRenderer&
     if (gameState.hasPlayer()) {
         auto player = gameState.getPlayer();
         if (player) {
-            // Use texture from asset manager if available
-            uint32_t playerTextureId = 1; // Default placeholder
-            if (assetManager_) {
-                // Look up animation for this entity
-                auto animationIter = entityAnimations_.find(player->getId());
-                if (animationIter != entityAnimations_.end()) {
-                    const SpriteAnimation& animation = animationIter->second;
-                    // Calculate texture ID based on animation frame and direction
-                    // Base texture ID + current frame + (direction * frame_count)
-                    uint32_t baseTextureId = 100; // Base player texture
-                    uint32_t frameOffset = animation.getCurrentFrame();
-                    uint32_t directionOffset = animation.getCurrentDirection() * 8; // Assuming 8 frames per direction
-                    playerTextureId = baseTextureId + frameOffset + directionOffset;
-                } else {
-                    // Use static texture if no animation
-                    playerTextureId = 100;
-                }
-            }
+            // Get texture ID for player based on character class
+            std::string spriteName = getSpriteName(player->getCharacterClass());
+            uint32_t playerTextureId = loadOrGetSprite(spriteName);
+            
+            // Map entity to texture
+            entityTextureMap_[player->getId()] = playerTextureId;
             
             const glm::vec2 PLAYER_SIZE(64.0f, 64.0f);
             
@@ -95,28 +84,12 @@ void WorldRenderer::render(const d2::game::GameState& gameState, SpriteRenderer&
     const auto& monsters = gameState.getAllMonsters();
     for (const auto& [id, monster] : monsters) {
         if (monster) {
-            // Use texture based on monster type
-            uint32_t monsterTextureId = 3; // Default placeholder
-            if (assetManager_) {
-                // Different texture IDs for different monster types
-                switch (monster->getType()) {
-                    case d2::game::MonsterType::SKELETON:
-                        monsterTextureId = 400;
-                        break;
-                    case d2::game::MonsterType::ZOMBIE:
-                        monsterTextureId = 401;
-                        break;
-                    case d2::game::MonsterType::DEMON:
-                        monsterTextureId = 402;
-                        break;
-                    case d2::game::MonsterType::FALLEN:
-                        monsterTextureId = 403;
-                        break;
-                    case d2::game::MonsterType::GOLEM:
-                        monsterTextureId = 404;
-                        break;
-                }
-            }
+            // Get texture ID for monster based on type
+            std::string monsterSpriteName = getMonsterSpriteName(monster->getType());
+            uint32_t monsterTextureId = loadOrGetSprite(monsterSpriteName);
+            
+            // Map entity to texture
+            entityTextureMap_[id] = monsterTextureId;
             
             const glm::vec2 MONSTER_SIZE(48.0f, 48.0f);
             
@@ -244,6 +217,99 @@ void WorldRenderer::updateAnimations(float deltaTime) {
     for (auto& [entityId, animation] : entityAnimations_) {
         animation.update(deltaTime);
     }
+}
+
+bool WorldRenderer::hasLoadedSprite(const std::string& spriteName) const {
+    return spriteCache_.find(spriteName) != spriteCache_.end();
+}
+
+uint32_t WorldRenderer::getTextureIdForEntity(d2::game::EntityId entityId) const {
+    auto it = entityTextureMap_.find(entityId);
+    if (it != entityTextureMap_.end()) {
+        return it->second;
+    }
+    return 0; // No texture loaded
+}
+
+void WorldRenderer::cleanupUnusedSprites() {
+    // Collect all textures still in use
+    std::unordered_set<uint32_t> usedTextures;
+    for (const auto& [entityId, textureId] : entityTextureMap_) {
+        usedTextures.insert(textureId);
+    }
+    
+    // Remove unused sprites from cache
+    auto it = spriteCache_.begin();
+    while (it != spriteCache_.end()) {
+        if (usedTextures.find(it->second) == usedTextures.end()) {
+            it = spriteCache_.erase(it);
+        } else {
+            ++it;
+        }
+    }
+}
+
+void WorldRenderer::removeEntityTexture(d2::game::EntityId entityId) {
+    entityTextureMap_.erase(entityId);
+}
+
+// Helper method to get sprite name for character class
+std::string WorldRenderer::getSpriteName(d2::game::CharacterClass charClass) const {
+    switch (charClass) {
+        case d2::game::CharacterClass::BARBARIAN:
+            return "barbarian_walk";
+        case d2::game::CharacterClass::AMAZON:
+            return "amazon_walk";
+        case d2::game::CharacterClass::SORCERESS:
+            return "sorceress_walk";
+        case d2::game::CharacterClass::NECROMANCER:
+            return "necromancer_walk";
+        case d2::game::CharacterClass::PALADIN:
+            return "paladin_walk";
+        case d2::game::CharacterClass::ASSASSIN:
+            return "assassin_walk";
+        case d2::game::CharacterClass::DRUID:
+            return "druid_walk";
+        default:
+            return "barbarian_walk";
+    }
+}
+
+// Helper method to get sprite name for monster type
+std::string WorldRenderer::getMonsterSpriteName(d2::game::MonsterType type) const {
+    switch (type) {
+        case d2::game::MonsterType::SKELETON:
+            return "skeleton_walk";
+        case d2::game::MonsterType::ZOMBIE:
+            return "zombie_walk";
+        case d2::game::MonsterType::DEMON:
+            return "demon_walk";
+        case d2::game::MonsterType::FALLEN:
+            return "fallen_walk";
+        case d2::game::MonsterType::GOLEM:
+            return "golem_walk";
+        default:
+            return "zombie_walk";
+    }
+}
+
+// Helper method to load or get cached sprite
+uint32_t WorldRenderer::loadOrGetSprite(const std::string& spriteName) {
+    // Check if already cached
+    auto it = spriteCache_.find(spriteName);
+    if (it != spriteCache_.end()) {
+        return it->second;
+    }
+    
+    // Load sprite (for now, use placeholder IDs)
+    // In real implementation, this would load from asset manager
+    static uint32_t nextTextureId = 1000;
+    uint32_t textureId = nextTextureId++;
+    
+    // Cache it
+    spriteCache_[spriteName] = textureId;
+    
+    return textureId;
 }
 
 } // namespace d2::rendering

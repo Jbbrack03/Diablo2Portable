@@ -172,6 +172,7 @@ set(TEST_SOURCES
     performance/test_optimized_update_system.cpp
     performance/performance_validation_test.cpp
     rendering/test_optimized_world_renderer.cpp
+    rendering/dynamic_sprite_loading_test.cpp
     tools/asset_extractor_test.cpp
     tools/asset_optimizer_test.cpp
     tools/texture_atlas_test.cpp
