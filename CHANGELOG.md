@@ -5,6 +5,39 @@ All notable changes to the Diablo II Android Port project will be documented in 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.2.0] - 2025-01-16
+
+### Added
+- **Phase 46: Complete Skill Tree System for Character Progression**
+  - Comprehensive skill tree implementation with SkillTree and SkillTab classes
+  - Full skill trees for all 7 character classes with authentic Diablo II skill names
+  - Character integration with skill point allocation and management
+  - Skill lookup functionality with findSkill() method
+  - Complete skill tree structure for Sorceress (Fire, Cold, Lightning spells)
+  - Minimal skill trees for Barbarian, Amazon, Necromancer, Paladin, Assassin, Druid
+  - 3 comprehensive tests with full TDD methodology validation
+  - Character system now supports skill progression and skill point spending
+
+- **Project Completion Planning**
+  - Added critical phases 46-50 to address project completion gaps
+  - Identified missing core game systems (AI, texture atlas, batch rendering)
+  - Enhanced project roadmap with mobile optimization priorities
+  - Updated documentation to reflect actual completion status
+
+### Enhanced
+- **Character System Architecture**
+  - Characters now have integrated skill trees with proper memory management
+  - Move semantics implementation for efficient character handling
+  - Backward compatibility maintained for existing Player class usage
+  - Skill point allocation system with prerequisite validation
+
+### Technical Details
+- **Test Statistics**: 1,192 total tests (1 new skill tree test added)
+- **TDD Compliance**: Perfect RED-GREEN-REFACTOR cycles for all new features
+- **Memory Management**: Proper unique_ptr usage for skill tree ownership
+- **Phase Completion**: Phase 46 skill tree system complete (1 of 4 remaining high-priority tasks)
+- **Architecture**: Clean separation of concerns between skills, skill trees, and character progression
+
 ## [2.1.0] - 2025-01-16
 
 ### Added
