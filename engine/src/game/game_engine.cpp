@@ -340,18 +340,18 @@ bool GameEngine::initializeAssetManager(const std::string& assetPath) {
             return assetManager_->initialize(assetPath);
         }
         
-        // Validate assets before attempting to load
-        auto validationResult = AssetPathValidator::validateAssetPath(assetPath);
-        if (!validationResult.isValid) {
-            // Log error details (in production, this would go to proper logging)
-            // For now, just fail initialization if required assets are missing
-            return false;
-        }
-        
         // Initialize with appropriate method based on content
         if (detectMPQFiles(assetPath)) {
+            // Only validate MPQ files if they are present
+            auto validationResult = AssetPathValidator::validateAssetPath(assetPath);
+            if (!validationResult.isValid) {
+                // Log error details (in production, this would go to proper logging)
+                // For now, just fail initialization if required assets are missing
+                return false;
+            }
             return assetManager_->initializeWithMPQs(assetPath);
         } else {
+            // No MPQ files detected, initialize with basic asset loading
             return assetManager_->initialize(assetPath);
         }
     }
