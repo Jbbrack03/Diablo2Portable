@@ -77,6 +77,7 @@ set(TEST_SOURCES
     game/combat_test.cpp
     game/item_test.cpp
     game/skill_test.cpp
+    game/skill_tree_test.cpp
     game/monster_test.cpp
     game/inventory_test.cpp
     game/loot_system_test.cpp

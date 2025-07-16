@@ -58,6 +58,7 @@ add_library(d2engine STATIC
     src/game/combat_engine.cpp
     src/game/item.cpp
     src/game/skill.cpp
+    src/game/skill_tree.cpp
     src/game/monster.cpp
     src/game/inventory.cpp
     src/game/character_inventory.cpp
