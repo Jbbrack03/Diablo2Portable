@@ -20,6 +20,7 @@ class TextureManager;
 class ShaderManager;
 class VertexBuffer;
 class VertexArrayObject;
+class VertexBufferPool;
 
 class SpriteRenderer {
 public:
@@ -39,6 +40,9 @@ public:
     // Texture Atlas support
     void addAtlas(const d2::TextureAtlas& atlas);
     uint32_t getAtlasCount() const;
+    
+    // Vertex Buffer Pool support
+    void setVertexBufferPool(std::shared_ptr<VertexBufferPool> pool);
     
     // Alpha blending support
     void enableAlphaBlending();
@@ -96,6 +100,9 @@ private:
     
     // Texture Atlas support
     std::vector<d2::TextureAtlas> atlases_;
+    
+    // Vertex Buffer Pool support
+    std::shared_ptr<VertexBufferPool> vertex_buffer_pool_;
 };
 
 } // namespace d2::rendering

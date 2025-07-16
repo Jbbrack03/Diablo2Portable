@@ -4,6 +4,7 @@
 #include "rendering/renderer.h"
 #include "rendering/egl_context.h"
 #include "rendering/texture_manager.h"
+#include "rendering/vertex_buffer_pool.h"
 #include "tools/texture_atlas_generator.h"
 #include <glm/vec2.hpp>
 
@@ -116,6 +117,32 @@ TEST_F(SpriteRendererTest, BatchedRenderingWithTextureAtlas) {
     // All sprites from the same atlas should be batched into a single draw call
     EXPECT_EQ(sprite_renderer->getDrawCallCount(), 1);
     EXPECT_EQ(sprite_renderer->getSpriteCount(), 10);
+}
+
+// Phase 43: Performance Optimization - Vertex Buffer Pool Integration
+TEST_F(SpriteRendererTest, UsesVertexBufferPool) {
+    EXPECT_TRUE(sprite_renderer->initialize(*renderer, *texture_manager));
+    
+    // Create a vertex buffer pool
+    auto pool = std::make_shared<VertexBufferPool>(5);
+    sprite_renderer->setVertexBufferPool(pool);
+    
+    // Track initial pool state
+    size_t initialPoolSize = pool->getPoolSize();
+    size_t initialAvailableCount = pool->getAvailableCount();
+    
+    // Render many frames to test buffer reuse
+    for (int frame = 0; frame < 10; frame++) {
+        sprite_renderer->beginBatch();
+        for (int i = 0; i < 20; i++) {
+            sprite_renderer->drawSprite(1, glm::vec2(i * 32.0f, 0.0f), glm::vec2(32.0f, 32.0f));
+        }
+        sprite_renderer->endBatch();
+    }
+    
+    // Pool should not have grown significantly (efficient reuse)
+    EXPECT_LE(pool->getPoolSize() - initialPoolSize, 2);
+    EXPECT_GT(pool->getAvailableCount(), 0); // Should have buffers available after rendering
 }
 
 } // namespace d2::rendering

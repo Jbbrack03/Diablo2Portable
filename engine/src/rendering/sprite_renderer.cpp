@@ -4,6 +4,7 @@
 #include "rendering/shader_manager.h"
 #include "rendering/vertex_buffer.h"
 #include "rendering/vertex_array_object.h"
+#include "rendering/vertex_buffer_pool.h"
 #include "tools/texture_atlas_generator.h"
 #include <unordered_set>
 #include <cstddef>
@@ -355,11 +356,24 @@ void SpriteRenderer::endBatch() {
     // Process all batched sprites
     for (const auto& [texture_id, batch] : sprite_batches_) {
         if (!batch.vertices.empty()) {
+            // Use vertex buffer pool if available, otherwise use default buffer
+            if (vertex_buffer_pool_ && batch.vertices.size() > 100) {
+                // Use pool for larger batches
+                auto pooled_buffer = vertex_buffer_pool_->acquire(batch.vertices.size());
+                if (pooled_buffer) {
+                    pooled_buffer->update(batch.vertices);
+                    vertex_buffer_pool_->release(pooled_buffer);
+                }
+            }
             // In a real implementation, we would upload vertices to GPU
             // and render them as a single draw call
             draw_call_count_++;
         }
     }
+}
+
+void SpriteRenderer::setVertexBufferPool(std::shared_ptr<VertexBufferPool> pool) {
+    vertex_buffer_pool_ = pool;
 }
 
 } // namespace d2::rendering
