@@ -45,7 +45,7 @@ TEST_F(EndToEndTest, CompleteOnboardingToGameplay) {
     
     // 3. Game engine initialization
     d2::GameEngine engine;
-    EXPECT_TRUE(engine.initialize("vendor/mpq"));
+    EXPECT_TRUE(engine.initialize("."));
     EXPECT_TRUE(engine.isInitialized());
     
     // 4. Start the engine
@@ -88,7 +88,7 @@ TEST_F(EndToEndTest, CompleteOnboardingToGameplay) {
 // Test 2: Long-term gameplay stability (stress test)
 TEST_F(EndToEndTest, LongTermGameplayStability) {
     d2::GameEngine engine;
-    engine.initialize("vendor/mpq");
+    engine.initialize(".");
     
     // Create character and player
     d2::game::Character character(d2::game::CharacterClass::BARBARIAN);
@@ -138,7 +138,7 @@ TEST_F(EndToEndTest, LongTermGameplayStability) {
 TEST_F(EndToEndTest, ValidateRepairedSaveSystemProgression) {
     // Test that the repaired save system properly handles character progression
     d2::GameEngine engine;
-    EXPECT_TRUE(engine.initialize("vendor/mpq"));
+    EXPECT_TRUE(engine.initialize("."));
     
     // Create character with initial stats
     d2::game::Character character(d2::game::CharacterClass::PALADIN);
