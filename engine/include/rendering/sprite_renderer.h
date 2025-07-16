@@ -32,6 +32,10 @@ public:
     virtual void drawSpriteFromAtlas(const std::string& spriteName, const glm::vec2& position, const glm::vec2& size);
     virtual void endFrame();
     
+    // Batch rendering for performance optimization
+    void beginBatch();
+    void endBatch();
+    
     // Texture Atlas support
     void addAtlas(const d2::TextureAtlas& atlas);
     uint32_t getAtlasCount() const;

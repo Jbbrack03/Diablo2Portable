@@ -317,11 +317,49 @@ uint32_t SpriteRenderer::getAtlasCount() const {
 }
 
 void SpriteRenderer::drawSpriteFromAtlas(const std::string& spriteName, const glm::vec2& position, const glm::vec2& size) {
-    // For now, just treat as a regular sprite with texture ID 1
+    // For now, assume all atlas sprites use texture ID 1
     // In a real implementation, we would look up the sprite in the atlas
     // and use the appropriate texture coordinates
     (void)spriteName;  // Suppress unused parameter warning
-    drawSprite(1, position, size);
+    
+    // Add sprite to batch for texture ID 1
+    uint32_t texture_id = 1;
+    auto& batch = sprite_batches_[texture_id];
+    if (batch.texture_id == 0) {
+        batch.texture_id = texture_id;
+    }
+    
+    // Create sprite vertices for batching
+    SpriteVertex vertices[4];
+    vertices[0].position = position;
+    vertices[1].position = {position.x + size.x, position.y};
+    vertices[2].position = {position.x + size.x, position.y + size.y};
+    vertices[3].position = {position.x, position.y + size.y};
+    
+    // Add vertices to batch
+    batch.vertices.insert(batch.vertices.end(), vertices, vertices + 4);
+    
+    // Increment sprite count
+    sprite_count_++;
+}
+
+void SpriteRenderer::beginBatch() {
+    // Start a new batch render operation
+    // Reset batch state
+    sprite_batches_.clear();
+    draw_call_count_ = 0;
+    sprite_count_ = 0;
+}
+
+void SpriteRenderer::endBatch() {
+    // Process all batched sprites
+    for (const auto& [texture_id, batch] : sprite_batches_) {
+        if (!batch.vertices.empty()) {
+            // In a real implementation, we would upload vertices to GPU
+            // and render them as a single draw call
+            draw_call_count_++;
+        }
+    }
 }
 
 } // namespace d2::rendering

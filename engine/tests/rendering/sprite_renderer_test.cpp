@@ -97,4 +97,25 @@ TEST_F(SpriteRendererTest, UsesTextureAtlases) {
     EXPECT_EQ(sprite_renderer->getDrawCallCount(), 1u);
 }
 
+// Phase 43: Performance Optimization - Texture Atlas Batching
+TEST_F(SpriteRendererTest, BatchedRenderingWithTextureAtlas) {
+    EXPECT_TRUE(sprite_renderer->initialize(*renderer, *texture_manager));
+    
+    // Create a mock texture atlas with multiple sprites
+    d2::TextureAtlas atlas;
+    sprite_renderer->addAtlas(atlas);
+    
+    // Render multiple sprites from the same atlas
+    sprite_renderer->beginBatch();
+    for (int i = 0; i < 10; i++) {
+        std::string spriteName = "item" + std::to_string(i);
+        sprite_renderer->drawSpriteFromAtlas(spriteName, glm::vec2(i * 64.0f, 0.0f), glm::vec2(64.0f, 64.0f));
+    }
+    sprite_renderer->endBatch();
+    
+    // All sprites from the same atlas should be batched into a single draw call
+    EXPECT_EQ(sprite_renderer->getDrawCallCount(), 1);
+    EXPECT_EQ(sprite_renderer->getSpriteCount(), 10);
+}
+
 } // namespace d2::rendering
