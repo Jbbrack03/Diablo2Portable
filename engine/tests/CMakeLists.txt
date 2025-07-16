@@ -42,6 +42,7 @@ set(TEST_SOURCES
     rendering/real_opengl_draw_elements_test.cpp
     rendering/real_opengl_draw_elements_parameters_test.cpp
     rendering/sprite_renderer_test.cpp
+    rendering/vertex_buffer_pool_test.cpp
     rendering/sprite_renderer_opengl_test.cpp
     rendering/test_sprite_renderer_polymorphism.cpp
     rendering/opengl_draw_calls_test.cpp
