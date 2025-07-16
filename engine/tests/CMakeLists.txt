@@ -90,6 +90,7 @@ set(TEST_SOURCES
     game/entity_manager_test.cpp
     game/item_drop_integration_test.cpp
     game/quest_system_test.cpp
+    game/npc_test.cpp
     test_game_engine.cpp
     map/map_loader_test.cpp
     map/pathfinding_test.cpp
