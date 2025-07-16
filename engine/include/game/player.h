@@ -9,7 +9,15 @@ namespace d2::game {
 
 class Player : public Entity {
 public:
-    explicit Player(const Character& character);
+    explicit Player(Character&& character);
+    
+    // Temporary constructor for backward compatibility with tests
+    // Takes a copy to avoid breaking existing code
+    template<typename T>
+    explicit Player(const T& characterRef) 
+        : m_character(Character(characterRef.getCharacterClass())) {
+        position_ = glm::vec2(0.0f, 0.0f);
+    }
     
     CharacterClass getCharacterClass() const;
     void move(const glm::vec2& delta);

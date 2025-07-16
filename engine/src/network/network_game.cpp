@@ -33,7 +33,7 @@ static std::vector<std::shared_ptr<d2::game::Player>> s_connectedClients;
 NetworkGame::NetworkGame() {
     // Create a local player for testing
     d2::game::Character character(d2::game::CharacterClass::BARBARIAN);
-    m_localPlayer = std::make_shared<d2::game::Player>(character);
+    m_localPlayer = std::make_shared<d2::game::Player>(std::move(character));
 }
 
 NetworkGame::~NetworkGame() = default;
@@ -53,7 +53,7 @@ bool NetworkGame::connect(const std::string& host, uint16_t port) {
     m_connected = true;
     // For test, create a remote player that represents the host
     d2::game::Character character(d2::game::CharacterClass::BARBARIAN);
-    auto remotePlayer = std::make_shared<d2::game::Player>(character);
+    auto remotePlayer = std::make_shared<d2::game::Player>(std::move(character));
     m_remotePlayers.push_back(remotePlayer);
     
     // Also simulate that the host knows about this client

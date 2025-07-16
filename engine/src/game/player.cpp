@@ -2,8 +2,8 @@
 
 namespace d2::game {
 
-Player::Player(const Character& character) 
-    : m_character(character) {
+Player::Player(Character&& character) 
+    : m_character(std::move(character)) {
     position_ = glm::vec2(0.0f, 0.0f);
 }
 

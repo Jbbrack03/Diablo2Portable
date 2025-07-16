@@ -6,8 +6,10 @@
 
 namespace d2::game {
 
-// Forward declaration  
+// Forward declarations 
 class Item;
+class SkillTree;
+class Skill;
 
 /**
  * @brief Enumeration of available character classes in Diablo II
@@ -62,6 +64,13 @@ enum class StatType {
 class Character {
 public:
     explicit Character(CharacterClass characterClass);
+    ~Character();
+    
+    // Make Character movable but not copyable
+    Character(const Character&) = delete;
+    Character& operator=(const Character&) = delete;
+    Character(Character&&) noexcept;
+    Character& operator=(Character&&) noexcept;
     
     void setLevel(int level);
     void addStatPoint(StatType stat, int points);
@@ -101,6 +110,11 @@ public:
     void activateWaypoint(int waypointId);
     bool isWaypointActive(int waypointId) const;
     
+    // Skill management
+    SkillTree* getSkillTree() const;
+    Skill* findSkill(const std::string& skillName) const;
+    bool addSkillPoint(const std::string& skillName);
+    
 private:
     CharacterClass m_class;
     int m_level = 1;
@@ -128,6 +142,9 @@ private:
     
     // Equipment
     std::shared_ptr<Item> m_equippedWeapon;
+    
+    // Skill tree
+    std::unique_ptr<SkillTree> m_skillTree;
     
     // Base stats by class
     void initializeBaseStats();

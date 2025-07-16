@@ -1,11 +1,13 @@
 #include "game/character.h"
 #include "game/item.h"
 #include "game/game_constants.h"
+#include "game/skill_tree.h"
 
 namespace d2::game {
 
 Character::Character(CharacterClass characterClass) 
-    : m_class(characterClass), m_questProgress(MAX_QUESTS, false), m_waypointProgress(MAX_WAYPOINTS, false) {
+    : m_class(characterClass), m_questProgress(MAX_QUESTS, false), m_waypointProgress(MAX_WAYPOINTS, false),
+      m_skillTree(std::make_unique<SkillTree>(characterClass)) {
     initializeBaseStats();
     
     // Town waypoints are always active
@@ -15,6 +17,11 @@ Character::Character(CharacterClass characterClass)
     m_waypointProgress[constants::WAYPOINT_PANDEMONIUM_FORTRESS] = true;
     m_waypointProgress[constants::WAYPOINT_HARROGATH] = true;
 }
+
+Character::~Character() = default;
+
+Character::Character(Character&&) noexcept = default;
+Character& Character::operator=(Character&&) noexcept = default;
 
 void Character::setLevel(int level) {
     m_level = level;
@@ -179,6 +186,36 @@ float Character::getStrengthDamageBonus() const {
     // D2 Formula: 1% damage per strength point (for most weapons)
     // Strength above requirement doesn't matter - all strength contributes
     return m_strength * 0.01f;
+}
+
+SkillTree* Character::getSkillTree() const {
+    return m_skillTree.get();
+}
+
+Skill* Character::findSkill(const std::string& skillName) const {
+    return m_skillTree->findSkill(skillName);
+}
+
+bool Character::addSkillPoint(const std::string& skillName) {
+    if (m_skillPoints <= 0) {
+        return false;  // No skill points available
+    }
+    
+    Skill* skill = findSkill(skillName);
+    if (!skill) {
+        return false;  // Skill not found
+    }
+    
+    if (!skill->canAddSkillPoint()) {
+        return false;  // Cannot add skill point (max level or prerequisite not met)
+    }
+    
+    if (skill->addSkillPoint()) {
+        m_skillPoints--;
+        return true;
+    }
+    
+    return false;
 }
 
 } // namespace d2::game
