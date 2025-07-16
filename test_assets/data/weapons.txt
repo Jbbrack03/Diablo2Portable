@@ -1,0 +1,3 @@
+name	invfile	type	mindamage	maxdamage	reqstr	reqdex	durability	level	cost	invwidth	invheight	speed
+Short Sword	inv_sword_short	sword	2	7	0	0	24	1	50	1	3	0
+Long Sword	inv_sword_long	sword	3	10	25	0	32	5	120	1	3	0

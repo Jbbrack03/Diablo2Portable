@@ -1,0 +1,3 @@
+name	invfile	type	stackable	maxstack	cost	level
+Health Potion	inv_potion_health	potion	1	1	50	1
+Gold	inv_gold	gold	1	50000	1	1

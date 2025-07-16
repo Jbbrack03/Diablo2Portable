@@ -118,6 +118,7 @@ set(TEST_SOURCES
     integration/end_to_end_test.cpp
     integration/test_empty_mpq_handling.cpp
     integration/test_mpq_file_validation.cpp
+    integration/item_database_test.cpp
     test_pkware_real_format.cpp
     ui/test_ui_element.cpp
     ui/test_ui_button.cpp
