@@ -64,6 +64,7 @@ set(TEST_SOURCES
     rendering/sprite_animation_test.cpp
     rendering/world_renderer_test.cpp
     rendering/camera_test.cpp
+    animation/animation_controller_test.cpp
     input/gamepad_manager_test.cpp
     input/input_manager_test.cpp
     input/control_mapper_test.cpp
