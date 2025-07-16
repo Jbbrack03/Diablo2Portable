@@ -24,7 +24,7 @@ class VertexArrayObject;
 class SpriteRenderer {
 public:
     SpriteRenderer(); // Custom constructor needed for unique_ptr with forward declaration
-    ~SpriteRenderer(); // Custom destructor needed for unique_ptr with forward declaration
+    virtual ~SpriteRenderer(); // Virtual destructor for proper polymorphic deletion
 
     bool initialize(const Renderer& renderer, const TextureManager& texture_manager);
     virtual void beginFrame();

@@ -44,8 +44,6 @@ TEST_F(OpenGLDrawImplementationTest, CallsGLDrawArraysWhenRenderingSprites) {
     spriteRenderer->drawSprite(1, glm::vec2(0, 0), glm::vec2(32, 32));
     spriteRenderer->drawSprite(1, glm::vec2(32, 0), glm::vec2(32, 32));
     
-    // Track OpenGL state before endFrame
-    GLint currentDrawArraysCalls = 0;
     // Note: In a real test we would need to intercept OpenGL calls or use a debug context
     // For now, we'll verify that the vertex buffer has the right data
     

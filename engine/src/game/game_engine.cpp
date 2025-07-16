@@ -17,6 +17,7 @@
 #include "input/touch_input.h"
 #include "performance/performance_monitor.h"
 #include "performance/optimized_update_system.h"
+#include "android/asset_path_validator.h"
 #include <glm/glm.hpp>
 #include <glm/geometric.hpp>
 #include <cstdlib>
@@ -337,6 +338,14 @@ bool GameEngine::initializeAssetManager(const std::string& assetPath) {
         if (!std::filesystem::exists(assetPath)) {
             // Path doesn't exist, but we can still initialize with default settings
             return assetManager_->initialize(assetPath);
+        }
+        
+        // Validate assets before attempting to load
+        auto validationResult = AssetPathValidator::validateAssetPath(assetPath);
+        if (!validationResult.isValid) {
+            // Log error details (in production, this would go to proper logging)
+            // For now, just fail initialization if required assets are missing
+            return false;
         }
         
         // Initialize with appropriate method based on content

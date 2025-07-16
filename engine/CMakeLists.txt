@@ -101,6 +101,7 @@ add_library(d2engine STATIC
     src/android/jni_bridge.cpp
     src/android/gamepad_handler.cpp
     src/android/apk_asset_loader.cpp
+    src/android/asset_path_validator.cpp
     src/performance/performance_monitor.cpp
     src/performance/optimized_update_system.cpp
     src/performance/memory_monitor.cpp

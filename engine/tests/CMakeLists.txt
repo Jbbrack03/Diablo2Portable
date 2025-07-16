@@ -43,6 +43,7 @@ set(TEST_SOURCES
     rendering/real_opengl_draw_elements_parameters_test.cpp
     rendering/sprite_renderer_test.cpp
     rendering/sprite_renderer_opengl_test.cpp
+    rendering/test_sprite_renderer_polymorphism.cpp
     rendering/opengl_draw_calls_test.cpp
     rendering/vertex_buffer_test.cpp
     rendering/opengl_vertex_buffer_test.cpp
@@ -82,6 +83,7 @@ set(TEST_SOURCES
     game/game_engine_input_test.cpp
     game/game_engine_render_test.cpp
     game/test_game_engine_touch.cpp
+    game/test_game_engine_asset_validation.cpp
     game/entity_manager_test.cpp
     game/item_drop_integration_test.cpp
     game/quest_system_test.cpp
@@ -168,6 +170,7 @@ set(TEST_SOURCES
     android/mainactivity_asset_path_test.cpp
     android/android_sprite_rendering_test.cpp
     android/android_asset_performance_test.cpp
+    android/test_asset_path_validation.cpp
     performance/test_performance_metrics.cpp
     performance/test_game_performance.cpp
     performance/memory_monitor_test.cpp

@@ -143,8 +143,8 @@ TEST_F(WorldRendererTest, UseActualSprites) {
     assetManager.initialize("test_assets");
     
     // Register some test textures
-    const uint32_t PLAYER_TEXTURE_ID = 100;
-    const uint32_t TILE_TEXTURE_ID = 200;
+    // const uint32_t PLAYER_TEXTURE_ID = 100;  // Reserved for future use
+    // const uint32_t TILE_TEXTURE_ID = 200;    // Reserved for future use
     
     // Initialize world renderer with asset manager
     worldRenderer->initialize(assetManager);

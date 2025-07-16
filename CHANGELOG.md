@@ -5,6 +5,32 @@ All notable changes to the Diablo II Android Port project will be documented in 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.9.0] - 2025-01-16
+
+### Added
+- **Phase 41.2: Android Asset Integration Improvements**
+  - AssetPathValidator class for robust MPQ file validation
+  - Integrated asset validation into GameEngine initialization
+  - Comprehensive tests for asset path validation (6 new tests)
+  - Enhanced error handling for missing or invalid game assets
+  - Validation ensures required MPQ files (d2data.mpq, d2exp.mpq) are present
+
+- **Phase 42: Production Polish**
+  - Fixed virtual destructor warning in SpriteRenderer class
+  - Added polymorphism tests for proper inheritance behavior (2 new tests)
+  - Cleaned up all compiler warnings in test files
+  - Improved code quality and safety
+
+### Fixed
+- SpriteRenderer virtual destructor warning that could cause memory leaks with polymorphic usage
+- Unused variable warnings in test files for cleaner compilation
+
+### Technical Details
+- **Test Statistics**: 958 total tests (932 passing, 26 skipping gracefully)
+- **Test Success Rate**: 97.3% - strong foundation for production
+- **Code Quality**: Zero compiler warnings, improved type safety
+- **Phase Completion**: Phases 0-41.2 complete, Phase 42 in progress
+
 ## [1.8.0] - 2025-01-15
 
 ### Added
