@@ -106,6 +106,7 @@ set(TEST_SOURCES
     test_menu_screen_refactor.cpp
     audio/test_audio_engine.cpp
     audio/audio_playback_test.cpp
+    audio/audio_asset_integration_test.cpp
     network/test_network_manager.cpp
     network/game_session_test.cpp
     network/network_game_test.cpp

@@ -1,4 +1,5 @@
 #include "audio/audio_engine.h"
+#include "core/asset_manager.h"
 #include <algorithm>
 
 namespace d2::audio {
@@ -13,12 +14,51 @@ bool AudioEngine::isInitialized() const {
     return initialized_;
 }
 
+void AudioEngine::setAssetManager(std::shared_ptr<d2portable::core::AssetManager> assetManager) {
+    assetManager_ = assetManager;
+}
+
+bool AudioEngine::isSoundLoaded(SoundId soundId) const {
+    return loadedSounds_.find(soundId) != loadedSounds_.end();
+}
+
 AudioEngine::SoundId AudioEngine::loadSound(const std::string& filename) {
     // Minimal implementation to make test pass (Green phase)
     if (!initialized_) {
         return INVALID_SOUND_ID;
     }
     
+    // Check if sound is already loaded (caching)
+    for (const auto& [id, data] : audioDataMap_) {
+        if (data && data->filename == filename) {
+            return id;
+        }
+    }
+    
+    // Try to load from asset manager if available
+    if (assetManager_) {
+        auto fileData = assetManager_->loadFileData(filename);
+        if (fileData.empty()) {
+            return INVALID_SOUND_ID;
+        }
+        
+        SoundId soundId = nextSoundId_++;
+        loadedSounds_.insert(soundId);
+        
+        auto audioData = std::make_unique<AudioData>();
+        audioData->data = std::move(fileData);
+        audioData->filename = filename;
+        // For now, assume standard audio properties
+        audioData->duration = 1.0f; // Would be calculated from actual data
+        audioData->sampleRate = 44100;
+        audioData->channels = 2;
+        audioData->bitsPerSample = 16;
+        
+        audioDataMap_[soundId] = std::move(audioData);
+        return soundId;
+    }
+    
+    // Fallback: simulate loading for testing
     SoundId soundId = nextSoundId_++;
     loadedSounds_.insert(soundId);
     
@@ -27,6 +67,7 @@ AudioEngine::SoundId AudioEngine::loadSound(const std::string& filename) {
     if (filename.find(".ogg") != std::string::npos || 
         filename.find(".wav") != std::string::npos) {
         auto audioData = std::make_unique<AudioData>();
+        audioData->filename = filename;
         // Simulate some audio data
         audioData->data.resize(44100 * 2); // 1 second of stereo 16-bit audio
         audioData->duration = 1.0f; // 1 second duration
@@ -227,6 +268,37 @@ AudioEngine::SoundId AudioEngine::loadMusic(const std::string& filename) {
         return INVALID_SOUND_ID;
     }
     
+    // Check if music is already loaded (caching)
+    for (const auto& [id, data] : audioDataMap_) {
+        if (data && data->filename == filename && streamingSounds_.find(id) != streamingSounds_.end()) {
+            return id;
+        }
+    }
+    
+    // Try to load from asset manager if available
+    if (assetManager_) {
+        // For music, we just check if the file exists, not load it all
+        if (!assetManager_->hasFile(filename)) {
+            return INVALID_SOUND_ID;
+        }
+        
+        SoundId soundId = nextSoundId_++;
+        loadedSounds_.insert(soundId);
+        streamingSounds_.insert(soundId);
+        
+        // Create metadata for streaming
+        auto audioData = std::make_unique<AudioData>();
+        audioData->filename = filename;
+        audioData->duration = 120.0f; // Assume 2 minutes for music
+        audioData->sampleRate = 44100;
+        audioData->channels = 2;
+        audioData->bitsPerSample = 16;
+        
+        audioDataMap_[soundId] = std::move(audioData);
+        return soundId;
+    }
+    
+    // Fallback for testing
     SoundId soundId = nextSoundId_++;
     loadedSounds_.insert(soundId);
     
@@ -238,6 +310,11 @@ AudioEngine::SoundId AudioEngine::loadMusic(const std::string& filename) {
     }
     
     return soundId;
+}
+
+bool AudioEngine::isMusicLoaded(SoundId soundId) const {
+    return loadedSounds_.find(soundId) != loadedSounds_.end() &&
+           streamingSounds_.find(soundId) != streamingSounds_.end();
 }
 
 bool AudioEngine::isStreamingAudio(SoundId soundId) const {

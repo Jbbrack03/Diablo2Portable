@@ -7,6 +7,10 @@
 #include <memory>
 #include <glm/glm.hpp>
 
+namespace d2portable::core {
+    class AssetManager;
+}
+
 namespace d2::audio {
 
 struct ChannelLevels {
@@ -31,7 +35,11 @@ public:
     bool initialize();
     bool isInitialized() const;
     
+    // Asset Manager integration
+    void setAssetManager(std::shared_ptr<d2portable::core::AssetManager> assetManager);
+    
     SoundId loadSound(const std::string& filename);
+    bool isSoundLoaded(SoundId soundId) const;
     bool playSound(SoundId soundId);
     bool playSound(SoundId soundId, Priority priority);
     
@@ -83,6 +91,7 @@ public:
     
     // Music streaming
     SoundId loadMusic(const std::string& filename);
+    bool isMusicLoaded(SoundId soundId) const;
     bool isStreamingAudio(SoundId soundId) const;
     bool playMusic(SoundId soundId);
     void stopMusic();
@@ -108,6 +117,7 @@ public:
 private:
     struct AudioData {
         std::vector<uint8_t> data;
+        std::string filename;
         float duration = 0.0f;
         int sampleRate = 44100;
         int channels = 2;
@@ -115,6 +125,7 @@ private:
     };
 
     bool initialized_ = false;
+    std::shared_ptr<d2portable::core::AssetManager> assetManager_;
     SoundId nextSoundId_ = 1;
     std::unordered_set<SoundId> loadedSounds_;
     std::unordered_set<SoundId> loopingSounds_;
