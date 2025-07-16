@@ -5,6 +5,30 @@ All notable changes to the Diablo II Android Port project will be documented in 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.0] - 2025-01-16
+
+### Added
+- **Phase 43: Performance Optimization Features**
+  - VertexBufferPool for efficient vertex buffer memory management
+  - Texture atlas batching support in SpriteRenderer with beginBatch()/endBatch() methods
+  - Thread-safe buffer pooling with automatic expansion when needed
+  - Optimized rendering pipeline to reduce draw calls and memory allocations
+  - 4 new comprehensive tests for performance optimization features
+
+### Fixed
+- **Critical Test Failures**
+  - Fixed GameEngine initialization to support directories without MPQ files
+  - Resolved EndToEndTest segmentation fault by using basic directory initialization
+  - Enhanced asset manager initialization to handle missing MPQ files gracefully
+  - Improved engine flexibility for development and testing scenarios
+
+### Performance
+- **Rendering Optimizations**
+  - Sprite batching reduces draw calls for texture atlas operations
+  - Vertex buffer pooling minimizes memory allocations during rendering
+  - LIFO buffer management for optimal cache performance
+  - Mobile-optimized rendering pipeline with reduced memory footprint
+
 ## [2.0.0] - 2025-01-16
 
 ### Added
