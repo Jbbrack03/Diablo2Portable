@@ -5,37 +5,11 @@
 #include "rendering/vertex_buffer.h"
 #include "rendering/vertex_array_object.h"
 #include "rendering/vertex_buffer_pool.h"
+#include "rendering/render_context.h"
+#include "rendering/render_backend.h"
 #include "tools/texture_atlas_generator.h"
 #include <unordered_set>
 #include <cstddef>
-
-#ifdef __ANDROID__
-#include <GLES3/gl3.h>
-#else
-// Mock OpenGL constants and functions for desktop testing
-#define GL_TRIANGLES 0x0004
-#define GL_FLOAT 0x1406
-#define GL_FALSE 0
-#define GL_TEXTURE_2D 0x0DE1
-#define GL_BLEND 0x0BE2
-#define GL_SRC_ALPHA 0x0302
-#define GL_ONE_MINUS_SRC_ALPHA 0x0303
-#define GL_DEPTH_TEST 0x0B71
-#define GL_LEQUAL 0x0203
-
-extern "C" {
-    void glUseProgram(uint32_t program);
-    void glDrawArrays(uint32_t mode, int first, int count);
-    void glEnableVertexAttribArray(uint32_t index);
-    void glVertexAttribPointer(uint32_t index, int size, uint32_t type, bool normalized, int stride, const void* pointer);
-    void glBindTexture(uint32_t target, uint32_t texture);
-    void glEnable(uint32_t cap);
-    void glDisable(uint32_t cap);
-    void glBlendFunc(uint32_t src, uint32_t dst);
-    void glDepthFunc(uint32_t func);
-    void glDepthMask(uint8_t flag);
-}
-#endif
 
 namespace d2::rendering {
 
@@ -44,14 +18,12 @@ SpriteRenderer::SpriteRenderer() = default;
 SpriteRenderer::~SpriteRenderer() = default;
 
 bool SpriteRenderer::initialize(const Renderer& renderer, const TextureManager& texture_manager) {
-    // Minimal implementation to pass the test
-    (void)renderer;        // Suppress unused parameter warning
-    (void)texture_manager; // Suppress unused parameter warning
-    
+    (void)renderer;
+    (void)texture_manager;
+
     // Create shader manager and compile sprite shaders
     shader_manager_ = std::make_unique<ShaderManager>();
-    
-    // Basic vertex shader for sprite rendering
+
     const std::string vertex_shader_source = R"(
         #version 300 es
         layout(location = 0) in vec2 a_position;
@@ -63,8 +35,7 @@ bool SpriteRenderer::initialize(const Renderer& renderer, const TextureManager& 
             v_texcoord = a_texcoord;
         }
     )";
-    
-    // Basic fragment shader for sprite rendering
+
     const std::string fragment_shader_source = R"(
         #version 300 es
         precision mediump float;
@@ -75,62 +46,56 @@ bool SpriteRenderer::initialize(const Renderer& renderer, const TextureManager& 
             fragColor = texture(u_texture, v_texcoord);
         }
     )";
-    
-    // Compile shaders
+
     uint32_t vertex_shader = shader_manager_->compileShader(ShaderType::VERTEX, vertex_shader_source);
     uint32_t fragment_shader = shader_manager_->compileShader(ShaderType::FRAGMENT, fragment_shader_source);
-    
+
     if (vertex_shader == 0 || fragment_shader == 0) {
         return false;
     }
-    
-    // Create shader program
+
     shader_program_ = shader_manager_->createProgram(vertex_shader, fragment_shader);
     if (shader_program_ == 0) {
         return false;
     }
-    
-    // Clean up individual shaders (they're now part of the program)
+
     shader_manager_->deleteShader(vertex_shader);
     shader_manager_->deleteShader(fragment_shader);
-    
+
     // Create VAO for sprite rendering
     vao_ = std::make_unique<VertexArrayObject>();
     if (!vao_->create()) {
         return false;
     }
-    
+
     // Create vertex buffer for sprite batching
     vertex_buffer_ = std::make_unique<VertexBuffer>();
-    // Initialize with empty data - will be filled during rendering
     std::vector<SpriteVertex> initial_vertices;
-    initial_vertices.reserve(1000); // Reserve space for batching
+    initial_vertices.reserve(1000);
     if (!vertex_buffer_->create(initial_vertices)) {
-        // Create with at least one vertex to make it valid
         initial_vertices.push_back({{0, 0}, {0, 0}});
         if (!vertex_buffer_->create(initial_vertices)) {
             return false;
         }
     }
-    
+
     initialized_ = true;
     return true;
 }
 
 void SpriteRenderer::beginFrame() {
-    // Reset counters for new frame
     draw_call_count_ = 0;
     sprite_count_ = 0;
     textures_used_.clear();
     sprite_batches_.clear();
-    
-    // Activate shader program for this frame
-    if (shader_program_ != 0) {
-        glUseProgram(shader_program_);
+
+    auto* backend = RenderContext::getBackend();
+
+    if (shader_program_ != 0 && backend) {
+        backend->useProgram(shader_program_);
         shader_program_active_ = true;
     }
-    
-    // Bind VAO for sprite rendering
+
     if (vao_) {
         vao_->bind();
     }
@@ -139,73 +104,56 @@ void SpriteRenderer::beginFrame() {
 void SpriteRenderer::drawSprite(uint32_t texture_id, const glm::vec2& position, const glm::vec2& size) {
     sprite_count_++;
     textures_used_.insert(texture_id);
-    
-    // Create vertices for a sprite quad (two triangles)
-    // Top-left
+
     SpriteVertex v0{{position.x, position.y}, {0.0f, 0.0f}};
-    // Top-right
     SpriteVertex v1{{position.x + size.x, position.y}, {1.0f, 0.0f}};
-    // Bottom-left
     SpriteVertex v2{{position.x, position.y + size.y}, {0.0f, 1.0f}};
-    // Bottom-right
     SpriteVertex v3{{position.x + size.x, position.y + size.y}, {1.0f, 1.0f}};
-    
-    // Add vertices to the batch for this texture (two triangles)
+
     auto& batch = sprite_batches_[texture_id];
     batch.texture_id = texture_id;
-    
-    // First triangle (top-left, top-right, bottom-left)
+
     batch.vertices.push_back(v0);
     batch.vertices.push_back(v1);
     batch.vertices.push_back(v2);
-    
-    // Second triangle (top-right, bottom-right, bottom-left)
+
     batch.vertices.push_back(v1);
     batch.vertices.push_back(v3);
     batch.vertices.push_back(v2);
 }
 
 void SpriteRenderer::endFrame() {
-    // Setup vertex attributes if we have a valid VAO
-    if (vao_ && vertex_buffer_) {
-        // Enable vertex attributes
-        glEnableVertexAttribArray(0); // position
-        glEnableVertexAttribArray(1); // texcoord
-        
-        // Set vertex attribute pointers
-        // Position attribute (location = 0)
-        glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(SpriteVertex), 
+    auto* backend = RenderContext::getBackend();
+
+    if (vao_ && vertex_buffer_ && backend) {
+        backend->enableVertexAttribArray(0);
+        backend->enableVertexAttribArray(1);
+
+        backend->vertexAttribPointer(0, 2, GL_FLOAT_VALUE, GL_FALSE_VALUE, sizeof(SpriteVertex),
                             reinterpret_cast<void*>(offsetof(SpriteVertex, position)));
-        
-        // TexCoord attribute (location = 1)
-        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(SpriteVertex), 
+
+        backend->vertexAttribPointer(1, 2, GL_FLOAT_VALUE, GL_FALSE_VALUE, sizeof(SpriteVertex),
                             reinterpret_cast<void*>(offsetof(SpriteVertex, texCoord)));
     }
-    
-    // Process each batch and make draw calls
+
     draw_call_count_ = 0;
     for (const auto& [texture_id, batch] : sprite_batches_) {
-        if (!batch.vertices.empty() && vertex_buffer_) {
-            // Update vertex buffer with batch data
+        if (!batch.vertices.empty() && vertex_buffer_ && backend) {
             vertex_buffer_->update(batch.vertices);
             vertex_buffer_->bind();
-            
-            // Bind texture for this batch
-            glBindTexture(GL_TEXTURE_2D, texture_id);
-            
-            // Make the actual draw call
-            glDrawArrays(GL_TRIANGLES, 0, static_cast<int>(batch.vertices.size()));
+
+            backend->bindTexture(GL_TEXTURE_2D_VALUE, texture_id);
+
+            backend->drawArrays(GL_TRIANGLES_VALUE, 0, static_cast<GLsizei>(batch.vertices.size()));
             draw_call_count_++;
         }
     }
-    
-    // Deactivate shader program
+
     shader_program_active_ = false;
-    if (shader_program_ != 0) {
-        glUseProgram(0);
+    if (shader_program_ != 0 && backend) {
+        backend->useProgram(0);
     }
-    
-    // Unbind VAO
+
     if (vao_) {
         VertexArrayObject::unbind();
     }
@@ -236,29 +184,47 @@ uint32_t SpriteRenderer::getVertexBufferId() const {
 }
 
 void SpriteRenderer::enableAlphaBlending() {
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    auto* backend = RenderContext::getBackend();
+    if (backend) {
+        backend->enable(GL_BLEND_VALUE);
+        backend->blendFunc(GL_SRC_ALPHA_VALUE, GL_ONE_MINUS_SRC_ALPHA_VALUE);
+    }
 }
 
 void SpriteRenderer::disableAlphaBlending() {
-    glDisable(GL_BLEND);
+    auto* backend = RenderContext::getBackend();
+    if (backend) {
+        backend->disable(GL_BLEND_VALUE);
+    }
 }
 
 void SpriteRenderer::enableDepthTesting() {
-    glEnable(GL_DEPTH_TEST);
-    glDepthFunc(GL_LEQUAL);
+    auto* backend = RenderContext::getBackend();
+    if (backend) {
+        backend->enable(GL_DEPTH_TEST_VALUE);
+        backend->depthFunc(GL_LEQUAL_VALUE);
+    }
 }
 
 void SpriteRenderer::disableDepthTesting() {
-    glDisable(GL_DEPTH_TEST);
+    auto* backend = RenderContext::getBackend();
+    if (backend) {
+        backend->disable(GL_DEPTH_TEST_VALUE);
+    }
 }
 
 void SpriteRenderer::enableDepthWrites() {
-    glDepthMask(1);  // GL_TRUE
+    auto* backend = RenderContext::getBackend();
+    if (backend) {
+        backend->depthMask(1);
+    }
 }
 
 void SpriteRenderer::disableDepthWrites() {
-    glDepthMask(0);  // GL_FALSE
+    auto* backend = RenderContext::getBackend();
+    if (backend) {
+        backend->depthMask(0);
+    }
 }
 
 void SpriteRenderer::enableAlphaTesting(float threshold) {
@@ -318,55 +284,41 @@ uint32_t SpriteRenderer::getAtlasCount() const {
 }
 
 void SpriteRenderer::drawSpriteFromAtlas(const std::string& spriteName, const glm::vec2& position, const glm::vec2& size) {
-    // For now, assume all atlas sprites use texture ID 1
-    // In a real implementation, we would look up the sprite in the atlas
-    // and use the appropriate texture coordinates
-    (void)spriteName;  // Suppress unused parameter warning
-    
-    // Add sprite to batch for texture ID 1
+    (void)spriteName;
+
     uint32_t texture_id = 1;
     auto& batch = sprite_batches_[texture_id];
     if (batch.texture_id == 0) {
         batch.texture_id = texture_id;
     }
-    
-    // Create sprite vertices for batching
+
     SpriteVertex vertices[4];
     vertices[0].position = position;
     vertices[1].position = {position.x + size.x, position.y};
     vertices[2].position = {position.x + size.x, position.y + size.y};
     vertices[3].position = {position.x, position.y + size.y};
-    
-    // Add vertices to batch
+
     batch.vertices.insert(batch.vertices.end(), vertices, vertices + 4);
-    
-    // Increment sprite count
+
     sprite_count_++;
 }
 
 void SpriteRenderer::beginBatch() {
-    // Start a new batch render operation
-    // Reset batch state
     sprite_batches_.clear();
     draw_call_count_ = 0;
     sprite_count_ = 0;
 }
 
 void SpriteRenderer::endBatch() {
-    // Process all batched sprites
     for (const auto& [texture_id, batch] : sprite_batches_) {
         if (!batch.vertices.empty()) {
-            // Use vertex buffer pool if available, otherwise use default buffer
             if (vertex_buffer_pool_ && batch.vertices.size() > 100) {
-                // Use pool for larger batches
                 auto pooled_buffer = vertex_buffer_pool_->acquire(batch.vertices.size());
                 if (pooled_buffer) {
                     pooled_buffer->update(batch.vertices);
                     vertex_buffer_pool_->release(pooled_buffer);
                 }
             }
-            // In a real implementation, we would upload vertices to GPU
-            // and render them as a single draw call
             draw_call_count_++;
         }
     }

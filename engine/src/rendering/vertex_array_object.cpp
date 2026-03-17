@@ -1,24 +1,6 @@
 #include "rendering/vertex_array_object.h"
-
-#ifdef __ANDROID__
-#include <GLES3/gl3.h>
-#else
-// Mock OpenGL constants
-#define GL_NO_ERROR 0
-
-// Mock OpenGL types
-typedef unsigned int GLenum;
-typedef unsigned int GLuint;
-typedef int GLsizei;
-
-// External mock OpenGL functions
-extern "C" {
-    void glGenVertexArrays(GLsizei n, GLuint* arrays);
-    void glBindVertexArray(GLuint array);
-    void glDeleteVertexArrays(GLsizei n, const GLuint* arrays);
-    GLenum glGetError();
-}
-#endif
+#include "rendering/render_context.h"
+#include "rendering/render_backend.h"
 
 namespace d2::rendering {
 
@@ -43,36 +25,48 @@ VertexArrayObject& VertexArrayObject::operator=(VertexArrayObject&& other) noexc
 bool VertexArrayObject::create() {
     // Release any existing VAO
     release();
-    
+
+    auto* backend = RenderContext::getBackend();
+    if (!backend) return false;
+
     // Generate a new VAO
-    glGenVertexArrays(1, &vaoId_);
+    backend->genVertexArrays(1, &vaoId_);
     if (vaoId_ == 0) {
         return false;
     }
-    
+
     // Check for OpenGL errors
-    GLenum error = glGetError();
-    if (error != GL_NO_ERROR) {
+    GLenum error = backend->getError();
+    if (error != GL_NO_ERROR_VALUE) {
         release();
         return false;
     }
-    
+
     return true;
 }
 
 void VertexArrayObject::bind() const {
     if (vaoId_ != 0) {
-        glBindVertexArray(vaoId_);
+        auto* backend = RenderContext::getBackend();
+        if (backend) {
+            backend->bindVertexArray(vaoId_);
+        }
     }
 }
 
 void VertexArrayObject::unbind() {
-    glBindVertexArray(0);
+    auto* backend = RenderContext::getBackend();
+    if (backend) {
+        backend->bindVertexArray(0);
+    }
 }
 
 void VertexArrayObject::release() {
     if (vaoId_ != 0) {
-        glDeleteVertexArrays(1, &vaoId_);
+        auto* backend = RenderContext::getBackend();
+        if (backend) {
+            backend->deleteVertexArrays(1, &vaoId_);
+        }
         vaoId_ = 0;
     }
 }

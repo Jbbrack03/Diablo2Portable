@@ -18,6 +18,8 @@
 #include "performance/performance_monitor.h"
 #include "performance/optimized_update_system.h"
 #include "android/asset_path_validator.h"
+#include "rendering/render_context.h"
+#include "rendering/render_backend.h"
 #include <glm/glm.hpp>
 #include <glm/geometric.hpp>
 #include <cstdlib>
@@ -31,11 +33,16 @@ GameEngine::GameEngine() = default;
 
 GameEngine::~GameEngine() = default;
 
+bool GameEngine::initialize(const std::string& assetPath, rendering::IRenderBackend* backend) {
+    renderBackend_ = backend;
+    return initialize(assetPath);
+}
+
 bool GameEngine::initialize(const std::string& assetPath) {
     if (initialized_) {
         return true;
     }
-    
+
     // Initialize components in order
     if (!initializeAssetManager(assetPath)) {
         return false;
@@ -378,9 +385,14 @@ bool GameEngine::detectMPQFiles(const std::string& directory) {
 }
 
 bool GameEngine::initializeRenderingComponents() {
+    // If a backend was injected, install it as the active backend
+    if (renderBackend_) {
+        d2::rendering::RenderContext::setBackend(renderBackend_);
+    }
+
     // Create renderer
     renderer_ = std::make_unique<d2::rendering::Renderer>();
-    
+
     // Create sprite renderer
     spriteRenderer_ = std::make_unique<d2::rendering::SpriteRenderer>();
     // Initialize sprite renderer (simplified for now)

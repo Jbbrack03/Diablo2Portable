@@ -177,3 +177,10 @@ All detailed technical implementation notes, session summaries, and phase comple
 ---
 
 *This archive was created in January 2025 to manage CLAUDE.md file size while preserving implementation history.*
+
+## Pre-Refactoring Status (Archived March 2026)
+
+The following was the CLAUDE.md content before the M1-M7 refactoring.
+Phase tracking, gap analysis, and status tables were removed to keep CLAUDE.md actionable.
+Refer to git history for the full document.
+

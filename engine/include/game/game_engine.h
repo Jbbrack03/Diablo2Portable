@@ -13,6 +13,7 @@ class AssetManager;
 
 namespace d2 {
 namespace rendering {
+class IRenderBackend;
 class Renderer;
 class WorldRenderer;
 class Camera;
@@ -50,6 +51,7 @@ public:
     }
     
     bool initialize(const std::string& assetPath);
+    bool initialize(const std::string& assetPath, rendering::IRenderBackend* backend);
     
     bool isInitialized() const { return initialized_; }
     bool isRunning() const { return running_; }
@@ -126,6 +128,7 @@ private:
                                const glm::vec2& playerPos) const;
     void processMeleeDamage(const std::shared_ptr<game::Monster>& monster);
     
+    rendering::IRenderBackend* renderBackend_ = nullptr; // Non-owning; lifecycle managed by caller
     bool initialized_ = false;
     bool running_ = false;
     bool actionTriggered_ = false;
